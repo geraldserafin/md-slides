@@ -54,18 +54,18 @@ my-talk/
 
 `slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
 With a single deck the viewer opens it directly; with several it shows a **gallery**: a card per deck with a
-live thumbnail of its first slide, the title and a line with author, date and the number of slides (every animation step counts as a slide, as it does for the audience).
+live thumbnail of its first slide, the title and a line with author, date and the number of slides. The gallery follows the OS light/dark mode and has a toggle (every animation step counts as a slide, as it does for the audience).
 Make the first slide a `layout: cover` slide with a background and the card looks good.
 
 ## Examples
 
-`examples/` has four decks you can read as templates. Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
+`examples/` has four decks you can read as templates (two are `hidden` from the gallery for now). Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
 itself a deck: every feature has a live demonstration on the slide that describes it.
 
 | Deck | Shows |
 | --- | --- |
 | `guide` | the complete guide: sections and frames, every kind of edit, the supported languages, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
-| `refactoring` | TypeScript: types, naming, functional style, Extract Method |
+| `refactoring` | TypeScript: types, naming, functional style, Extract Method. A dark "midnight" look with Computer Modern fonts |
 | `python-idioms` | loops → comprehensions, `Counter`, dataclasses, `with`; light "paper" theme |
 | `monads` | C++: error codes → exceptions → `optional` → `expected` |
 
@@ -174,6 +174,7 @@ Optional, placed in the deck folder:
 | --- | --- |
 | `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
 | `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
+| `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
 | `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `align`, `heading-size`, `layout` |

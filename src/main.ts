@@ -39,7 +39,7 @@ const showLoader = (label = '') => {
 async function chooser() {
   const decks = await loadIndex();
   if (decks.length === 1) return decks[0].name;
-  showGallery(app, decks);
+  showGallery(app, decks.filter((d) => !d.hidden));
   return undefined;
 }
 

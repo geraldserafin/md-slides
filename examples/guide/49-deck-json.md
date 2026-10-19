@@ -17,4 +17,4 @@ Optional, next to the slides.
 }
 ````
 
-<!-- Also supported here: "description" and "order", used by the deck chooser. -->
+<!-- Also supported here: "author", "date", "order", "hidden" and "thumbnail", used by the deck gallery. -->

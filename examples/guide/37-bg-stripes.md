@@ -1,4 +1,5 @@
 ---
+theme: midnight
 background: repeating-linear-gradient(45deg, #14142b 0 24px, #191936 24px 48px)
 ---
 

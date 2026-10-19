@@ -1,4 +1,5 @@
 ---
+theme: midnight
 layout: cover
 background: bg.svg
 ---

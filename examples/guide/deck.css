@@ -1,3 +1,17 @@
-/* Loaded through "css" in deck.json. Slides opt in with `class: spotlight` in their front matter. */
+/* A quiet, book-like look: Computer Modern, generous margins, theme-aware accents. */
+.stage .text { max-width: 44em; margin-inline: auto; }
+.item h1, .item h2, .item h3 { letter-spacing: -0.005em; font-weight: 700; }
+.item p { color: color-mix(in srgb, var(--fg) 90%, transparent); line-height: 1.5; }
+.item ul, .item ol { color: color-mix(in srgb, var(--fg) 90%, transparent); }
+.item code { font-size: 0.86em; }
+.item a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+
+/* covers: a soft wash of the accent color and a short rule under the title */
+.stage.layout-cover { background: radial-gradient(130% 100% at 12% 0%, color-mix(in srgb, var(--accent) 13%, var(--bg)), var(--bg) 62%); }
+.stage.layout-cover .item h1 { font-weight: 700; letter-spacing: -0.015em; }
+.stage.layout-cover .item h1::after { content: ''; display: block; width: 3.2em; height: 2px; margin: 0.55em auto 0.1em; background: var(--accent); opacity: 0.9; }
+.stage.layout-cover .item p { font-style: italic; color: var(--muted); font-size: 1.08em; }
+
+/* `class: spotlight` (used by a guide slide) */
 .stage.spotlight .item h2 { color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
-.stage.spotlight .item p { color: var(--fg); font-size: 1.15em; }
+.stage.spotlight .item p { color: var(--fg); font-size: 1.1em; }

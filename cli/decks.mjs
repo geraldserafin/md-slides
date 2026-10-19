@@ -18,7 +18,7 @@ export function stageDecks(dirs, publicDir) {
     const metaPath = join(dir, 'deck.json');
     const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
     writeFileSync(join(dest, 'manifest.json'), JSON.stringify({ title: name, ...meta, files }, null, 2));
-    decks.push({ name, title: meta.title ?? name, description: meta.description, author: meta.author, date: meta.date, order: meta.order ?? 100 });
+    decks.push({ name, title: meta.title ?? name, description: meta.description, author: meta.author, date: meta.date, hidden: meta.hidden, thumbnail: meta.thumbnail, order: meta.order ?? 100 });
   }
   decks.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
   writeFileSync(join(out, 'index.json'), JSON.stringify({ decks }, null, 2));

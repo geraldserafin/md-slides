@@ -1,6 +1,6 @@
 ---
 background: #2d1b4e
-theme: dark
+theme: midnight
 ---
 
 ## Backgrounds: solid colors

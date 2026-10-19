@@ -20,11 +20,21 @@ export function nextTheme(): string {
   return applyTheme(themeList[(themeList.indexOf(cur) + 1) % themeList.length], true);
 }
 
+/** the OS color scheme: the fallback when neither the URL, a saved choice nor the deck names a theme */
+export const systemTheme = () =>
+  typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
 export function initialTheme(deckTheme?: string): string {
   const q = new URLSearchParams(location.search).get('theme');
   let saved: string | null = null;
   try { saved = localStorage.getItem('slides-theme'); } catch { /* ignore */ }
-  return applyTheme(q ?? saved ?? deckTheme ?? 'dark');
+  return applyTheme(q ?? saved ?? deckTheme ?? systemTheme());
+}
+
+/** light <-> dark for the UI pages (gallery); the choice is remembered */
+export function toggleColorScheme(): string {
+  const light = ['light', 'paper'].includes(document.documentElement.dataset.theme ?? '');
+  return applyTheme(light ? 'dark' : 'light', true);
 }
 
 /** Extra deck stylesheet (deck.json: "css": "theme.css", relative to the deck folder). */

@@ -1,5 +1,6 @@
 {
   "title": "Monads for error handling",
   "description": "C++ error handling with optional and expected",
-  "order": 7
+  "order": 7,
+  "hidden": true
 }

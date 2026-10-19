@@ -12,12 +12,12 @@ export interface Overview {
   readonly closed: boolean;
 }
 
-const THUMB_W = 176;
+const THUMB_W = 268;
 
 export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
   const el = document.createElement('aside');
   el.className = 'drawer';
-  el.innerHTML = `<div class="drawer-head"><span>Slides</span><button class="drawer-close" title="Close (o)">✕</button></div><div class="drawer-list"></div>`;
+  el.innerHTML = `<button class="drawer-close" title="Close (o)">✕</button><div class="drawer-list"></div>`;
   const list = el.querySelector<HTMLElement>('.drawer-list')!;
   document.body.append(el);
 

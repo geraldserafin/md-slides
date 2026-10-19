@@ -4,14 +4,21 @@ import { loadDeck, type Deck } from './deck';
 import { fileUrl } from './files';
 import { Player } from './player';
 import { buildSteps } from './steps';
-import { registerDeckStyle } from './themes';
+import { registerDeckStyle, toggleColorScheme } from './themes';
 
 export interface DeckEntry {
   name: string;
   title: string;
   author?: string;
   date?: string;
+  /** deck.json "hidden": the deck is not listed in the gallery (it is still reachable with ?deck=name) */
+  hidden?: boolean;
+  /** deck.json "thumbnail": an image (relative to the deck folder) shown instead of the live first slide */
+  thumbnail?: string;
 }
+
+const SUN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -25,12 +32,17 @@ export function showGallery(app: HTMLElement, entries: DeckEntry[]) {
   app.innerHTML = `
     <div class="gallery">
       <header>
-        <h1>slides</h1>
-        <p>Markdown presentations with code transitions animated by an AST diff</p>
+        <div>
+          <h1>slides</h1>
+          <p>Markdown presentations with code transitions animated by an AST diff</p>
+        </div>
+        <button class="scheme-toggle" title="Light / dark" aria-label="Toggle light and dark mode"></button>
       </header>
       <div class="cards">${entries.map((d) => `
         <a class="card" href="?deck=${encodeURIComponent(d.name)}" data-deck="${esc(d.name)}">
-          <div class="card-thumb"><div class="frame"></div></div>
+          <div class="card-thumb">${d.thumbnail
+            ? `<img src="${esc(fileUrl(`decks/${d.name}/${d.thumbnail}`))}" alt="">`
+            : '<div class="frame"></div>'}</div>
           <div class="card-body">
             <h2>${esc(d.title)}</h2>
             <div class="card-meta">${esc([d.author, d.date].filter(Boolean).join(' · '))}</div>
@@ -38,6 +50,13 @@ export function showGallery(app: HTMLElement, entries: DeckEntry[]) {
         </a>`).join('')}
       </div>
     </div>`;
+
+  const toggle = app.querySelector<HTMLElement>('.scheme-toggle')!;
+  const paint = () => {
+    toggle.innerHTML = ['light', 'paper'].includes(document.documentElement.dataset.theme ?? '') ? MOON : SUN;
+  };
+  paint();
+  toggle.onclick = () => { toggleColorScheme(); paint(); };
 
   for (const d of entries) {
     const card = app.querySelector<HTMLElement>(`.card[data-deck="${CSS.escape(d.name)}"]`)!;
@@ -52,8 +71,12 @@ async function fillCard(card: HTMLElement, entry: DeckEntry) {
   const meta = [entry.author, entry.date, plural(countSteps(deck), 'slide')].filter(Boolean).join(' · ');
   card.querySelector('.card-meta')!.textContent = meta;
 
-  // thumbnail: a real Player showing the first slide, scaled down
   registerDeckStyle(deck.meta, new URL(`decks/${entry.name}/`, document.baseURI).href);
+  if (entry.thumbnail) {
+    card.querySelector('.card-thumb')!.classList.add('ready');
+    return;
+  }
+  // thumbnail: a real Player showing the first slide, scaled down
   const first: Deck = { ...deck, slides: deck.slides.slice(0, 1) };
   const steps = await buildSteps(first);
   const thumb = card.querySelector<HTMLElement>('.card-thumb')!;

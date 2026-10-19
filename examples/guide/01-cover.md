@@ -1,6 +1,5 @@
 ---
 layout: cover
-background: linear-gradient(135deg, #14142b, #1b2a49 55%, #12506b)
 ---
 
 # slides: the guide

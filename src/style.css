@@ -133,16 +133,15 @@ body.show-help::after { opacity: 1; }
 
 /* ---- slide drawer (overview) ---------------------------------------------------- */
 .drawer {
-  position: fixed; top: 0; left: 0; bottom: 0; width: 244px; z-index: 50; display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; width: 332px; z-index: 50; display: flex; flex-direction: column;
   background: color-mix(in srgb, var(--code-bg) 92%, transparent); backdrop-filter: blur(12px);
   box-shadow: 6px 0 28px #0006; transform: translateX(-104%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   color: var(--fg); font-size: 13px;
 }
 .drawer.open { transform: none; }
-.drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
-.drawer-close { all: unset; cursor: pointer; padding: 2px 6px; border-radius: 4px; color: var(--muted); }
+.drawer-close { all: unset; cursor: pointer; position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); z-index: 2; font-size: 13px; }
 .drawer-close:hover { background: #ffffff14; color: var(--fg); }
-.drawer-list { flex: 1; overflow: auto; padding: 4px 14px 28px 8px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
+.drawer-list { flex: 1; overflow: auto; padding: 22px 18px 28px 10px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
 .drawer .cell { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
 .drawer .num { width: 1.9em; text-align: right; color: var(--muted); font-size: 12px; padding-top: 3px; font-variant-numeric: tabular-nums; flex: none; }
 .drawer .thumb { position: relative; display: block; overflow: hidden; border-radius: 5px; background: var(--bg); box-shadow: 0 0 0 1px #ffffff1a; flex: none; transition: box-shadow 0.15s; }
@@ -194,7 +193,9 @@ body.print-mode #app { position: static; }
 
 /* ---- deck gallery ----------------------------------------------------------- */
 .gallery { position: absolute; inset: 0; overflow: auto; padding: 56px clamp(24px, 5vw, 80px) 80px; }
-.gallery > header { margin: 0 0 36px; }
+.gallery > header { margin: 0 0 36px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.scheme-toggle { all: unset; cursor: pointer; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--muted); transition: background 0.15s, color 0.15s; flex: none; }
+.scheme-toggle:hover { background: color-mix(in srgb, var(--fg) 10%, transparent); color: var(--fg); }
 .gallery > header h1 { margin: 0; font-size: clamp(28px, 4vmin, 44px); font-weight: 650; letter-spacing: -0.02em; color: var(--heading); }
 .gallery > header p { margin: 6px 0 0; color: var(--muted); font-size: clamp(14px, 1.8vmin, 18px); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 40px 32px; }
@@ -209,6 +210,7 @@ body.print-mode #app { position: static; }
   pointer-events: none; opacity: 0; transition: opacity 0.4s ease;
 }
 .card-thumb.ready .frame { opacity: 1; }
+.card-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card-body h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--heading); }
 .card-meta { margin-top: 3px; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
 
@@ -225,7 +227,8 @@ body.print-mode #app { position: static; }
 /* ---- header / footer bars (deck.json) ---------------------------------------- */
 .bar {
   position: absolute; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
-  padding: 0 clamp(16px, 3vw, 40px); font-size: 0.8rem; color: var(--muted); pointer-events: none;
+  padding: 0 clamp(24px, 5vw, 72px); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--muted); pointer-events: none;
+  font-variant-numeric: tabular-nums;
 }
 .bar[hidden] { display: none; }
 .bar-header { top: 0; } .bar-footer { bottom: 0; }
@@ -233,7 +236,7 @@ body.print-mode #app { position: static; }
 .bar.bordered.bar-footer { border-top: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
 .bar .slot { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
 .bar .slot.center { justify-content: center; } .bar .slot.right { justify-content: flex-end; }
-.bar .slot img { height: var(--bar-img-h, 24px); width: auto; display: block; }
+.bar .slot img { height: var(--bar-img-h, 24px); width: auto; display: block; opacity: 0.8; }
 .own-counter .counter { display: none; }
 
 /* ---- loading spinner -------------------------------------------------------------- */
@@ -258,3 +261,7 @@ body.print-mode #app { position: static; }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
 .stage[data-align="right"] .item ul, .stage[data-align="right"] .item ol { list-style-position: inside; padding-left: 0; }
 .stage[data-align="center"] .item ul, .stage[data-align="center"] .item ol { list-style-position: inside; padding-left: 0; }
+
+/* deck variables live on the player root, so text must take its font from them, not from <body> */
+.stage, .bar { font-family: var(--font-text); }
+.stage { font-size: var(--text-size); }

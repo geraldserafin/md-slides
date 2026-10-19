@@ -51,7 +51,9 @@ export interface AnimationOpts {
 
 export interface DeckMeta {
   title?: string;
-  description?: string; // shown in the deck gallery
+  description?: string;
+  hidden?: boolean; // not listed in the gallery
+  thumbnail?: string; // gallery image instead of the live first slide
   author?: string;
   date?: string;
   /** front matter applied to every slide unless the slide sets its own, e.g. {"align": "left"} */

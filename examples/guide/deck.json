@@ -2,9 +2,41 @@
   "title": "slides: the guide",
   "description": "Everything the tool can do, made with the tool itself",
   "order": 0,
-  "theme": "dark",
+  "theme": "ink",
   "css": "deck.css",
   "themes": {
+    "ink": {
+      "--bg": "#fbfaf6",
+      "--fg": "#2b2e36",
+      "--heading": "#11131a",
+      "--muted": "#7a7d87",
+      "--accent": "#3a5ba0",
+      "--tok-keyword": "#a23b72",
+      "--tok-ident": "#23262e",
+      "--tok-property": "#2f6690",
+      "--tok-type": "#8a6d1f",
+      "--tok-builtin": "#b0572a",
+      "--tok-comment": "#9a9ca5",
+      "--tok-punct": "#8c8f99",
+      "--tok-plain": "#3a3d46",
+      "--code-bg": "#f1eee6"
+    },
+    "midnight": {
+      "--bg": "#12141b",
+      "--fg": "#c5c9d4",
+      "--heading": "#f3efe6",
+      "--muted": "#7b8294",
+      "--accent": "#e3b06a",
+      "--tok-keyword": "#e3a76f",
+      "--tok-ident": "#e9e6dd",
+      "--tok-property": "#86b4dc",
+      "--tok-type": "#d6c28a",
+      "--tok-builtin": "#c58fa8",
+      "--tok-comment": "#5f677a",
+      "--tok-punct": "#6d7587",
+      "--tok-plain": "#b7bbc7",
+      "--code-bg": "#0c0e13"
+    },
     "sunset": {
       "--bg": "#2a1b2e",
       "--fg": "#f0d4c0",
@@ -44,14 +76,51 @@
     "fade": 0.3,
     "textTransition": "fade"
   },
-  "author": "slides",
   "footer": {
     "left": [
       "logo.svg",
-      "slides · the guide"
+      "slides — the guide"
     ],
     "right": "{slide} / {slides}",
-    "height": 42,
-    "border": true
+    "height": 48
+  },
+  "fonts": [
+    {
+      "family": "CM Serif",
+      "src": "fonts/KaTeX_Main-Regular.woff2",
+      "weight": "400",
+      "style": "normal"
+    },
+    {
+      "family": "CM Serif",
+      "src": "fonts/KaTeX_Main-Bold.woff2",
+      "weight": "700",
+      "style": "normal"
+    },
+    {
+      "family": "CM Serif",
+      "src": "fonts/KaTeX_Main-Italic.woff2",
+      "weight": "400",
+      "style": "italic"
+    },
+    {
+      "family": "CM Serif",
+      "src": "fonts/KaTeX_Main-BoldItalic.woff2",
+      "weight": "700",
+      "style": "italic"
+    },
+    {
+      "family": "CM Typewriter",
+      "src": "fonts/KaTeX_Typewriter-Regular.woff2",
+      "weight": "400",
+      "style": "normal"
+    }
+  ],
+  "vars": {
+    "--font-text": "\"CM Serif\", \"Latin Modern Roman\", Georgia, serif",
+    "--font-heading": "\"CM Serif\", \"Latin Modern Roman\", Georgia, serif",
+    "--font-code": "\"CM Typewriter\", ui-monospace, Menlo, monospace",
+    "--text-size": "clamp(19px, 2.8vmin, 36px)",
+    "--heading-size": "clamp(32px, 5.4vmin, 68px)"
   }
 }
