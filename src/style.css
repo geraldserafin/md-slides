@@ -41,7 +41,7 @@
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
 body { font-family: var(--font-text); font-size: var(--text-size); }
 /* the drawer pushes the slide aside by scaling it (no re-layout, so nothing jumps): --ds / --dy are set from main.ts */
-#app { position: fixed; inset: 0; transform-origin: 0 0; transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+#app { position: fixed; inset: 0; transform-origin: 0 0; }
 body.drawer-open #app { transform: translate(316px, var(--dy, 0px)) scale(var(--ds, 1)); }
 
 .stage {
@@ -135,7 +135,7 @@ body.show-help::after { opacity: 1; }
 }
 
 /* ---- slide layouts (front matter: layout: side) ------------------------- */
-#app { background: var(--bg); color: var(--fg); transition: background-color 0.3s ease; }
+#app { background: var(--bg); color: var(--fg); transition: background-color 0.3s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
 .bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity var(--fade-dur) ease; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
