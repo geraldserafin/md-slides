@@ -257,9 +257,13 @@ export class Player {
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
     // keep the current opacity (the text may still be fading in when the user navigates again)
     const opacity = getComputedStyle(old).opacity;
-    old.classList.add('leaving');
+    // measure BEFORE `.leaving` (position: absolute shrinks the box to its content)
     // +1 on the width: offsetWidth rounds down, which can re-wrap the text
-    old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth + 1}px;opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
+    // as an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it
+    const m = old.firstElementChild ? parseFloat(getComputedStyle(old.firstElementChild).marginTop) || 0 : 0;
+    const box = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop - m}px;width:${old.offsetWidth + 1}px`;
+    old.classList.add('leaving');
+    old.style.cssText = `${box};opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
     ghost.append(old);
     this.stage.after(ghost);
     void old.offsetWidth;
