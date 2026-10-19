@@ -203,7 +203,9 @@ body.print-mode #app { position: static; }
 .gallery > header p { margin: 6px 0 0; color: var(--muted); font-size: clamp(14px, 1.8vmin, 18px); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-w, 340px), 1fr)); gap: 40px 32px; }
 .gallery .logo { display: block; height: clamp(28px, 5vmin, 52px); margin: 0 0 14px; }
-.gallery.align-center > header .titles { flex: 1; text-align: center; padding-inline: 38px; } /* balances the 38px light/dark button on the right */
+.gallery.align-center > header { position: relative; display: block; }
+.gallery.align-center > header .titles { text-align: center; }
+.gallery.align-center .scheme-toggle { position: absolute; right: 0; top: 0; } /* out of the flow, so the title centers on the page */
 .gallery.align-center > header .logo { margin-inline: auto; }
 .gallery > footer { margin-top: 56px; color: var(--muted); font-size: 0.85rem; }
 .gallery.align-center > footer { text-align: center; }
@@ -307,3 +309,6 @@ body.print-mode #app { position: static; }
 .item + .item-h1 { margin-top: calc(var(--heading-size) * 1.1); }
 .item + .item-h2 { margin-top: calc(var(--heading-size) * 0.8); }
 .item + .item-h3 { margin-top: calc(var(--heading-size) * 0.55); }
+/* a centered hub: the cards wrap and sit in the middle too */
+.gallery.align-center .cards { display: flex; flex-wrap: wrap; justify-content: center; }
+.gallery.align-center .card { flex: 0 1 var(--card-w, 380px); }

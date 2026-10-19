@@ -80,6 +80,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | `logo` | an image above the title |
 | `footer` | a line of small text at the bottom |
 | `theme` | start theme: `dark`, `light`, `paper` or one of your own `themes` (a visitor's saved choice wins) |
+| `schemes` | `{ "light": ..., "dark": ... }`: your own themes for the toggle to switch between (default: the built-in `light` and `dark`) |
 | `themes`, `fonts`, `googleFonts`, `css` | like in `deck.json`: your own colors, fonts and an extra stylesheet for the page |
 | `align` | `start` (default) or `center` for the header and footer |
 | `cardWidth` | minimum card width in px (default 340) |
@@ -303,6 +304,7 @@ Optional, placed in the deck folder:
 | Key | Purpose |
 | --- | --- |
 | `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
+| `schemes` | `{ "light": "ink", "dark": "midnight" }`: the themes for light and dark mode. The deck starts in the one matching the OS (or the hub's light/dark toggle), and its card in the hub follows the toggle; `theme` is the fallback |
 | `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
 | `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
 | `css` | extra stylesheet, relative to the deck folder |

@@ -66,12 +66,12 @@ async function main() {
   if (!name) return;
   showLoader('Loading…');
   const deck = await loadDeck(name);
-  initialTheme(deck.meta.theme);
+  initialTheme(deck.meta.theme, deck.meta.schemes);
   if (deck.meta.css) loadDeckCss(new URL(`decks/${name}/${deck.meta.css}`, document.baseURI).href);
   document.title = deck.meta.title ?? name;
 
   registerDeckStyle(deck.meta, new URL(`decks/${name}/`, document.baseURI).href);
-  initialTheme(deck.meta.theme);
+  initialTheme(deck.meta.theme, deck.meta.schemes);
   showLoader('Preparing code…');
   await preloadDeckFonts(deck.meta);
   const steps = await buildSteps(deck);

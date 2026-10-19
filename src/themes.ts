@@ -24,17 +24,34 @@ export function nextTheme(): string {
 export const systemTheme = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 
-export function initialTheme(deckTheme?: string): string {
+/** a deck's (or the hub's) themes for light and dark mode: deck.json "schemes": { "light": "ink", "dark": "midnight" } */
+export type Schemes = { light?: string; dark?: string };
+
+let schemeDefault: 'light' | 'dark' | undefined;
+/** the page's starting color scheme when the visitor has not chosen one (e.g. from the hub's own theme) */
+export const setSchemeDefault = (s: 'light' | 'dark') => { schemeDefault = s; };
+
+/** light or dark: the visitor's choice (the hub's toggle), else the page's default, else the OS */
+export function colorScheme(): 'light' | 'dark' {
+  try {
+    const s = localStorage.getItem('slides-scheme');
+    if (s === 'light' || s === 'dark') return s;
+  } catch { /* private mode */ }
+  return schemeDefault ?? systemTheme();
+}
+
+export function setColorScheme(s: 'light' | 'dark') {
+  try { localStorage.setItem('slides-scheme', s); } catch { /* ignore */ }
+}
+
+/** the theme to use for a deck: its theme for the current color scheme, else its `theme`, else plain light/dark */
+export const themeFor = (theme?: string, schemes?: Schemes) => schemes?.[colorScheme()] ?? theme ?? colorScheme();
+
+export function initialTheme(deckTheme?: string, schemes?: Schemes): string {
   const q = new URLSearchParams(location.search).get('theme');
   let saved: string | null = null;
   try { saved = localStorage.getItem('slides-theme'); } catch { /* ignore */ }
-  return applyTheme(q ?? saved ?? deckTheme ?? systemTheme());
-}
-
-/** light <-> dark for the UI pages (gallery); the choice is remembered */
-export function toggleColorScheme(): string {
-  const light = ['light', 'paper'].includes(document.documentElement.dataset.theme ?? '');
-  return applyTheme(light ? 'dark' : 'light', true);
+  return applyTheme(q ?? saved ?? themeFor(deckTheme, schemes));
 }
 
 /** Load every font the deck declares before the first slide is laid out; a late swap would make text reflow (and everything under it jump). */

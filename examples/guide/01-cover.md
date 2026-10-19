@@ -1,5 +1,8 @@
 ---
 layout: cover
+halign: center
+valign: center
+justify: false
 ---
 
 # slides: the guide

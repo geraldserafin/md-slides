@@ -3,6 +3,10 @@
   "description": "Everything the tool can do, made with the tool itself",
   "order": 0,
   "theme": "ink",
+  "schemes": {
+    "light": "ink",
+    "dark": "midnight"
+  },
   "css": "deck.css",
   "themes": {
     "ink": {

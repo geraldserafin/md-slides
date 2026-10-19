@@ -96,6 +96,8 @@ export interface DeckMeta {
   header?: ChromeBar;
   footer?: ChromeBar;
   theme?: string;
+  /** themes for light and dark mode: the hub's toggle (and the OS) pick between them */
+  schemes?: { light?: string; dark?: string };
   css?: string;
   /** deck-wide CSS variables, e.g. {"--accent": "#f00", "--font-text": "Georgia"} */
   vars?: Record<string, string>;

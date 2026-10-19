@@ -4,7 +4,7 @@ import { loadDeck, type Deck } from './deck';
 import { fileUrl } from './files';
 import { Player } from './player';
 import { buildSteps } from './steps';
-import { initialTheme, loadDeckCss, registerDeckStyle, toggleColorScheme } from './themes';
+import { applyTheme, colorScheme, initialTheme, loadDeckCss, registerDeckStyle, setColorScheme, setSchemeDefault, themeFor, type Schemes } from './themes';
 
 /** hub.json (next to the deck folders): customizes the chooser page */
 export interface HubMeta {
@@ -16,6 +16,8 @@ export interface HubMeta {
   footer?: string;
   /** start theme: dark, light, paper or one of `themes` (a visitor's own choice wins) */
   theme?: string;
+  /** themes for light and dark mode (the toggle switches between them) */
+  schemes?: Schemes;
   themes?: Record<string, Record<string, string>>;
   fonts?: { family: string; src: string; weight?: string; style?: string }[];
   googleFonts?: string[];
@@ -51,6 +53,9 @@ const MOON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
+/** one per card: re-applies the deck's theme for the current color scheme */
+const rethemers: (() => void)[] = [];
+
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /** to the audience every animation step looks like a slide of its own, so that is what we count */
@@ -61,7 +66,10 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
   const base = new URL(HUB_BASE, document.baseURI).href;
   registerDeckStyle(hub, base);
   if (hub.css) loadDeckCss(new URL(hub.css, base).href);
-  initialTheme(hub.theme);
+  const lightThemes = ['light', 'paper', hub.schemes?.light];
+  if (hub.theme) setSchemeDefault(lightThemes.includes(hub.theme) ? 'light' : 'dark');
+  initialTheme(hub.theme, hub.schemes);
+  rethemers.length = 0;
   const title = hub.title ?? 'slides';
   document.title = title;
   const rank = (d: DeckEntry) => { const i = hub.order?.indexOf(d.name) ?? -1; return i < 0 ? Infinity : i; };
@@ -93,11 +101,15 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
 
   const toggle = app.querySelector<HTMLElement>('.scheme-toggle');
   if (toggle) {
-    const paint = () => {
-      toggle.innerHTML = ['light', 'paper'].includes(document.documentElement.dataset.theme ?? '') ? MOON : SUN;
-    };
+    const paint = () => { toggle.innerHTML = colorScheme() === 'light' ? MOON : SUN; };
     paint();
-    toggle.onclick = () => { toggleColorScheme(); paint(); };
+    toggle.onclick = () => {
+      const next = colorScheme() === 'light' ? 'dark' : 'light';
+      setColorScheme(next);
+      applyTheme(hub.schemes?.[next] ?? next);
+      rethemers.forEach((f) => f()); // the decks' thumbnails follow
+      paint();
+    };
   }
 
   for (const d of entries) {
@@ -128,7 +140,8 @@ async function fillCard(card: HTMLElement, entry: DeckEntry, show: HubMeta['show
   const H = 720;
   frame.style.cssText = `width:${W}px;height:${H}px`;
   new ResizeObserver(() => { frame.style.transform = `scale(${thumb.clientWidth / W})`; }).observe(thumb);
-  await new Player(frame, first, steps, { theme: deck.meta.theme }).start(steps.length - 1); // everything revealed
+  await new Player(frame, first, steps, { theme: themeFor(deck.meta.theme, deck.meta.schemes) }).start(steps.length - 1); // everything revealed
+  rethemers.push(() => { frame.dataset.theme = themeFor(deck.meta.theme, deck.meta.schemes); });
   thumb.classList.add('ready');
 }
 

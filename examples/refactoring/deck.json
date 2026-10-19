@@ -3,6 +3,10 @@
   "description": "TypeScript refactoring: types, naming, functional style",
   "order": 2,
   "theme": "midnight",
+  "schemes": {
+    "light": "ink",
+    "dark": "midnight"
+  },
   "css": "deck.css",
   "themes": {
     "ink": {

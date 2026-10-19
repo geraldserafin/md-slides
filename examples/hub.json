@@ -1,6 +1,10 @@
 {
-  "title": "slides",
-  "subtitle": "Markdown presentations whose code transitions are animated by an AST diff",
-  "footer": "Press → in any deck to start · o for the slide drawer",
-  "order": ["guide", "refactoring"]
+  "title": "Code in motion",
+  "subtitle": "Presentations where every edit to the code is animated as an AST diff. Write markdown, press →.",
+  "footer": "Open a deck, then press → to play it · o for the slide drawer · t to switch themes",
+  "align": "center",
+  "order": [
+    "guide",
+    "refactoring"
+  ]
 }
