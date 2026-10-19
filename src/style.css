@@ -355,3 +355,20 @@ body.zoomed .drawer-btn { display: none; }
 .item[data-anim='pop']:not(.pending) { animation: pop var(--anim-dur, 0.55s) cubic-bezier(0.2, 1.4, 0.4, 1) var(--anim-delay, 0s) both; }
 .item.pending[data-anim='pop'] { transform: scale(0.7); }
 @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* charts (src/chart.ts) */
+.chart-box { max-width: 100%; }
+.chart { display: block; width: 100%; height: auto; font-family: var(--font-text); }
+.chart text { fill: var(--fg); font-size: 14px; }
+.chart .chart-title { font-size: 17px; font-weight: 600; fill: var(--heading); }
+.chart .chart-tick, .chart .chart-label { fill: var(--muted); }
+.chart .chart-value { font-weight: 600; }
+.chart .chart-grid { stroke: color-mix(in srgb, var(--muted) 30%, transparent); stroke-width: 1; }
+.item:not(.pending) .chart-bar { transform-box: fill-box; transform-origin: bottom; animation: chart-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.item:not(.pending) .chart-line { stroke-dasharray: 1; animation: chart-draw 0.9s ease-out both; }
+.item:not(.pending) .chart-dot { animation: chart-fade 0.5s ease-out 0.5s both; }
+.item:not(.pending) .chart-slice { transform-box: fill-box; transform-origin: center; animation: chart-pop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes chart-grow { from { transform: scaleY(0); } }
+@keyframes chart-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes chart-fade { from { opacity: 0; } }
+@keyframes chart-pop { from { transform: scale(0.6); opacity: 0; } }

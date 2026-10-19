@@ -6,6 +6,7 @@
 // HTML comments => presenter notes.
 import { marked, type Token, type Tokens } from 'marked';
 import katex from 'katex';
+import { renderChart } from './chart';
 import { fileUrl } from './files';
 import type { ChromeBar } from './chrome';
 import { langFromTag, type Lang } from './parse';
@@ -359,6 +360,10 @@ export function parseSlide(markdown: string, url: string): Slide {
     if (tok.type === 'code') {
       const code = tok as Tokens.Code;
       const f = parseFence(code.lang ?? '');
+      if (f.tag.toLowerCase() === 'chart') {
+        add({ kind: 'html', html: `<div class="chart-box" style="${f.attrs.opts.width ? `width:${f.attrs.opts.width}` : ''}">${renderChart(code.text, f.attrs.opts)}</div>`, tag: 'chart' });
+        continue;
+      }
       if (f.tag.toLowerCase() === 'mermaid') {
         add({ kind: 'diagram', text: code.text, attrs: f.attrs });
         continue;
