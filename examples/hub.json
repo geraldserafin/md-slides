@@ -1,8 +1,6 @@
 {
   "title": "Code in motion",
   "subtitle": "Presentations where every edit to the code is animated as an AST diff. Write markdown, press →.",
-  "footer": "Open a deck, then press → to play it · o for the slide drawer · t to switch themes",
-  "align": "center",
   "order": [
     "guide",
     "refactoring"

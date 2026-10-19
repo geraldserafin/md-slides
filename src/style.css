@@ -312,3 +312,9 @@ body.print-mode #app { position: static; }
 /* a centered hub: the cards wrap and sit in the middle too */
 .gallery.align-center .cards { display: flex; flex-wrap: wrap; justify-content: center; }
 .gallery.align-center .card { flex: 0 1 var(--card-w, 380px); }
+
+/* the deck's first appearance (Player.start(…, true)): the slide rises and fades in, the bars and counter a beat later */
+.intro .stage { opacity: 0; transform: translateY(2.2vmin); }
+.intro .bar, .intro .hud { opacity: 0; }
+.intro-run .stage { transition: opacity 0.9s ease, transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.intro-run .bar, .intro-run .hud { transition: opacity 0.9s ease 0.35s; }

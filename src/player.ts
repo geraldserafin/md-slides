@@ -168,12 +168,19 @@ export class Player {
     probe.remove();
   }
 
-  async start(initial: number) {
+  /** `intro`: the first slide rises and fades in instead of just being there (the loaded deck, not thumbnails) */
+  async start(initial: number, intro = false) {
     const family = getComputedStyle(this.stage).getPropertyValue('--font-code').trim() || 'monospace';
     await document.fonts.load(`${REF_FONT}px ${family}`).catch(() => []);
     await document.fonts.ready;
     this.measureChar();
+    if (intro) this.root.classList.add('intro');
     this.go(initial, true);
+    if (intro) {
+      void this.root.offsetWidth; // commit the hidden state, then let the transition run
+      this.root.classList.replace('intro', 'intro-run');
+      setTimeout(() => this.root.classList.remove('intro-run'), 1400);
+    }
   }
 
   go(i: number, instant = false) {

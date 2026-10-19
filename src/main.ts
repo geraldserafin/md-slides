@@ -105,7 +105,7 @@ async function main() {
     hideTimer = window.setTimeout(() => document.body.classList.remove('pointer-active'), 2500);
   });
   const fromHash = parseInt(location.hash.slice(1), 10);
-  await player.start(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+  await player.start(Number.isFinite(fromHash) ? fromHash - 1 : 0, true);
   overview = createOverview(deck, steps, player.state().slide, (i) => player.go(i)); // built in the background
   addEventListener('hashchange', () => {
     const n = parseInt(location.hash.slice(1), 10);
