@@ -115,6 +115,8 @@ export class Player {
     const first = this.idx < 0;
     this.idx = j;
     const step = this.steps[j];
+    // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
+    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
     this.advance(step, first || instant);
@@ -237,20 +239,31 @@ export class Player {
     if (opts.height) media.style.height = opts.height;
   }
 
+  /**
+   * Moves the current text into a "ghost" copy of the current stage (same layout classes, inline
+   * variables and theme), pinned at its current pixel position, and fades it out there. The ghost
+   * keeps the old look no matter how the stage changes for the next slide.
+   */
+  private leaveText(instant: boolean) {
+    const old = this.textEl;
+    if (!old) return;
+    this.textEl = undefined;
+    if (instant) { old.remove(); return; }
+    const ghost = document.createElement('div');
+    ghost.className = `${this.stage.className} ghost`;
+    ghost.style.cssText = this.stage.style.cssText;
+    ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
+    old.classList.add('leaving');
+    old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth + 1}px`; // +1: offsetWidth rounds down, which can re-wrap the text
+    ghost.append(old);
+    this.stage.after(ghost);
+    requestAnimationFrame(() => (old.style.opacity = '0'));
+    setTimeout(() => ghost.remove(), 500);
+  }
+
   private swapText(step: Step, instant: boolean) {
     if (this.textSection === step.sectionIndex) return;
     this.textSection = step.sectionIndex;
-    const old = this.textEl;
-    if (old) {
-      old.classList.add('leaving');
-      old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth}px`;
-      this.stage.append(old);
-      if (instant) old.remove();
-      else {
-        requestAnimationFrame(() => (old.style.opacity = '0'));
-        setTimeout(() => old.remove(), 500);
-      }
-    }
     const el = document.createElement('div');
     el.className = 'text';
     for (const it of step.section.items) el.append(this.renderItem(it));

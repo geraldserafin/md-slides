@@ -48,6 +48,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 .stage.centered .text { text-align: center; }
 
 .text { transition: opacity var(--fade-dur) ease; }
+.ghost { pointer-events: none; }
 .text.leaving { position: absolute; pointer-events: none; transition: opacity var(--fade-dur) ease; }
 .item { margin: 0.3em 0; }
 .item > :first-child { margin-top: 0; }
