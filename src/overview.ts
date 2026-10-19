@@ -60,7 +60,7 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
     if (i === sel) return;
     sel = i;
     cells.forEach((c, k) => c.classList.toggle('sel', k === sel));
-    cells[sel]?.scrollIntoView({ block: 'nearest', behavior: first ? 'instant' : 'smooth' });
+    cells[sel]?.scrollIntoView({ block: first ? 'center' : 'nearest', behavior: first ? 'instant' : 'smooth' });
     first = false;
   };
   setCurrent(currentSlide);
