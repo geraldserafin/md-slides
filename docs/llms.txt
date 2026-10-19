@@ -109,5 +109,5 @@ l laser · d draw · z magnifier · b black screen · a autoplay · h help.
 
 ## Links
 
-- Full manual for models: llms-full.txt (README + the guide deck's slides)
+- Full manual for models: llms-full.txt (README + the slides of the manual decks)
 - Source and README: https://github.com/geraldserafin/md-slides

@@ -35,6 +35,8 @@ export interface HubMeta {
   show?: ('author' | 'date' | 'slides')[];
   /** deck names, first to last; decks not listed follow in their usual order */
   order?: string[];
+  /** sections of the page, each with a heading: decks not named in any group follow in a last, untitled one */
+  groups?: { title: string; subtitle?: string; decks: string[] }[];
   /** false hides the light/dark button */
   colorToggle?: boolean;
 }
@@ -79,6 +81,20 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
   const rank = (d: DeckEntry) => { const i = hub.order?.indexOf(d.name) ?? -1; return i < 0 ? Infinity : i; };
   const entries = [...listed].sort((a, b) => rank(a) - rank(b)); // stable: the rest keeps its order
   const subtitle = hub.subtitle ?? (hub.title ? '' : 'Markdown presentations with code transitions animated by an AST diff');
+  const card = (d: DeckEntry) => `<a class="card" href="?deck=${encodeURIComponent(d.name)}" data-deck="${esc(d.name)}">
+          <div class="card-thumb">${d.thumbnail
+            ? `<img src="${esc(fileUrl(`decks/${d.name}/${d.thumbnail}`))}" alt="">`
+            : '<div class="frame"></div>'}</div>
+          <div class="card-body">
+            <h2>${esc(d.title)}</h2>
+            <div class="card-meta">${esc((hub.show ?? ['author', 'date']).filter((k) => k !== 'slides').map((k) => d[k as 'author' | 'date']).filter(Boolean).join(' · '))}</div>
+          </div>
+        </a>`;
+  const named = new Set((hub.groups ?? []).flatMap((gr) => gr.decks));
+  const sections: { title?: string; subtitle?: string; entries: DeckEntry[] }[] = hub.groups
+    ? [...hub.groups.map((gr) => ({ title: gr.title, subtitle: gr.subtitle, entries: gr.decks.map((n) => entries.find((e) => e.name === n)).filter((e): e is DeckEntry => !!e) })),
+       { entries: entries.filter((e) => !named.has(e.name)) }].filter((sec) => sec.entries.length)
+    : [{ entries }];
   app.innerHTML = `
     <div class="gallery align-${hub.align ?? 'start'}" style="${esc([hub.cardWidth ? `--card-w:${hub.cardWidth}px` : '', ...Object.entries(hub.vars ?? {}).map(([k, v]) => `${k}:${v}`)].filter(Boolean).join(';'))}">
       ${hub.colorToggle === false ? '' : '<button class="hub-toggle" title="Light / dark" aria-label="Toggle light and dark mode"></button>'}
@@ -89,17 +105,8 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
           ${subtitle ? `<p>${esc(subtitle)}</p>` : ''}
         </div>
       </header>
-      <div class="cards">${entries.map((d) => `
-        <a class="card" href="?deck=${encodeURIComponent(d.name)}" data-deck="${esc(d.name)}">
-          <div class="card-thumb">${d.thumbnail
-            ? `<img src="${esc(fileUrl(`decks/${d.name}/${d.thumbnail}`))}" alt="">`
-            : '<div class="frame"></div>'}</div>
-          <div class="card-body">
-            <h2>${esc(d.title)}</h2>
-            <div class="card-meta">${esc((hub.show ?? ['author', 'date']).filter((k) => k !== 'slides').map((k) => d[k as 'author' | 'date']).filter(Boolean).join(' · '))}</div>
-          </div>
-        </a>`).join('')}
-      </div>
+      ${sections.map((sec) => `
+        <section class="group">${sec.title ? `<h2 class="group-title">${esc(sec.title)}</h2>${sec.subtitle ? `<p class="group-sub">${esc(sec.subtitle)}</p>` : ''}` : ''}<div class="cards">${sec.entries.map(card).join('')}</div></section>`).join('')}
       <footer>${[hub.footer ? esc(hub.footer) : '', ...(hub.links ?? []).map((l) => `<a href="${esc(l.href)}">${esc(l.text)}</a>`), 'Made by <a href="https://github.com/geraldserafin">Gerald Serafin</a>'].filter(Boolean).join(' · ')}</footer>
     </div>`;
 

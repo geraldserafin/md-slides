@@ -1,0 +1,12 @@
+---
+layout: cover
+halign: center
+valign: center
+justify: false
+transition: zoom
+background: radial-gradient(circle at 50% 30%, #6fd3ff 0%, #1b3a5b 45%, #0b1320 100%)
+---
+
+# Blue Lagoon
+
+The last evening, in 38 degrees of milky blue water.

@@ -250,8 +250,11 @@ body.print-mode #app { position: static; }
 .gallery.align-center > header { display: block; }
 .gallery.align-center > header .titles { text-align: center; }
 .gallery.align-center > header .logo { margin-inline: auto; }
-.gallery > footer { margin-top: auto; padding-top: 56px; color: var(--muted); font-size: 0.85rem; } /* at the very bottom of the page, however short the list */
-.gallery.align-center > footer { text-align: center; }
+.gallery > footer { margin-top: auto; padding-top: 56px; color: var(--muted); font-size: 0.85rem; text-align: center; } /* at the very bottom of the page, however short the list */
+.group + .group, .group:not(:first-of-type) { margin-top: 48px; }
+.group-title { margin: 0 0 6px; font-family: var(--font-heading); font-size: clamp(20px, 2.6vmin, 28px); font-weight: 700; color: var(--heading); }
+.group-sub { margin: 0 0 18px; color: var(--muted); font-size: clamp(14px, 1.8vmin, 18px); }
+.group-title + .cards, .group-sub + .cards { margin-top: 18px; }
 .card { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--fg); outline: none; }
 .card-thumb {
   position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: var(--code-bg);

@@ -1,7 +1,7 @@
 {
-  "title": "slides: the guide",
-  "description": "Everything the tool can do, made with the tool itself",
-  "order": 0,
+  "title": "Code animation",
+  "description": "The AST diff: edits, groups, languages, focus, fit, frame transitions",
+  "order": 2,
   "theme": "ink",
   "schemes": {
     "light": "ink",
@@ -81,7 +81,7 @@
     "textTransition": "fade"
   },
   "footer": {
-    "left": "slides — the guide",
+    "left": "Code animation",
     "right": "{slide} / {slides}",
     "height": 48
   },

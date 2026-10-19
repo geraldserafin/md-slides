@@ -1,0 +1,11 @@
+## Two families
+
+```mermaid width=80%
+flowchart TD
+  W[Waves] --> T[Transverse]
+  W --> L[Longitudinal]
+  T --> T1[Light]
+  T --> T2[String]
+  L --> L1[Sound]
+  L --> L2[Slinky]
+```

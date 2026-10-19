@@ -1,24 +1,20 @@
 {
   "title": "Code in motion",
   "subtitle": "Presentations where every edit to the code is animated as an AST diff. Write markdown, press →.",
-  "order": [
-    "guide",
-    "refactoring"
-  ],
   "fonts": [
     {
       "family": "Libertinus Serif",
-      "src": "../guide/fonts/libertinus-serif-latin-700-normal.woff2",
+      "src": "../showcase/fonts/libertinus-serif-latin-700-normal.woff2",
       "weight": "700"
     },
     {
       "family": "Source Sans 3",
-      "src": "../guide/fonts/source-sans-3-latin-400-normal.woff2",
+      "src": "../showcase/fonts/source-sans-3-latin-400-normal.woff2",
       "weight": "400"
     },
     {
       "family": "Source Sans 3",
-      "src": "../guide/fonts/source-sans-3-latin-700-normal.woff2",
+      "src": "../showcase/fonts/source-sans-3-latin-700-normal.woff2",
       "weight": "700"
     }
   ],
@@ -34,6 +30,31 @@
     {
       "text": "llms.txt",
       "href": "llms.txt"
+    }
+  ],
+  "groups": [
+    {
+      "title": "Learn the tool",
+      "subtitle": "A manual made with the tool itself: every slide uses what it describes.",
+      "decks": [
+        "showcase",
+        "writing",
+        "code-animation",
+        "theming",
+        "presenting"
+      ]
+    },
+    {
+      "title": "Example talks",
+      "subtitle": "Complete decks for different kinds of talks, to read and copy.",
+      "decks": [
+        "pitch",
+        "quarterly",
+        "lecture",
+        "workshop",
+        "trip",
+        "refactoring"
+      ]
     }
   ]
 }

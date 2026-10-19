@@ -1,0 +1,14 @@
+---
+theme: corporate-dark
+layout: cover
+halign: center
+valign: center
+justify: false
+background: linear-gradient(135deg, #0b1b3a 0%, #1d4ed8 100%)
+---
+
+# Q3 review
+
+Northwind Trading · October
+
+<!-- Example data only. -->

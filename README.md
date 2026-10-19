@@ -90,15 +90,27 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 
 ## Examples
 
-`examples/` has four decks you can read as templates (two are `hidden` from the gallery for now). Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
-itself a deck: every feature has a live demonstration on the slide that describes it.
+`examples/` is a chooser with two groups. **Learn the tool** is a manual made with the tool itself, split by topic; every slide uses the feature it describes:
 
 | Deck | Shows |
 | --- | --- |
-| `guide` | the complete guide: sections and frames, every kind of edit, the supported languages, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
-| `refactoring` | TypeScript: types, naming, functional style, Extract Method. A dark "midnight" look with Computer Modern fonts |
-| `python-idioms` | loops → comprehensions, `Counter`, dataclasses, `with`; light "paper" theme |
-| `monads` | C++: error codes → exceptions → `optional` → `expected` |
+| `showcase` | a short tour: code morphing, the diff, math, charts, diagrams, morph, themes |
+| `writing` | the markdown syntax: sections, clicks, text and media, math, charts, diagrams, rows, columns, grids, per-element animation |
+| `code-animation` | the AST diff: every kind of edit, groups and frames, languages, fence options, focus, fit, frame transitions, how matching works |
+| `theming` | alignment, themes, backgrounds, motion, header/footer, `deck.json`, fonts, CSS |
+| `presenting` | controls, presenter view and tools, export, build targets, GitHub Pages, writing decks with an LLM |
+
+**Example talks** are complete decks for different kinds of talks, to read and copy:
+
+| Deck | Shows |
+| --- | --- |
+| `pitch` | a startup pitch: big statements, a flow diagram, bar and pie charts, a table, the ask |
+| `quarterly` | a business review: steps on click, line and bar charts, a metrics table, risks and decisions |
+| `lecture` | a physics lecture: math, a diagram, a chart, a quiz that reveals its answer |
+| `workshop` | a baking workshop: an ingredients grid, a timeline diagram, steps on click, hydration math |
+| `trip` | a photo-story style deck: full-screen gradients, big type, slide and zoom transitions |
+| `refactoring` | TypeScript: types, naming, functional style, Extract Method (code-centric) |
+| `python-idioms`, `monads` | hidden for now |
 
 ## Writing slides
 
@@ -342,11 +354,11 @@ Optional, placed in the deck folder:
 
 Themes are plain CSS variables (`--bg`, `--fg`, `--heading`, `--muted`, `--accent`, `--code-bg`, `--tok-*`
 for token colors, `--font-text`, `--font-heading`, `--font-code`, ...). See `src/style.css` for the full list.
-Two complete custom themes (`sunset`, `terminal`) live in `examples/guide/deck.json`.
+Two complete custom themes (`sunset`, `terminal`) live in `examples/theming/deck.json`.
 
 ## Writing decks with an LLM
 
-The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the guide deck). Give a model the URL, describe your talk, and ask for a deck folder: one `.md` per slide plus a `deck.json`. For example:
+The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.md` per slide plus a `deck.json`. For example:
 
 > Read https://geraldserafin.github.io/md-slides/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
 

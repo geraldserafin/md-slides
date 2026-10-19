@@ -1,0 +1,11 @@
+## Business model
+
+| Plan | Price | For |
+| --- | --- | --- |
+| Free | $0 | up to 5 plants |
+| Grow | $3 / month | unlimited plants, plant doctor |
+| Home | $6 / month | the whole household, shared reminders |
+
++++
+
+Grow converts at 9% of active users; the plant doctor is why.

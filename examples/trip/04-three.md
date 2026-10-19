@@ -1,0 +1,12 @@
+---
+layout: cover
+halign: center
+valign: center
+justify: false
+transition: zoom
+background: radial-gradient(circle at 50% 120%, #8be3ff 0%, #2b5d9e 35%, #0b1320 75%)
+---
+
+# Seljalandsfoss
+
+You can walk behind the waterfall. Bring a raincoat.

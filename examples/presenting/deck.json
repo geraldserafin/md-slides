@@ -1,0 +1,139 @@
+{
+  "title": "Presenting and shipping",
+  "description": "Controls, presenter view, export, build targets, deployment, writing decks with an LLM",
+  "order": 4,
+  "theme": "ink",
+  "schemes": {
+    "light": "ink",
+    "dark": "midnight"
+  },
+  "css": "deck.css",
+  "themes": {
+    "ink": {
+      "--bg": "#fbfaf6",
+      "--fg": "#2b2e36",
+      "--heading": "#11131a",
+      "--muted": "#7a7d87",
+      "--accent": "#3a5ba0",
+      "--tok-keyword": "#a23b72",
+      "--tok-ident": "#23262e",
+      "--tok-property": "#2f6690",
+      "--tok-type": "#8a6d1f",
+      "--tok-builtin": "#b0572a",
+      "--tok-comment": "#9a9ca5",
+      "--tok-punct": "#8c8f99",
+      "--tok-plain": "#3a3d46",
+      "--code-bg": "#f1eee6"
+    },
+    "midnight": {
+      "--bg": "#1c1c1c",
+      "--fg": "#d4d4d4",
+      "--heading": "#fafafa",
+      "--muted": "#8a8a8a",
+      "--accent": "#e3b06a",
+      "--tok-keyword": "#e3a76f",
+      "--tok-ident": "#e5e5e5",
+      "--tok-property": "#86b4dc",
+      "--tok-type": "#d6c28a",
+      "--tok-builtin": "#c58fa8",
+      "--tok-comment": "#6b6b6b",
+      "--tok-punct": "#7a7a7a",
+      "--tok-plain": "#c4c4c4",
+      "--code-bg": "#141414"
+    },
+    "sunset": {
+      "--bg": "#2a1b2e",
+      "--fg": "#f0d4c0",
+      "--heading": "#fff4ea",
+      "--muted": "#d3a98f",
+      "--accent": "#ff9e64",
+      "--tok-keyword": "#ff6b81",
+      "--tok-ident": "#ffe9d6",
+      "--tok-property": "#ffb86b",
+      "--tok-type": "#f9c74f",
+      "--tok-builtin": "#ff9e64",
+      "--tok-comment": "#8f6c7e",
+      "--tok-punct": "#b98a9d",
+      "--tok-plain": "#f0d4c0",
+      "--code-bg": "#1f1322"
+    },
+    "terminal": {
+      "--bg": "#050805",
+      "--fg": "#5fdc5f",
+      "--heading": "#b9ffb9",
+      "--muted": "#3f9a3f",
+      "--accent": "#b9ffb9",
+      "--tok-keyword": "#b9ffb9",
+      "--tok-ident": "#5fdc5f",
+      "--tok-property": "#8bf58b",
+      "--tok-type": "#d6ff7a",
+      "--tok-builtin": "#ffd166",
+      "--tok-comment": "#2f6f2f",
+      "--tok-punct": "#3f9a3f",
+      "--tok-plain": "#5fdc5f",
+      "--code-bg": "#0b130b",
+      "--font-heading": "ui-monospace, Menlo, Consolas, monospace"
+    }
+  },
+  "animation": {
+    "move": 0.5,
+    "fade": 0.3,
+    "textTransition": "fade"
+  },
+  "footer": {
+    "left": "Presenting and shipping",
+    "right": "{slide} / {slides}",
+    "height": 48
+  },
+  "fonts": [
+    {
+      "family": "Libertinus Serif",
+      "src": "fonts/libertinus-serif-latin-400-normal.woff2",
+      "weight": "400",
+      "style": "normal"
+    },
+    {
+      "family": "Libertinus Serif",
+      "src": "fonts/libertinus-serif-latin-700-normal.woff2",
+      "weight": "700",
+      "style": "normal"
+    },
+    {
+      "family": "Libertinus Serif",
+      "src": "fonts/libertinus-serif-latin-400-italic.woff2",
+      "weight": "400",
+      "style": "italic"
+    },
+    {
+      "family": "Source Sans 3",
+      "src": "fonts/source-sans-3-latin-400-normal.woff2",
+      "weight": "400",
+      "style": "normal"
+    },
+    {
+      "family": "Source Sans 3",
+      "src": "fonts/source-sans-3-latin-400-italic.woff2",
+      "weight": "400",
+      "style": "italic"
+    },
+    {
+      "family": "Source Sans 3",
+      "src": "fonts/source-sans-3-latin-700-normal.woff2",
+      "weight": "700",
+      "style": "normal"
+    }
+  ],
+  "vars": {
+    "--font-text": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+    "--font-heading": "\"Libertinus Serif\", Georgia, serif",
+    "--text-size": "clamp(18px, 2.55vmin, 33px)",
+    "--heading-size": "clamp(26px, 4.1vmin, 52px)"
+  },
+  "defaults": {
+    "justify": "true",
+    "padding": "9vmin 12vmin"
+  },
+  "columns": {
+    "valign": "center"
+  }
+}
