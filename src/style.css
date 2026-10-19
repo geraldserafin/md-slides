@@ -45,6 +45,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 .stage {
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
   display: flex; flex-direction: column; padding: var(--stage-padding, 3vmin 40px 4vmin);
+  transition: top 0.3s var(--ease), bottom 0.3s var(--ease); /* glide when a header/footer appears or disappears */
 }
 .text-layer { flex: 0 0 auto; position: relative; }
 .code-area { flex: 1 1 0; min-height: 0; }
@@ -83,7 +84,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
   position: absolute; left: 0; top: 0; white-space: pre; transform-origin: 0 0;
   font-family: var(--font-code); font-size: 22px; line-height: 1.5;
   will-change: transform, opacity;
-  transition: transform var(--move-dur) var(--ease) var(--d, 0s), opacity var(--fade-dur) ease var(--d, 0s);
+  transition: transform var(--move-dur) var(--ease) var(--d, 0s), opacity var(--fade-dur) ease var(--d, 0s), color var(--fade-dur) ease;
 }
 .no-anim .tok { transition: none !important; }
 .tok-keyword { color: var(--tok-keyword); } .tok-ident { color: var(--tok-ident); }
@@ -117,7 +118,7 @@ body.show-help::after { opacity: 1; }
 }
 
 /* ---- slide layouts (front matter: layout: side) ------------------------- */
-#app { background: var(--bg); color: var(--fg); }
+#app { background: var(--bg); color: var(--fg); transition: background-color 0.3s ease; }
 .bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity var(--fade-dur) ease; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
@@ -232,7 +233,8 @@ body.print-mode #app { position: static; }
   padding: 0 clamp(24px, 5vw, 72px); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--muted); pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
-.bar[hidden] { display: none; }
+.bar { transition: opacity 0.3s ease; }
+.bar.off { opacity: 0; }
 .bar-header { top: 0; } .bar-footer { bottom: 0; }
 .bar.bordered.bar-header { border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
 .bar.bordered.bar-footer { border-top: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }

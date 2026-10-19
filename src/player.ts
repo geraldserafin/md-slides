@@ -53,6 +53,7 @@ export class Player {
   private tokens = new Map<string, Token>();
   private textEl?: HTMLElement;
   private textSection = -1;
+  private counterTimer?: number;
   private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
@@ -85,7 +86,7 @@ export class Player {
     if (a.ease) rs.setProperty("--ease", a.ease);
     for (const [k, v] of Object.entries(deck.meta.vars ?? {})) rs.setProperty(k, v);
     const bar = (kind: 'header' | 'footer') => deck.meta[kind]
-      ? `<div class="bar bar-${kind}" hidden><div class="slot left"></div><div class="slot center"></div><div class="slot right"></div></div>`
+      ? `<div class="bar bar-${kind} off"><div class="slot left"></div><div class="slot center"></div><div class="slot right"></div></div>`
       : '';
     root.innerHTML = `
       ${bar('header')}
@@ -195,11 +196,11 @@ export class Player {
       else if (ALIASES[k]) st.style.setProperty(ALIASES[k].v, ALIASES[k].px && /^\d+(\.\d+)?$/.test(v) ? `${v}px` : v);
     }
     this.setBackground(m.background, slide.url, instant);
-    this.updateChrome(si);
+    this.updateChrome(si, instant);
   }
 
   /** header / footer: visibility on this slide, size, colors and the slots' content */
-  private updateChrome(si: number) {
+  private updateChrome(si: number, instant = false) {
     const meta = this.deck.slides[si].meta;
     const base = new URL(`decks/${this.deck.name}/`, document.baseURI);
     const ctx = {
@@ -213,7 +214,7 @@ export class Player {
       if (!cfg || !el) continue;
       const show = barVisible(cfg, meta, kind);
       const h = cfg.height ?? 40;
-      el.hidden = !show;
+      el.classList.toggle('off', !show); // fades; the stage glides into the freed space (see .stage transition)
       this.root.style.setProperty(`--${kind}-h`, show ? `${h}px` : '0px');
       el.style.height = `${h}px`;
       el.style.setProperty('--bar-img-h', `${Math.round(h * 0.6)}px`);
@@ -224,7 +225,16 @@ export class Player {
       for (const pos of ['left', 'center', 'right'] as const)
         renderSlot(el.querySelector<HTMLElement>(`.slot.${pos}`)!, cfg[pos], ctx, (s) => fileUrl(new URL(s, base).href));
     }
-    this.root.classList.toggle('own-counter', ownCounter);
+    // the built-in counter returns only once the footer has faded out (no two numbers on top of each other)
+    clearTimeout(this.counterTimer);
+    if (ownCounter) this.root.classList.add('own-counter');
+    else if (instant) this.root.classList.remove('own-counter');
+    else this.counterTimer = window.setTimeout(() => this.root.classList.remove('own-counter'), 320);
+    if (instant) {
+      // first paint / thumbnails: no glide
+      this.stage.style.transition = 'none';
+      requestAnimationFrame(() => requestAnimationFrame(() => (this.stage.style.transition = '')));
+    }
   }
 
   private setBackground(bg: string | undefined, base: string, instant: boolean) {
@@ -315,7 +325,8 @@ export class Player {
     if (instant) { old.remove(); return; }
     const ghost = document.createElement('div');
     ghost.className = `${this.stage.className} ghost`;
-    ghost.style.cssText = this.stage.style.cssText;
+    // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
+    ghost.style.cssText = `${this.stage.style.cssText};top:${this.stage.offsetTop}px;bottom:${this.root.clientHeight - this.stage.offsetTop - this.stage.offsetHeight}px`;
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
     if (this.stage.dataset.align) ghost.dataset.align = this.stage.dataset.align;
     if (this.stage.dataset.halign) ghost.dataset.halign = this.stage.dataset.halign;
