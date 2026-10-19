@@ -259,6 +259,8 @@ Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`,
 
 ## Slide front matter
 
+`hidden: true` leaves a slide out of the show, the drawer and the PDF while it stays in the folder (handy for drafts and backup slides).
+
 An optional block at the top of a `.md` file:
 
 ```yaml
@@ -314,6 +316,7 @@ Optional, placed in the deck folder:
 | `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
 | `schemes` | `{ "light": "ink", "dark": "midnight" }`: the themes for light and dark mode. The deck starts in the one matching the OS (or the hub's light/dark toggle), and its card in the hub follows the toggle; `theme` is the fallback |
 | `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
+| `autoplay`, `loop` | `"autoplay": 5` plays the deck by itself, a step every 5 s (a slide's own `autoplay:` front matter sets its pace); `"loop": true` starts over at the end. Also `?autoplay=5&loop` in the URL, or the `a` key |
 | `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
@@ -358,6 +361,10 @@ page whenever a file in the deck folder changes.
 | `t` | cycle themes (remembered per browser) |
 | `p` | presenter window: notes, timer, next slide |
 | `f` | fullscreen |
+| `l` | laser pointer: a glowing dot with a short tail follows the mouse |
+| `d` | draw on the slide (`c` clears, `Esc` stops; the ink goes away when the slide changes) |
+| `z` | 2× magnifier around the pointer |
+| `a` | autoplay: step every few seconds until you press a key or click |
 | `h` or `?` | help |
 
 Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<step>` in the URL (deep link),

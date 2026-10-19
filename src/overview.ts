@@ -3,7 +3,7 @@
 // slide is highlighted and clicking a thumbnail jumps there. Each thumbnail is a real Player in a full-size
 // frame, scaled with a transform. The drawer is built once in the background (one thumbnail at a time while
 // the browser is idle) and only slides in and out afterwards, so opening it never waits for anything.
-import type { Deck } from './deck';
+import { isHidden, type Deck } from './deck';
 import { Player } from './player';
 import type { Step } from './steps';
 
@@ -41,6 +41,7 @@ export function createOverview(deck: Deck, steps: Step[], currentSlide: number, 
     deck.slides.forEach((slide, si) => {
       const cell = document.createElement('button');
       cell.className = 'dcell';
+      if (isHidden(slide)) cell.style.display = 'none'; // not part of the presentation
       cell.title = slide.title;
       cell.innerHTML = `<span class="num">${si + 1}</span>
         <span class="thumb" style="width:${THUMB_W}px;height:${innerHeight * scale}px">

@@ -55,3 +55,12 @@ describe('steps of code groups', () => {
     expect(shared(steps[0].blocks[0], steps[1].blocks[0])).toBe(0);
   });
 });
+
+describe('hidden slides', () => {
+  it('are left out of the steps', async () => {
+    const d = deckOf('# A\n', '# B\n', '# C\n');
+    d.slides[1].meta = { hidden: 'true' };
+    const steps = await buildSteps(d);
+    expect(steps.map((s) => s.slide)).toEqual([0, 2]);
+  });
+});

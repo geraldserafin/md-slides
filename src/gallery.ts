@@ -1,6 +1,6 @@
 // Deck gallery (the page shown when several decks are served): a card per deck with a live
 // thumbnail of its first slide, the title below it and a quiet line: author · date · slides.
-import { loadDeck, type Deck } from './deck';
+import { isHidden, loadDeck, type Deck } from './deck';
 import { fileUrl } from './files';
 import { Player } from './player';
 import { buildSteps } from './steps';
@@ -60,7 +60,7 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /** to the audience every animation step looks like a slide of its own, so that is what we count */
 const countSteps = (deck: Deck) =>
-  deck.slides.reduce((n, slide) => n + slide.sections.reduce((m, s) => m + s.stages, 0), 0);
+  deck.slides.filter((s) => !isHidden(s)).reduce((n, slide) => n + slide.sections.reduce((m, s) => m + s.stages, 0), 0);
 
 export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta = {}) {
   const base = new URL(HUB_BASE, document.baseURI).href;

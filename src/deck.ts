@@ -90,6 +90,10 @@ export interface DeckMeta {
   title?: string;
   description?: string;
   hidden?: boolean; // not listed in the gallery
+  /** seconds per step: the deck plays itself (a key or click stops it; the `a` key starts it); `?autoplay=5` in the URL does the same */
+  autoplay?: number;
+  /** start again after the last step when autoplaying */
+  loop?: boolean;
   thumbnail?: string; // gallery image instead of the live first slide
   author?: string;
   date?: string;
@@ -154,6 +158,9 @@ marked.use({
     },
   ],
 });
+
+/** front matter `hidden: true`: the slide is left out of the presentation (and the PDF) but stays in the files */
+export const isHidden = (s: Slide) => /^(true|yes|on|1)$/i.test(s.meta.hidden ?? '');
 
 const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i;
 
