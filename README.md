@@ -78,7 +78,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | --- | --- |
 | `title`, `subtitle` | the heading of the page (also the browser tab title); default `slides` and a tagline |
 | `logo` | an image above the title |
-| `footer` | a line of small text at the bottom |
+| `footer`, `links` | a line of small text and a list of `{ "text", "href" }` links at the very bottom of the page, followed by a fixed "Made by Gerald Serafin" |
 | `theme` | start theme: `dark`, `light`, `paper` or one of your own `themes` (a visitor's saved choice wins) |
 | `schemes` | `{ "light": ..., "dark": ... }`: your own themes for the toggle to switch between (default: the built-in `light` and `dark`) |
 | `themes`, `fonts`, `googleFonts`, `css` | like in `deck.json`: your own colors, fonts and an extra stylesheet for the page |

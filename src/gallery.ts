@@ -100,7 +100,7 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
           </div>
         </a>`).join('')}
       </div>
-      ${hub.footer || hub.links?.length ? `<footer>${[hub.footer ? esc(hub.footer) : '', ...(hub.links ?? []).map((l) => `<a href="${esc(l.href)}">${esc(l.text)}</a>`)].filter(Boolean).join(' · ')}</footer>` : ''}
+      <footer>${[hub.footer ? esc(hub.footer) : '', ...(hub.links ?? []).map((l) => `<a href="${esc(l.href)}">${esc(l.text)}</a>`), 'Made by <a href="https://github.com/geraldserafin">Gerald Serafin</a>'].filter(Boolean).join(' · ')}</footer>
     </div>`;
 
   const toggle = app.querySelector<HTMLElement>('.hub-toggle');

@@ -236,7 +236,7 @@ body.print-mode #app { position: static; }
 
 /* ---- deck gallery ----------------------------------------------------------- */
 /* the chooser page sits a shade away from the slides' own background, so it reads as a different place */
-.gallery { font-family: var(--font-text); position: absolute; inset: 0; overflow: auto; padding: 64px clamp(24px, 5vw, 80px) 80px; background: color-mix(in srgb, var(--bg) 92%, #000); }
+.gallery { font-family: var(--font-text); position: absolute; inset: 0; overflow: auto; padding: 64px clamp(24px, 5vw, 80px) 22px; display: flex; flex-direction: column; background: color-mix(in srgb, var(--bg) 92%, #000); }
 :root[data-theme='dark'] .gallery { background: color-mix(in srgb, var(--bg) 78%, #000); }
 .hub-toggle { opacity: 0.9; }
 .hub-toggle:hover { opacity: 1; }
@@ -250,7 +250,7 @@ body.print-mode #app { position: static; }
 .gallery.align-center > header { display: block; }
 .gallery.align-center > header .titles { text-align: center; }
 .gallery.align-center > header .logo { margin-inline: auto; }
-.gallery > footer { margin-top: 56px; color: var(--muted); font-size: 0.85rem; }
+.gallery > footer { margin-top: auto; padding-top: 56px; color: var(--muted); font-size: 0.85rem; } /* at the very bottom of the page, however short the list */
 .gallery.align-center > footer { text-align: center; }
 .card { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--fg); outline: none; }
 .card-thumb {
@@ -423,7 +423,8 @@ body.zoomed .drawer-btn { display: none; }
 
 /* ---- phones and tablets ---------------------------------------------------- */
 html { touch-action: manipulation; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-.drawer-btn, .hub-toggle { top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
+.drawer-btn { top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
+.hub-toggle { top: max(12px, env(safe-area-inset-top)); left: auto; right: max(12px, env(safe-area-inset-right)); }
 .tool-bar { top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
 @media (pointer: coarse) {
   .drawer-btn, .tool-btn, .hub-toggle { width: 44px; height: 44px; border-radius: 10px; }
