@@ -195,3 +195,13 @@ describe('slide head, cell options, steps lists, grid: N', () => {
     expect(s.sections[0].rows.map((r) => r.length)).toEqual([2, 2, 1]);
   });
 });
+
+describe('math', () => {
+  it('renders inline and display math, but leaves prices alone', () => {
+    const s = parseSlide('## M\n\nEuler $e^{i\\pi}$ costs $5 and $6.\n\n$$\n\\frac{a}{b}\n$$\n', 'http://x/d/m.md');
+    const html = sectionItems(s.sections[0]).map((i) => (i.kind === 'html' ? i.html : '')).join('');
+    expect(html).toContain('class="katex"');
+    expect(html).toContain('math-block');
+    expect(html).toContain('costs $5 and $6');
+  });
+});

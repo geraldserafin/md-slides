@@ -5,6 +5,7 @@
 // blocks are independent unless they share a `#id`: blocks with the same id are the frames of one animation.
 // HTML comments => presenter notes.
 import { marked, type Token, type Tokens } from 'marked';
+import katex from 'katex';
 import { fileUrl } from './files';
 import type { ChromeBar } from './chrome';
 import { langFromTag, type Lang } from './parse';
@@ -123,6 +124,31 @@ export interface Deck {
   meta: DeckMeta;
   slides: Slide[];
 }
+
+// math: `$x^2$` inline, `$$ ... $$` as a block (KaTeX). A dollar sign next to a space or a digit stays a dollar sign ("$5 and $6").
+const tex = (src: string, display: boolean) => katex.renderToString(src, { displayMode: display, throwOnError: false, output: 'html' });
+marked.use({
+  extensions: [
+    {
+      name: 'blockMath', level: 'block',
+      start: (s: string) => s.indexOf('$$'),
+      tokenizer(s: string) {
+        const m = /^\$\$[ \t]*\n?([\s\S]+?)\n?[ \t]*\$\$[ \t]*(?:\n|$)/.exec(s);
+        return m ? { type: 'blockMath', raw: m[0], text: m[1].trim() } : undefined;
+      },
+      renderer: (t) => `<div class="math-block">${tex(String((t as unknown as { text: string }).text), true)}</div>\n`,
+    },
+    {
+      name: 'inlineMath', level: 'inline',
+      start: (s: string) => s.indexOf('$'),
+      tokenizer(s: string) {
+        const m = /^\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<![\s\\])\$(?!\d)/.exec(s);
+        return m ? { type: 'inlineMath', raw: m[0], text: m[1] } : undefined;
+      },
+      renderer: (t) => tex(String((t as unknown as { text: string }).text), false),
+    },
+  ],
+});
 
 const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i;
 

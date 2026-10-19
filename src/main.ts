@@ -1,4 +1,5 @@
 import './style.css';
+import 'katex/dist/katex.min.css';
 import { loadDeck } from './deck';
 import { loadIndex, showGallery } from './gallery';
 import { fileUrl } from './files';

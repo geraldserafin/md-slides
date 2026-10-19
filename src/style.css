@@ -318,3 +318,10 @@ body.print-mode #app { position: static; }
 .intro .bar, .intro .hud { opacity: 0; }
 .intro-run .stage { transition: opacity 0.9s ease, transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .intro-run .bar, .intro-run .hud { transition: opacity 0.9s ease 0.35s; }
+
+/* math (KaTeX): follows the slide's alignment instead of always centering */
+.item .math-block { margin: 0.5em 0; }
+.item .katex-display { margin: 0; text-align: inherit; }
+.item .katex-display > .katex { text-align: inherit; }
+.item .katex { font-size: 1.12em; }
+.stage[data-h='center'] .item .katex-display > .katex { display: block; }
