@@ -392,19 +392,21 @@ export function applyLegacyLayout(slide: Slide) {
   }
 }
 
+/** a deck from the texts of its slide files (`root`: the folder URL, for relative images) */
+export function buildDeck(name: string, meta: DeckMeta, texts: string[], root: string): Deck {
+  const slides = meta.files.map((f, i) => {
+    const slide = parseSlide(texts[i], root + encodeURI(f));
+    slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
+    applyLegacyLayout(slide);
+    applyGrid(slide);
+    return slide;
+  });
+  return { name, meta, slides };
+}
+
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
   const root = new URL(`${base}/${name}/`, document.baseURI).href;
   const meta = (await (await fetch(fileUrl(root + 'manifest.json'))).json()) as DeckMeta;
-  const slides = await Promise.all(
-    meta.files.map(async (f) => {
-      const url = root + encodeURI(f);
-      const text = await (await fetch(fileUrl(url))).text();
-      const slide = parseSlide(text, url);
-      slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
-      applyLegacyLayout(slide);
-      applyGrid(slide);
-      return slide;
-    }),
-  );
-  return { name, meta, slides };
+  const texts = await Promise.all(meta.files.map(async (f) => (await fetch(fileUrl(root + encodeURI(f)))).text()));
+  return buildDeck(name, meta, texts, root);
 }

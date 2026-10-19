@@ -1,0 +1,23 @@
+/* the built-in editor (src/editor.ts) */
+.ed { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font: 13px var(--font-text); }
+.ed-bar { flex: none; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; background: var(--code-bg); border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent); }
+.ed-bar button, .ed-bar select, .ed-present, .ed-ctl button {
+  all: unset; box-sizing: border-box; cursor: pointer; height: 28px; padding: 0 10px; border-radius: 6px; display: inline-flex; align-items: center;
+  color: var(--fg); background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+.ed-bar button:hover, .ed-present:hover, .ed-ctl button:hover { background: color-mix(in srgb, var(--fg) 16%, transparent); }
+.ed-bar select { padding-right: 6px; max-width: 280px; }
+.ed-present { background: var(--accent); color: var(--bg); font-weight: 600; margin-right: 6px; }
+.ed-present:hover { background: var(--accent); filter: brightness(1.1); }
+.ed-name { color: var(--muted); margin-right: 10px; }
+.ed-status { margin-left: auto; color: var(--muted); }
+.ed-main { flex: 1; min-height: 0; display: flex; }
+.ed-left { flex: 0 0 46%; min-width: 0; overflow: hidden; }
+.ed-left .cm-editor { height: 100%; }
+.ed-gutter { flex: none; width: 5px; cursor: col-resize; background: color-mix(in srgb, var(--muted) 20%, transparent); transition: background 0.15s; }
+.ed-gutter:hover { background: var(--accent); }
+.ed-right { flex: 1; min-width: 0; display: flex; flex-direction: column; background: color-mix(in srgb, var(--bg) 88%, #000); }
+.ed-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.ed-frame { position: absolute; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: none; box-shadow: 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent); }
+.ed-frame .hud { display: none; }
+.ed-ctl { flex: none; display: flex; align-items: center; justify-content: center; gap: 14px; height: 40px; color: var(--muted); font-variant-numeric: tabular-nums; }

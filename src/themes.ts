@@ -61,6 +61,8 @@ export function loadDeckCss(href: string) {
  * New themes join the `t` key cycle.
  */
 export function registerDeckStyle(meta: DeckMeta, baseUrl: string) {
+  document.head.querySelectorAll('[data-deck-style]').forEach((e) => e.remove());
+  themeList = [...BUILTIN_THEMES];
   const css: string[] = [];
   for (const [name, vars] of Object.entries(meta.themes ?? {})) {
     if (!themeList.includes(name)) themeList = [...themeList, name];
@@ -74,11 +76,13 @@ export function registerDeckStyle(meta: DeckMeta, baseUrl: string) {
   if (css.length) {
     const st = document.createElement('style');
     st.textContent = css.join('\n');
+    st.dataset.deckStyle = '';
     document.head.append(st);
   }
   for (const g of meta.googleFonts ?? []) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
+    link.dataset.deckStyle = '';
     link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(g).replace(/%3A/g, ':').replace(/%3B/g, ';').replace(/%40/g, '@').replace(/%20/g, '+')}&display=swap`;
     document.head.append(link);
   }

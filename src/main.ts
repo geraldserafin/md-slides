@@ -64,6 +64,7 @@ async function main() {
 
   const name = params.get('deck') ?? (await chooser());
   if (!name) return;
+  if (import.meta.env.DEV && params.has('edit')) return (await import('./editor')).startEditor(app, name);
   showLoader('Loading…');
   const deck = await loadDeck(name);
   initialTheme(deck.meta.theme);
@@ -123,6 +124,7 @@ async function main() {
       case 't': nextTheme(); break;
       case 'p': window.open(`?presenter=1&deck=${encodeURIComponent(name)}`, 'presenter', 'width=900,height=700'); break;
       case 'o': toggleDrawer(); break;
+      case 'e': if (import.meta.env.DEV) location.href = `?edit=1&deck=${encodeURIComponent(name)}`; break; // the editor exists in `slides dev` only
       case 'h': case '?': document.body.classList.toggle('show-help'); break;
     }
   });

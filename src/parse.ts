@@ -95,10 +95,17 @@ function freeze(src: string, root: Parser.SyntaxNode): Tree {
   return go(root, true)!;
 }
 
+const parsed = new Map<string, Tree>(); // trees are never mutated, so they can be shared
+
 export async function parseOne(lang: Lang, src: string): Promise<Tree> {
+  const key = `${lang}\0${src}`;
+  const hit = parsed.get(key);
+  if (hit) return hit;
   const p = await parserFor(lang);
   const tree = p.parse(src);
   const t = freeze(src, tree.rootNode);
   tree.delete();
+  if (parsed.size > 4000) parsed.clear();
+  parsed.set(key, t);
   return t;
 }
