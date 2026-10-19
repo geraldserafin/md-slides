@@ -12,7 +12,7 @@ valign: center          start | center | end (default start)
 justify: true           justified paragraphs
 class: spotlight        extra CSS class on the stage
 title: Short title      shown in the presenter view
-transition: slide       fade | slide | slide-left | zoom | none
+transition: slide       fade | slide | slide-right | slide-left | zoom | none
 stagger: 0.12           seconds between text blocks
 heading-size: 56        px or any CSS length (also: text-size, spacing, padding, split: 40%)
 accent: #ff9e64         also heading-color, text-color

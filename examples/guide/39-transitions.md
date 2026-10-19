@@ -5,7 +5,7 @@ stagger: 0.18
 
 ## Text transitions
 
-`transition:` sets how a slide's text enters: `fade` (default), `slide`, `slide-left`, `zoom`, `none`.
+`transition:` sets how a slide's text enters: `fade` (default), `slide`, `slide-right`, `slide-left`, `zoom`, `none`.
 `stagger:` delays each block after the previous one.
 
 This slide: `slide` with a stagger of `0.18`.

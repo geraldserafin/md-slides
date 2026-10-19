@@ -1,8 +1,12 @@
+---
+transition: slide-right
+---
+
 # Across languages
 
 <!-- Matching needs two trees of the same language. Between languages the old code fades out and the new one fades in. -->
 
-The same function in three languages, one section each under this title. The diff can't match different
+The same function in three languages, one section each under this title, sliding in from the left (`transition: slide-right`). The diff can't match different
 grammars, so moving from one to the next is a plain cross-fade.
 
 ## TypeScript

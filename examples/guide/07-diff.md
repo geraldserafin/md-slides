@@ -1,6 +1,10 @@
+---
+transition: slide-right
+---
+
 # What the diff does
 
-Six kinds of edit, one at a time. Each one is a section under this title: press → to play it, → again for the next.
+Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`transition: slide-right`): press → to play it, → again for the next.
 
 ## rename
 

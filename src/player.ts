@@ -24,6 +24,9 @@ const ALIASES: Record<string, { v: string; px?: boolean }> = {
   'heading-color': { v: '--heading' },
   'text-color': { v: '--fg' },
 };
+const SLIDE_PX = 60; // px, how far content travels for `transition: slide-right` / `slide-left`
+/** direction of travel of a text transition: +1 = to the right, -1 = to the left, 0 = none */
+const slideDir = (kind: string) => (kind === 'slide-right' ? 1 : kind === 'slide-left' ? -1 : 0);
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 1.6;
 
@@ -72,6 +75,7 @@ interface Token {
   el: HTMLSpanElement;
   dying: boolean;
   timer?: number;
+  pos?: { x: number; y: number; s: number }; // where it is drawn (to slide it out)
 }
 
 export interface PlayerState {
@@ -93,6 +97,7 @@ export class Player {
   private gridEl?: HTMLElement; // the grid (rows of cells) of the section on screen
   private headEl?: HTMLElement; // the slide's head (a level 1 heading above its sections)
   private headSlide = -1;
+  private curKind = 'fade'; // the text transition of the slide on screen (how its content leaves)
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
@@ -178,12 +183,18 @@ export class Player {
     const cut = !first && this.steps[Math.abs(j - prev) === 1 ? Math.max(j, prev) : j].transition === 'none';
     // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
     // `transition: none` (per slide or deck-wide) means a hard cut for the text: the old text goes away at once, too
-    const textCut = (this.deck.slides[step.slide].meta.transition ?? this.textTransition) === 'none';
-    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant || textCut, step.slide !== this.headSlide);
+    const enterKind = this.deck.slides[step.slide].meta.transition ?? this.textTransition;
+    const textCut = enterKind === 'none';
+    const sectionChanged = this.textSection !== step.sectionIndex;
+    // content that travels (slide-right / slide-left): the old one leaves in that direction, the new one comes in from the other side
+    const exitDir = sectionChanged && !first && !instant ? slideDir(this.curKind) : 0;
+    const enterDir = sectionChanged && !first && !instant ? slideDir(enterKind) : 0;
+    if (sectionChanged) this.leaveText(first || instant || textCut, step.slide !== this.headSlide, exitDir);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
+    this.curKind = enterKind;
     this.applyStage(step, first || instant);
-    this.advance(step, first || instant || cut);
+    this.advance(step, first || instant || cut, -enterDir * SLIDE_PX, exitDir * SLIDE_PX);
     this.updateHud();
     this.onChange?.(this.state());
   }
@@ -372,7 +383,7 @@ export class Player {
    * theme), pinned at its current pixel position, and fades it out there. The ghost keeps the old look no matter
    * how the stage changes for the next slide.
    */
-  private leaveText(instant: boolean, withHead: boolean) {
+  private leaveText(instant: boolean, withHead: boolean, exitDir = 0) {
     const olds = [this.gridEl, withHead ? this.headEl : undefined].filter((e): e is HTMLElement => !!e);
     this.gridEl = undefined;
     if (withHead) this.headEl = undefined;
@@ -400,7 +411,7 @@ export class Player {
     // the old text fades out while lifting away a little; the new text rises into place (see enterText)
     for (const { old } of infos) {
       old.style.opacity = '0';
-      old.style.transform = `translateY(${-this.textDrift * 0.6}px)`;
+      old.style.transform = exitDir ? `translateX(${exitDir * SLIDE_PX}px)` : `translateY(${-this.textDrift * 0.6}px)`;
     }
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
     this.leaving = true;
@@ -535,7 +546,7 @@ export class Player {
     const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
     if (kind === 'none') return;
     const from: Record<string, string> = {
-      fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
+      fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-right': `translateX(${-SLIDE_PX}px)`, 'slide-left': `translateX(${SLIDE_PX}px)`, zoom: 'scale(0.94)',
     };
     const tf = from[kind] ?? '';
     els.forEach((t, i) => {
@@ -630,7 +641,7 @@ export class Player {
     return (Math.max(secs('--move-dur', 0.45), secs('--fade-dur', 0.3)) + 0.25) * 1000;
   }
 
-  private advance(step: Step, instant: boolean) {
+  private advance(step: Step, instant: boolean, enterDx = 0, exitDx = 0) {
     this.layoutBlocks(); // the geometry may have changed (resize, a late image, a font)
     const dying = this.dyingFor();
     if (instant) this.codeLayer.classList.add('no-anim'); // a cut: no transitions at all
@@ -647,22 +658,25 @@ export class Player {
         tk.dying = false;
         tk.el.className = cls;
         tk.el.textContent = text;
+        tk.el.style.transition = '';
         tk.el.style.setProperty('--d', instant ? '0s' : `${this.moveDelay}s`);
         this.setTransform(tk.el, x, y, scale);
         tk.el.style.opacity = opacity;
+        tk.pos = { x, y, s: scale };
       } else {
         const el = document.createElement('span');
         el.className = cls;
         el.textContent = text;
         el.style.opacity = '0';
         el.style.transition = 'none';
-        this.setTransform(el, x, y, scale);
+        this.setTransform(el, x + enterDx, y, scale); // a sliding section starts a bit to the side
         this.codeLayer.append(el);
-        tk = { el, dying: false };
+        tk = { el, dying: false, pos: { x, y, s: scale } };
         this.tokens.set(key, tk);
         void el.offsetWidth;
         el.style.transition = '';
         el.style.setProperty('--d', instant ? '0s' : `${this.fadeInDelay}s`);
+        if (enterDx) this.setTransform(el, x, y, scale);
         el.style.opacity = opacity;
       }
     };
@@ -704,6 +718,11 @@ export class Player {
       tk.el.classList.add('dying'); // fades out faster than new code fades in: old and new code hardly overlap
       tk.el.style.setProperty('--d', '0s');
       tk.el.style.opacity = '0';
+      if (exitDx && tk.pos && !instant) {
+        // leaving with a sliding section: drift out to the side while fading
+        tk.el.style.transition = 'opacity calc(var(--fade-dur) * 0.55) ease-out, transform calc(var(--move-dur) * 0.7) var(--ease)';
+        this.setTransform(tk.el, tk.pos.x + exitDx, tk.pos.y, tk.pos.s);
+      }
       tk.timer = window.setTimeout(() => {
         tk.el.remove();
         if (this.tokens.get(key) === tk) this.tokens.delete(key);
