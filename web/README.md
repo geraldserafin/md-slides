@@ -58,3 +58,14 @@ title: Własny tytuł   # tytuł w widoku prezentera
 
 `deck.json`: `vars` (zmienne CSS na cały deck) i `animation` (`move`, `fade`, `moveDelay`, `fadeInDelay`, `ease`, `slideFade`).
 Przykład: `web/demo/`.
+
+## Motywy, fonty, przegląd, PDF
+
+- `deck.json`: `"themes": {"ocean": {"--bg": "#0b1d2a", ...}}` definiuje własny motyw (wchodzi do cyklu `t`),
+  `"fonts": [{"family": "Fira Code", "src": "fira.woff2"}]` ładuje lokalny font (ścieżka względem decku),
+  `"googleFonts": ["Inter:wght@400;700"]` dociąga font z Google Fonts. Fonty ustawiasz zmiennymi `--font-text`, `--font-heading`, `--font-code`.
+- Wejście tekstu: `animation.textTransition` (`fade` | `slide` | `slide-left` | `zoom` | `none`) i `animation.textStagger` (s między elementami);
+  per slajd: `transition:` i `stagger:` w front matter.
+- `o` — przegląd slajdów (strzałki + Enter, Esc zamyka).
+- PDF: `?print=slides` (strona na slajd) albo `?print=steps` (strona na krok animacji) i „Drukuj”; z linii poleceń
+  `npm run build && CHROMIUM=$(which chromium) npm run pdf -- <deck> out.pdf [--steps]`.

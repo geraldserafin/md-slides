@@ -8,6 +8,7 @@
     "dev": "npm run prepare-decks && vite",
     "build": "npm run prepare-decks && tsc --noEmit && vite build",
     "preview": "vite preview",
+    "pdf": "node scripts/export-pdf.mjs",
     "test": "vitest run"
   },
   "dependencies": {

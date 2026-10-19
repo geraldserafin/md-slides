@@ -130,3 +130,26 @@ body.show-help::after { opacity: 1; }
 .stage.layout-side-right .text, .stage.layout-side-right .item h1, .stage.layout-side-right .item h2 { text-align: left; }
 .stage.layout-cover .text { text-align: center; }
 .stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }
+
+/* ---- przegląd slajdów ---------------------------------------------------- */
+.overview { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow: auto; padding: 24px; }
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; justify-items: center; }
+.overview .cell { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--fg); font-size: 14px; max-width: 300px; }
+.overview .cell.sel .thumb { outline: 3px solid var(--accent); }
+.overview .thumb { position: relative; overflow: hidden; border-radius: 6px; background: var(--bg); box-shadow: 0 2px 12px #0006; }
+.overview .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: none; }
+.overview .cell span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.frame .hud, .print-page .hud { display: none; }
+
+/* ---- druk / PDF ------------------------------------------------------------ */
+body.print-mode { overflow: auto; height: auto; }
+body.print-mode #app { position: static; }
+.print-bar { position: sticky; top: 0; z-index: 10; padding: 10px; background: var(--code-bg); }
+.print-page { position: relative; width: 1280px; height: 720px; overflow: hidden; margin: 12px auto; background: var(--bg); color: var(--fg); }
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  html, body { overflow: visible; }
+  .print-bar { display: none; }
+  .print-page { margin: 0; break-after: page; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+}

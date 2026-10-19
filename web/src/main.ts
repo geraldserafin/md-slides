@@ -4,7 +4,9 @@ import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
 import { buildSteps } from './steps';
-import { initialTheme, loadDeckCss, nextTheme } from './themes';
+import { openOverview, type Overview } from './overview';
+import { startPrintView } from './print';
+import { initialTheme, loadDeckCss, nextTheme, registerDeckStyle } from './themes';
 import runtimeWasm from 'web-tree-sitter/tree-sitter.wasm?url';
 
 // Gramatyki ładowane leniwie (każda to osobny plik .wasm) -- tylko te, które deck faktycznie używa.
@@ -48,7 +50,10 @@ async function main() {
   if (deck.meta.css) loadDeckCss(new URL(`decks/${name}/${deck.meta.css}`, document.baseURI).href);
   document.title = deck.meta.title ?? name;
 
+  registerDeckStyle(deck.meta, new URL(`decks/${name}/`, document.baseURI).href);
+  initialTheme(deck.meta.theme);
   const steps = await buildSteps(deck);
+  if (params.has("print")) return startPrintView(app, deck, steps, params.get("print") || "slides");
   const player = new Player(app, deck, steps);
 
   const ch = new BroadcastChannel(CHANNEL);
@@ -62,6 +67,7 @@ async function main() {
     if (e.data?.type === 'hello') publish();
   };
 
+  let overview: Overview | undefined;
   const fromHash = parseInt(location.hash.slice(1), 10);
   await player.start(Number.isFinite(fromHash) ? fromHash - 1 : 0);
   addEventListener('hashchange', () => {
@@ -79,6 +85,11 @@ async function main() {
       case 'f': document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); break;
       case 't': nextTheme(); break;
       case 'p': window.open(`?presenter=1&deck=${encodeURIComponent(name)}`, 'presenter', 'width=900,height=700'); break;
+      case 'o': {
+        if (overview && !overview.closed) { overview.close(); break; }
+        overview = openOverview(deck, steps, player.state().slide, (i) => player.go(i));
+        break;
+      }
       case 'h': case '?': document.body.classList.toggle('show-help'); break;
     }
   });

@@ -41,6 +41,8 @@ export interface AnimationOpts {
   fadeInDelay?: number; // s, stagger: nowe tokeny
   ease?: string; // CSS timing function
   slideFade?: number; // s, zmiana tła/tekstu
+  textTransition?: 'fade' | 'slide' | 'slide-left' | 'zoom' | 'none'; // wejście tekstu sekcji
+  textStagger?: number; // s, opóźnienie między kolejnymi elementami tekstu
 }
 
 export interface DeckMeta {
@@ -49,6 +51,10 @@ export interface DeckMeta {
   css?: string;
   /** zmienne CSS na całą prezentację, np. {"--accent": "#f00", "--font-text": "Georgia"} */
   vars?: Record<string, string>;
+  /** własne motywy: nazwa -> zmienne CSS */
+  themes?: Record<string, Record<string, string>>;
+  fonts?: { family: string; src: string; weight?: string; style?: string }[];
+  googleFonts?: string[];
   animation?: AnimationOpts;
   files: string[];
 }

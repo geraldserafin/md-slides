@@ -43,6 +43,9 @@ export class Player {
   private codeArea: HTMLElement;
   private codeLayer: HTMLElement;
   private slideShown = -1;
+  private ro: ResizeObserver;
+  private textTransition: string;
+  private textStagger: number;
   private bgEl?: HTMLElement;
   private moveDelay: number;
   private fadeInDelay: number;
@@ -58,6 +61,8 @@ export class Player {
     const fade = a.fade ?? 0.3;
     this.dyingMs = (Math.max(move, fade) + 0.25) * 1000;
     this.slideFadeMs = (a.slideFade ?? 0.3) * 1000;
+    this.textTransition = a.textTransition ?? 'fade';
+    this.textStagger = a.textStagger ?? 0;
     const rs = root.style;
     rs.setProperty("--move-dur", `${move}s`);
     rs.setProperty("--fade-dur", `${fade}s`);
@@ -75,8 +80,8 @@ export class Player {
     this.codeArea = root.querySelector('.code-area')!;
     this.codeLayer = root.querySelector('.code-layer')!;
 
-    const ro = new ResizeObserver(() => this.relayout(true));
-    ro.observe(this.stage);
+    this.ro = new ResizeObserver(() => this.relayout(true));
+    this.ro.observe(this.stage);
     // obrazki/wideo zmieniają wysokość tekstu po załadowaniu
     this.textLayer.addEventListener('load', () => this.relayout(false), true);
     this.textLayer.addEventListener('loadedmetadata', () => this.relayout(false), true);
@@ -89,14 +94,16 @@ export class Player {
     const probe = document.createElement('span');
     probe.className = 'tok probe';
     probe.style.cssText = `position:absolute;visibility:hidden;font-size:${REF_FONT}px;white-space:pre`;
-    probe.textContent = 'M'.repeat(100);
+    probe.textContent = 'M'.repeat(1000);
     this.codeLayer.append(probe);
-    this.charW = probe.getBoundingClientRect().width / 100 || REF_FONT * 0.6;
+    // offsetWidth (nie getBoundingClientRect): niezależne od transform: scale() rodzica (miniatury)
+    this.charW = probe.offsetWidth / 1000 || REF_FONT * 0.6;
     probe.remove();
   }
 
   async start(initial: number) {
-    await document.fonts.load(`${REF_FONT}px "DejaVu Sans Mono"`);
+    const family = getComputedStyle(this.stage).getPropertyValue('--font-code').trim() || 'monospace';
+    await document.fonts.load(`${REF_FONT}px ${family}`).catch(() => []);
     await document.fonts.ready;
     this.measureChar();
     this.go(initial, true);
@@ -235,10 +242,8 @@ export class Player {
     this.textSection = step.sectionIndex;
     const old = this.textEl;
     if (old) {
-      const r = old.getBoundingClientRect();
-      const sr = this.stage.getBoundingClientRect();
       old.classList.add('leaving');
-      old.style.cssText = `left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px`;
+      old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth}px`;
       this.stage.append(old);
       if (instant) old.remove();
       else {
@@ -249,21 +254,49 @@ export class Player {
     const el = document.createElement('div');
     el.className = 'text';
     for (const it of step.section.items) el.append(this.renderItem(it));
-    if (!instant) {
-      el.style.opacity = '0';
-      requestAnimationFrame(() => requestAnimationFrame(() => (el.style.opacity = '1')));
-    }
     this.textLayer.replaceChildren(el);
+    if (!instant) this.enterText(el, this.deck.slides[step.slide].meta);
     this.textEl = el;
     const valign = this.deck.slides[step.slide].meta.valign;
     this.stage.classList.toggle("centered", valign ? valign === "center" || valign === "middle" : step.centered);
   }
 
+  /** Wejście tekstu: fade | slide | slide-left | zoom | none, opcjonalnie z staggerem po elementach. */
+  private enterText(el: HTMLElement, meta: Record<string, string>) {
+    const kind = meta.transition ?? this.textTransition;
+    const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
+    if (kind === 'none') return;
+    const from: Record<string, string> = {
+      fade: '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
+    };
+    const tf = from[kind] ?? '';
+    const targets = stagger > 0 ? [...el.children] as HTMLElement[] : [el];
+    targets.forEach((t, i) => {
+      t.style.transition = 'none';
+      t.style.opacity = '0';
+      t.style.transform = tf;
+      void t.offsetWidth;
+      const d = i * stagger;
+      t.style.transition = `opacity var(--fade-dur) ease ${d}s, transform var(--move-dur) var(--ease) ${d}s`;
+      t.style.opacity = '1';
+      t.style.transform = 'none';
+    });
+  }
+
+  destroy() {
+    this.ro.disconnect();
+    for (const tk of this.tokens.values()) clearTimeout(tk.timer);
+    this.bgEl?.remove();
+  }
+
   // ---- kod -------------------------------------------------------------
 
   private placement(step: Step) {
-    const sr = this.stage.getBoundingClientRect();
-    const ar = this.codeArea.getBoundingClientRect();
+    // offset*: niezależne od transform: scale() (miniatury w przeglądzie)
+    const ar = {
+      left: this.codeArea.offsetLeft, top: this.codeArea.offsetTop,
+      width: this.codeArea.offsetWidth, height: this.codeArea.offsetHeight,
+    };
     const availW = Math.max(1, ar.width - 2 * PAD_X);
     const availH = Math.max(1, ar.height);
     const { cols, rows } = layoutBounds(step.layout);
@@ -278,11 +311,11 @@ export class Player {
       : Math.max(MIN_SCALE, Math.min(MAX_SCALE, codeW > 0 ? availW / codeW : 1, codeH > 0 ? availH / codeH : 1));
     const scaledW = codeW * scale;
     const cls = step.section.classes;
-    const baseX = ar.left - sr.left + PAD_X +
+    const baseX = ar.left + PAD_X +
       (cls.includes('left') ? 0 : cls.includes('right') ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
     const side = this.stage.classList.contains("layout-side") || this.stage.classList.contains("layout-side-right");
     const middle = cls.includes("middle") || (side && !cls.includes("top"));
-    const topY = ar.top - sr.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);
+    const topY = ar.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);
     return { scale, baseX, topY, lineH };
   }
 
