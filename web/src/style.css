@@ -5,19 +5,19 @@
 }
 
 /* ---- motywy: zmienne CSS (nadpisz w własnym deck.css) ------------------ */
-:root, :root[data-theme='dark'] {
+:root, [data-theme='dark'] {
   --bg: #1e1e2e; --fg: #abb2bf; --heading: #ffffff; --muted: #9aa3b2; --accent: #61afef;
   --tok-keyword: #c678dd; --tok-ident: #e5e9f0; --tok-property: #61afef; --tok-type: #e5c07b;
   --tok-builtin: #d19a66; --tok-comment: #5c6370; --tok-punct: #6b7385; --tok-plain: #abb2bf;
   --code-bg: #181825;
 }
-:root[data-theme='light'] {
+[data-theme='light'] {
   --bg: #fafafa; --fg: #383a42; --heading: #14151a; --muted: #6b6f7a; --accent: #4078f2;
   --tok-keyword: #a626a4; --tok-ident: #383a42; --tok-property: #4078f2; --tok-type: #c18401;
   --tok-builtin: #986801; --tok-comment: #a0a1a7; --tok-punct: #8a8d99; --tok-plain: #50525c;
   --code-bg: #f0f0f2;
 }
-:root[data-theme='paper'] {
+[data-theme='paper'] {
   --bg: #f4ecd8; --fg: #433422; --heading: #2b1f12; --muted: #7a6a55; --accent: #b4561f;
   --tok-keyword: #9c3f7a; --tok-ident: #3a2c1b; --tok-property: #2d6a8f; --tok-type: #9b6a00;
   --tok-builtin: #b4561f; --tok-comment: #9b8d77; --tok-punct: #8c7d66; --tok-plain: #54442f;
@@ -113,3 +113,20 @@ body.show-help::after { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   :root { --move-dur: 0s; --fade-dur: 0s; }
 }
+
+/* ---- layouty slajdów (front matter: layout: side) ---------------------- */
+#app { background: var(--bg); color: var(--fg); }
+.bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity var(--fade-dur) ease; }
+.stage { z-index: 1; }
+.hud { z-index: 2; }
+.stage.layout-side { flex-direction: row; align-items: stretch; gap: 4vmin; }
+.stage.layout-side .text-layer { flex: 0 0 36%; align-self: center; }
+.stage.layout-side .text, .stage.layout-side .item h1, .stage.layout-side .item h2, .stage.layout-side .item h3 { text-align: left; }
+.stage.layout-side .code-area { flex: 1; }
+.stage.layout-side.centered { flex-direction: column; }
+.stage.layout-side-right { flex-direction: row-reverse; }
+.stage.layout-side-right .text-layer { flex: 0 0 36%; align-self: center; }
+.stage.layout-side-right .code-area { flex: 1; }
+.stage.layout-side-right .text, .stage.layout-side-right .item h1, .stage.layout-side-right .item h2 { text-align: left; }
+.stage.layout-cover .text { text-align: center; }
+.stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }

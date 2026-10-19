@@ -5,7 +5,7 @@ import { cpSync, mkdirSync, readdirSync, rmSync, writeFileSync, existsSync, read
 import { basename, resolve, join } from 'node:path';
 
 const out = resolve('public/decks');
-const dirs = (process.argv.length > 2 ? process.argv.slice(2) : ['../slides', '../slides-monads']).map((d) => resolve(d));
+const dirs = (process.argv.length > 2 ? process.argv.slice(2) : ['../slides', '../slides-monads', './demo']).map((d) => resolve(d));
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });

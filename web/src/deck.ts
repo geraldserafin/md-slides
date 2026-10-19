@@ -26,16 +26,30 @@ export interface Section {
 }
 
 export interface Slide {
+  /** front matter slajdu (layout, theme, background, class, valign, --zmienne CSS) */
+  meta: Record<string, string>;
   sections: Section[];
   notes: string[];
   title: string;
   url: string;
 }
 
+export interface AnimationOpts {
+  move?: number; // s, czas przesunięcia
+  fade?: number; // s, czas zanikania/pojawiania
+  moveDelay?: number; // s, stagger: przesunięcia po zanikaniu
+  fadeInDelay?: number; // s, stagger: nowe tokeny
+  ease?: string; // CSS timing function
+  slideFade?: number; // s, zmiana tła/tekstu
+}
+
 export interface DeckMeta {
   title?: string;
   theme?: string;
   css?: string;
+  /** zmienne CSS na całą prezentację, np. {"--accent": "#f00", "--font-text": "Georgia"} */
+  vars?: Record<string, string>;
+  animation?: AnimationOpts;
   files: string[];
 }
 
@@ -85,8 +99,21 @@ function stripComment(raw: string): string {
 /** Akapit złożony z JEDNEGO obrazka/wideo: ![alt](src){.class opt=val} */
 const SOLO_MEDIA = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)(?:\{([^}]*)\})?$/;
 
+/** Front matter: blok `---` na samym początku pliku, linie `klucz: wartość`. */
+export function splitFrontMatter(md: string): { meta: Record<string, string>; body: string } {
+  const m = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/.exec(md);
+  if (!m) return { meta: {}, body: md };
+  const meta: Record<string, string> = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const i = line.indexOf(":");
+    if (i > 0 && !line.trimStart().startsWith("#")) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  }
+  return { meta, body: md.slice(m[0].length) };
+}
+
 export function parseSlide(markdown: string, url: string): Slide {
-  const tokens = marked.lexer(markdown);
+  const { meta, body } = splitFrontMatter(markdown);
+  const tokens = marked.lexer(body);
   marked.walkTokens(tokens, (t) => {
     if (t.type === 'image') (t as Tokens.Image).href = resolve((t as Tokens.Image).href, url);
     if (t.type === 'link') {
@@ -155,7 +182,7 @@ export function parseSlide(markdown: string, url: string): Slide {
     pending.push({ kind: 'html', html, tag: tok.type === 'heading' ? `h${(tok as Tokens.Heading).depth}` : tok.type });
   }
   flushTextOnly();
-  return { sections, notes, title: title || '(bez tytułu)', url };
+  return { meta, sections, notes, title: meta.title || title || '(bez tytułu)', url };
 }
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {

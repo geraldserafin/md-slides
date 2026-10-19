@@ -2,7 +2,7 @@
 // transitions). Pozycja/skala każdego tokenu jest niezależna i liczona w
 // pikselach sceny -- znikający token ma ZAMROŻONY transform, więc nie ucieka
 // w stronę docelowej pozycji następnego kroku.
-import type { Deck, Item } from './deck';
+import type { Deck, Item, Slide } from './deck';
 import { layoutBounds } from './layout';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
@@ -12,9 +12,6 @@ const LINE_RATIO = 1.5;
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 1.6;
 const PAD_X = 40;
-const MOVE_DELAY = 0.04;
-const FADE_IN_DELAY = 0.08;
-const DYING_MS = 700;
 
 interface Token {
   el: HTMLSpanElement;
@@ -45,9 +42,27 @@ export class Player {
   private textLayer: HTMLElement;
   private codeArea: HTMLElement;
   private codeLayer: HTMLElement;
+  private slideShown = -1;
+  private bgEl?: HTMLElement;
+  private moveDelay: number;
+  private fadeInDelay: number;
+  private dyingMs: number;
+  private slideFadeMs: number;
   onChange?: (s: PlayerState) => void;
 
   constructor(private root: HTMLElement, private deck: Deck, private steps: Step[]) {
+    const a = deck.meta.animation ?? {};
+    this.moveDelay = a.moveDelay ?? 0.04;
+    this.fadeInDelay = a.fadeInDelay ?? 0.08;
+    const move = a.move ?? 0.45;
+    const fade = a.fade ?? 0.3;
+    this.dyingMs = (Math.max(move, fade) + 0.25) * 1000;
+    this.slideFadeMs = (a.slideFade ?? 0.3) * 1000;
+    const rs = root.style;
+    rs.setProperty("--move-dur", `${move}s`);
+    rs.setProperty("--fade-dur", `${fade}s`);
+    if (a.ease) rs.setProperty("--ease", a.ease);
+    for (const [k, v] of Object.entries(deck.meta.vars ?? {})) rs.setProperty(k, v);
     root.innerHTML = `
       <div class="stage">
         <div class="text-layer"></div>
@@ -93,6 +108,7 @@ export class Player {
     const first = this.idx < 0;
     this.idx = j;
     const step = this.steps[j];
+    this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
     this.advance(step, first || instant);
     this.updateHud();
@@ -120,6 +136,48 @@ export class Player {
     const bar = this.root.querySelector<HTMLElement>('.progress i')!;
     bar.style.width = `${((this.idx + 1) / this.steps.length) * 100}%`;
     this.root.querySelector('.counter')!.textContent = `${this.steps[this.idx].slide + 1} / ${this.deck.slides.length}`;
+  }
+
+  // ---- slajd: layout, motyw, tło -------------------------------------
+
+  private applySlide(si: number, instant: boolean) {
+    if (si === this.slideShown) return;
+    this.slideShown = si;
+    const slide: Slide = this.deck.slides[si];
+    const m = slide.meta;
+    const st = this.stage;
+    st.removeAttribute("style");
+    st.className = "stage" + (m.layout ? ` layout-${m.layout}` : "") + (m.class ? ` ${m.class}` : "");
+    if (m.theme) this.root.dataset.theme = m.theme;
+    else delete this.root.dataset.theme;
+    for (const [k, v] of Object.entries(m)) if (k.startsWith("--")) st.style.setProperty(k, v);
+    this.setBackground(m.background, slide.url, instant);
+  }
+
+  private setBackground(bg: string | undefined, base: string, instant: boolean) {
+    const old = this.bgEl;
+    this.bgEl = undefined;
+    if (old) {
+      if (instant) old.remove();
+      else {
+        old.style.opacity = "0";
+        setTimeout(() => old.remove(), this.slideFadeMs + 50);
+      }
+    }
+    if (!bg) return;
+    const el = document.createElement("div");
+    el.className = "bg";
+    const isImage = /\.(png|jpe?g|gif|svg|webp|avif)(\?.*)?$|^(https?:|data:)/i.test(bg);
+    if (isImage) {
+      const src = new URL(bg, base).href;
+      el.style.backgroundImage = `url("${src}")`;
+    } else el.style.background = bg;
+    if (!instant) {
+      el.style.opacity = "0";
+      requestAnimationFrame(() => requestAnimationFrame(() => (el.style.opacity = "1")));
+    }
+    this.root.prepend(el);
+    this.bgEl = el;
   }
 
   // ---- tekst -----------------------------------------------------------
@@ -197,7 +255,8 @@ export class Player {
     }
     this.textLayer.replaceChildren(el);
     this.textEl = el;
-    this.stage.classList.toggle('centered', step.centered);
+    const valign = this.deck.slides[step.slide].meta.valign;
+    this.stage.classList.toggle("centered", valign ? valign === "center" || valign === "middle" : step.centered);
   }
 
   // ---- kod -------------------------------------------------------------
@@ -221,7 +280,10 @@ export class Player {
     const cls = step.section.classes;
     const baseX = ar.left - sr.left + PAD_X +
       (cls.includes('left') ? 0 : cls.includes('right') ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
-    return { scale, baseX, topY: ar.top - sr.top, lineH };
+    const side = this.stage.classList.contains("layout-side") || this.stage.classList.contains("layout-side-right");
+    const middle = cls.includes("middle") || (side && !cls.includes("top"));
+    const topY = ar.top - sr.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);
+    return { scale, baseX, topY, lineH };
   }
 
   private pos(pl: ReturnType<Player['placement']>, row: number, col: number) {
@@ -246,7 +308,7 @@ export class Player {
         tk.dying = false;
         tk.el.className = cls;
         tk.el.textContent = p.tree.text;
-        tk.el.style.setProperty('--d', instant ? '0s' : `${MOVE_DELAY}s`);
+        tk.el.style.setProperty('--d', instant ? '0s' : `${this.moveDelay}s`);
         this.setTransform(tk.el, x, y, pl.scale);
         tk.el.style.opacity = '1';
       } else {
@@ -261,7 +323,7 @@ export class Player {
         this.tokens.set(key, tk);
         void el.offsetWidth;
         el.style.transition = '';
-        el.style.setProperty('--d', instant ? '0s' : `${FADE_IN_DELAY}s`);
+        el.style.setProperty('--d', instant ? '0s' : `${this.fadeInDelay}s`);
         el.style.opacity = '1';
       }
     }
@@ -273,7 +335,7 @@ export class Player {
       tk.timer = window.setTimeout(() => {
         tk.el.remove();
         if (this.tokens.get(key) === tk) this.tokens.delete(key);
-      }, instant ? 0 : DYING_MS);
+      }, instant ? 0 : this.dyingMs);
     }
   }
 

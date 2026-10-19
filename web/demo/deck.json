@@ -1,0 +1,6 @@
+{
+  "title": "Demo: layouty, motywy, media",
+  "theme": "dark",
+  "vars": { "--accent": "#ff9e64" },
+  "animation": { "move": 0.5, "fade": 0.3, "moveDelay": 0.05, "fadeInDelay": 0.1 }
+}
