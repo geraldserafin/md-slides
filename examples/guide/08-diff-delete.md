@@ -2,7 +2,7 @@
 
 <!-- Removed lines fade out and the rest closes the gap. Try going backwards: deletion becomes insertion. -->
 
-```ts
+```ts #g1
 function connect(url: string) {
   console.log("connecting to", url);
   const socket = new WebSocket(url);
@@ -11,20 +11,20 @@ function connect(url: string) {
 }
 ```
 
-```ts
+```ts #g1
 function connect(url: string) {
   const socket = new WebSocket(url);
   return socket;
 }
 ```
 
-```ts
+```ts #g1
 const connect = (url: string) => new WebSocket(url);
 ```
 
 ## Remove a parameter
 
-```ts
+```ts #g2
 function draw(ctx, x, y, color, debug) {
   ctx.fill(color);
   ctx.rect(x, y, 10, 10);
@@ -32,7 +32,7 @@ function draw(ctx, x, y, color, debug) {
 }
 ```
 
-```ts
+```ts #g2
 function draw(ctx, x, y, color) {
   ctx.fill(color);
   ctx.rect(x, y, 10, 10);

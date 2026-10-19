@@ -2,18 +2,18 @@
 
 Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads.
 
-```python
+```python #g1
 class Stack:
     pass
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self.items = []
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self.items = []
@@ -22,7 +22,7 @@ class Stack:
         self.items.append(item)
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self.items = []
@@ -34,7 +34,7 @@ class Stack:
         return self.items.pop()
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self.items = []
@@ -48,7 +48,7 @@ class Stack:
         return self.items.pop()
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self._items = []
@@ -62,7 +62,7 @@ class Stack:
         return self._items.pop()
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self._items = []
@@ -79,7 +79,7 @@ class Stack:
         return len(self._items)
 ```
 
-```python
+```python #g1
 class Stack:
     def __init__(self):
         self._items = []

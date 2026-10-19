@@ -11,31 +11,31 @@ how *that* frame is entered:
 
 Frame 1 is the starting point; the next three use a different mode each.
 
-```ts
+```ts #g1
 function area(w: number, h: number) {
   return w * h;
 }
 ```
 
-```ts
+```ts #g1
 function area(width: number, height: number) {
   return width * height;
 }
 ```
 
-```ts transition=fade
+```ts transition=fade #g1
 function area(width: number, height: number) {
   return width * height * 2;
 }
 ```
 
-```ts transition=none
+```ts transition=none #g1
 function area(width: number, height: number) {
   return width * height * 3;
 }
 ```
 
-```ts
+```ts #g1
 function area(width: number, height: number) {
   return width * height * 4;
 }

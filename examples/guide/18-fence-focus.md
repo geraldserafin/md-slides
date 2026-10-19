@@ -5,7 +5,7 @@ never changes, only the focus does, so the lines fade smoothly.
 
 <!-- Syntax: ```ts focus=2-4,7  (1-based, ranges and comma lists). Great for "now look at this part". -->
 
-```ts focus=1
+```ts focus=1 #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);
@@ -15,7 +15,7 @@ function checkout(cart: Cart, user: User) {
 }
 ```
 
-```ts focus=2
+```ts focus=2 #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);
@@ -25,7 +25,7 @@ function checkout(cart: Cart, user: User) {
 }
 ```
 
-```ts focus=2-4
+```ts focus=2-4 #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);
@@ -35,7 +35,7 @@ function checkout(cart: Cart, user: User) {
 }
 ```
 
-```ts focus=5-6
+```ts focus=5-6 #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);
@@ -45,7 +45,7 @@ function checkout(cart: Cart, user: User) {
 }
 ```
 
-```ts focus=5
+```ts focus=5 #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);
@@ -55,7 +55,7 @@ function checkout(cart: Cart, user: User) {
 }
 ```
 
-```ts
+```ts #g1
 function checkout(cart: Cart, user: User) {
   const total = price(cart);
   const discount = loyalty(user);

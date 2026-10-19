@@ -1,6 +1,6 @@
 ## How the matching works
 
-For every pair of consecutive code blocks:
+For every pair of consecutive frames of a code group:
 
 1. both are parsed into syntax trees, flattened to generic `{ label, text, children }` nodes
 2. **top-down**: identical subtrees are matched, tallest first

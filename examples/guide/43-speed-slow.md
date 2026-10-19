@@ -10,19 +10,19 @@ Every animation knob is a CSS variable, so a slide can override it:
 
 <!-- Perfect for a slide where the transition IS the point. -->
 
-```ts
+```ts #g1
 function area(w: number, h: number) {
   const result = w * h;
   return result;
 }
 ```
 
-```ts
+```ts #g1
 function area(h: number, w: number) {
   return h * w;
 }
 ```
 
-```ts
+```ts #g1
 const area = (h: number, w: number) => h * w;
 ```

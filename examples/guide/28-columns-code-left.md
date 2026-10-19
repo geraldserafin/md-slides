@@ -1,9 +1,9 @@
-```python
+```python #g1
 def mean(xs):
     return sum(xs) / len(xs)
 ```
 
-```python
+```python #g1
 def mean(xs):
     if not xs:
         raise ValueError("empty")

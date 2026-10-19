@@ -2,7 +2,7 @@
 
 <!-- The manual version first, then the standard library does it for us. -->
 
-```python
+```python #g1
 def word_counts(text):
     counts = {}
     for word in text.split():
@@ -13,7 +13,7 @@ def word_counts(text):
     return counts
 ```
 
-```python
+```python #g1
 def word_counts(text):
     counts = {}
     for word in text.split():
@@ -21,7 +21,7 @@ def word_counts(text):
     return counts
 ```
 
-```python
+```python #g1
 from collections import Counter
 
 
@@ -29,7 +29,7 @@ def word_counts(text):
     return Counter(text.split())
 ```
 
-```python
+```python #g1
 from collections import Counter
 
 

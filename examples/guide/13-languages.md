@@ -13,7 +13,7 @@ for the languages a deck uses. Every language animates the same way; here is Rus
 
 <!-- Matching works across languages because it only sees a generic tree. New language: tags.json + main.ts. -->
 
-```rust
+```rust #g1
 fn sum(xs: &[i32]) -> i32 {
     let mut total = 0;
     for x in xs {
@@ -23,7 +23,7 @@ fn sum(xs: &[i32]) -> i32 {
 }
 ```
 
-```rust
+```rust #g1
 fn sum(xs: &[i32]) -> i32 {
     xs.iter().sum()
 }

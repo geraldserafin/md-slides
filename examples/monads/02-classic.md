@@ -2,7 +2,7 @@
 
 <!-- Show the pain: every return must be checked separately, out-params instead of return values -->
 
-```cpp
+```cpp #flow
 bool parseInt(const std::string& s, int& out) {
   try {
     out = std::stoi(s);
@@ -38,7 +38,7 @@ bool process(const std::string& s, int divisor, int& result) {
 
 <!-- A different problem: the error is not in the signature, call sites have to guess what may be thrown -->
 
-```cpp
+```cpp #flow
 int parseInt(const std::string& s) {
   return std::stoi(s);
 }

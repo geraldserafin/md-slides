@@ -9,10 +9,10 @@ In a two-column slide the left column takes 50% of the width by default.
 
 ---
 
-```ts
+```ts #g1
 const columns = { text: "52%", code: "the rest" };
 ```
 
-```ts
+```ts #g1
 const columns = { text: "52%", code: "the rest", gap: "4vmin" };
 ```

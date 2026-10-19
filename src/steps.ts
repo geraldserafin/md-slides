@@ -1,73 +1,124 @@
-// A flat sequence of navigation steps + canonical token keys tracked through the
-// WHOLE sequence (so transitions between sections/slides animate with the same
-// mechanism: old code fades out, new code fades in, shared tokens move).
-import type { Deck, Section } from './deck';
+// A flat sequence of navigation steps. A section has one step per reveal stage (a `+++` line, or the next frame of
+// a code group, takes a click). Animated code blocks are independent unless they share an id: blocks with the same id
+// morph into each other from step to step -- also across sections and slides, as long as the id is shown in
+// consecutive steps. Token keys are tracked through the WHOLE sequence, so the same token is the same DOM element
+// from the first frame to the last and a CSS transition can move it.
+import type { Block, Deck, Frame, Item, Section } from './deck';
 import { match, type Matching, type Tree } from './gumtree';
-import { layoutLeaves, type Placed } from './layout';
+import { layoutBounds, layoutLeaves, type Placed } from './layout';
 import { parseOne, type Lang } from './parse';
+
+/** one animated code block as shown in one step */
+export interface BlockState {
+  block: Block;
+  index: number; // index in Section.blocks
+  groupKey: string; // what makes two blocks the same animation
+  frame: Frame;
+  lang: Lang;
+  root: Tree;
+  layout: Placed[];
+  cols: number; // the widest frame of the block (a stable box for alignment and fitting)
+  rows: number; // the tallest frame
+  focus?: string; // lines to keep bright; the rest is dimmed
+  transition: 'morph' | 'fade' | 'none'; // how this frame is entered
+  keys: Map<number, string>; // treeId -> canonical token key (namespaced by the group)
+  link?: { to: BlockState; m: Matching | 'same' }; // to the same group in the next step
+}
 
 export interface Step {
   slide: number;
   section: Section;
   sectionIndex: number; // globally unique section number (to detect text changes)
-  code: string;
-  focus?: string; // lines to keep bright (see Section.focus); the rest is dimmed
+  stage: number; // reveal stage shown in this step
+  blocks: BlockState[]; // the animated code visible in this step
   /** how this step is entered from the previous one: morph (diff animation), fade (cross-fade), none (cut) */
   transition: 'morph' | 'fade' | 'none';
-  lang?: Lang;
-  textOnly: boolean; // section without a fence: a single column of text
-  root?: Tree;
-  layout: Placed[];
-  keys: Map<number, string>; // treeId -> canonical key
 }
 
-const parseTransition = (v: string | undefined): Step['transition'] => (v === 'fade' || v === 'none' ? v : 'morph');
+const parseTransition = (v: string | undefined): BlockState['transition'] => (v === 'fade' || v === 'none' ? v : 'morph');
+
+/** the item that holds block `index` (its `at` is the stage the block appears at) */
+function blockItem(section: Section, index: number): Item | undefined {
+  return [...section.items, ...(section.right ?? [])].find((i) => i.kind === 'block' && i.block === index);
+}
 
 export async function buildSteps(deck: Deck): Promise<Step[]> {
+  // parse every frame once (tabs -> 4 spaces: the monospace grid has no notion of tab stops)
+  const parsed = new Map<Frame, { root: Tree; layout: Placed[] }>();
+  const metrics = new Map<Block, { cols: number; rows: number }>();
+  for (const slide of deck.slides)
+    for (const section of slide.sections)
+      for (const block of section.blocks) {
+        let cols = 0;
+        let rows = 0;
+        for (const frame of block.frames) {
+          const code = frame.code.replace(/\t/g, '    ');
+          const root = await parseOne(block.lang, code);
+          const layout = layoutLeaves(code, root);
+          parsed.set(frame, { root, layout });
+          const b = layoutBounds(layout);
+          cols = Math.max(cols, b.cols);
+          rows = Math.max(rows, b.rows);
+        }
+        metrics.set(block, { cols, rows });
+      }
+
   const steps: Step[] = [];
   let sectionIndex = 0;
   deck.slides.forEach((slide, si) => {
     for (const section of slide.sections) {
-      // tabs -> 4 spaces: the monospace grid has no notion of tab stops
-      const codes = section.codes.length ? section.codes.map((c) => c.replace(/\t/g, '    ')) : [''];
-      for (const [fi, code] of codes.entries()) {
-        steps.push({
-          slide: si, section, sectionIndex, code, focus: section.focus[fi],
-          transition: parseTransition(section.transition[fi]),
-          lang: section.lang,
-          textOnly: !section.hasFence,
-          layout: [], keys: new Map(),
+      for (let stage = 0; stage < section.stages; stage++) {
+        const blocks: BlockState[] = [];
+        section.blocks.forEach((block, index) => {
+          const item = blockItem(section, index);
+          if (!item || item.at > stage) return; // not revealed yet
+          let frameIdx = 0;
+          block.frames.forEach((f, k) => { if (f.at <= stage) frameIdx = k; });
+          const frame = block.frames[frameIdx];
+          if (frame.at > stage) return;
+          const p = parsed.get(frame)!;
+          const mt = metrics.get(block)!;
+          blocks.push({
+            block, index, groupKey: block.explicit ? `g:${block.id}` : `s${sectionIndex}:${block.id}`,
+            frame, lang: block.lang, root: p.root, layout: p.layout, cols: mt.cols, rows: mt.rows,
+            focus: frame.focus, transition: parseTransition(frame.transition), keys: new Map(),
+          });
         });
+        steps.push({ slide: si, section, sectionIndex, stage, blocks, transition: 'morph' });
       }
       sectionIndex++;
     }
   });
 
-  for (const s of steps) {
-    if (!s.lang) continue;
-    s.root = await parseOne(s.lang, s.code);
-    s.layout = layoutLeaves(s.code, s.root);
-  }
-
-  // matchings[i]: step i -> i+1 (empty if either side has no code or the languages differ)
-  const matchings: Matching[] = steps.slice(0, -1).map((a, i) => {
-    const b = steps[i + 1];
-    // fade/none: no shared tokens, so the old code fades out and the new one in (or is cut in)
-    return b.transition === 'morph' && a.root && b.root && a.lang === b.lang ? match(a.root, b.root) : new Map();
+  // link every block state to the same group in the next step (matched when the code changed, identical when not)
+  steps.forEach((step, i) => {
+    const prevStep = steps[i - 1];
+    if (!prevStep) return;
+    for (const cur of step.blocks) {
+      const prev = prevStep.blocks.find((b) => b.groupKey === cur.groupKey);
+      if (!prev) continue;
+      if (prev.frame === cur.frame) prev.link = { to: cur, m: 'same' };
+      else if (cur.transition === 'morph' && prev.lang === cur.lang) prev.link = { to: cur, m: match(prev.root, cur.root) };
+    }
+    // the step's own transition: a cut if a block that appears or changes here asks for it
+    const changed = step.blocks.filter((b) => {
+      const prev = prevStep.blocks.find((p) => p.groupKey === b.groupKey);
+      return !prev || prev.frame !== b.frame;
+    });
+    step.transition = changed.some((b) => b.transition === 'none') ? 'none' : changed.some((b) => b.transition === 'fade') ? 'fade' : 'morph';
   });
 
   // keys are computed from the end: a node inherits its partner's key from the next step
   for (let i = steps.length - 1; i >= 0; i--) {
-    const st = steps[i];
-    if (!st.root) continue;
-    const later = i < steps.length - 1 ? steps[i + 1].keys : undefined;
-    const m = matchings[i];
-    const collect = (t: Tree) => {
-      const id2 = m?.get(t.id);
-      st.keys.set(t.id, (id2 !== undefined && later?.get(id2)) || `k${i}_${t.id}`);
-      t.children.forEach(collect);
-    };
-    collect(st.root);
+    for (const st of steps[i].blocks) {
+      const link = st.link;
+      const collect = (t: Tree) => {
+        const partner = link ? (link.m === 'same' ? t.id : link.m.get(t.id)) : undefined;
+        st.keys.set(t.id, (partner !== undefined && link!.to.keys.get(partner)) || `${st.groupKey}|k${i}_${t.id}`);
+        t.children.forEach(collect);
+      };
+      collect(st.root);
+    }
   }
   return steps;
 }

@@ -1,6 +1,6 @@
 ## What's inside
 
-1. **The model** — slides, sections, frames
+1. **The model** — slides, sections, code groups, clicks (`+++`)
 2. **The diff** — rename, insert, delete, move, wrap, extract, a longer story
 3. **Languages** — what is supported
 4. **Code options** — alignment, size, fit, **focus lines**

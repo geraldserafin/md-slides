@@ -4,13 +4,13 @@
 
 Alignment: `halign=` and `valign=` (`start` | `center` | `end`), or the classes `.left` `.center` `.right` and `.top` `.middle` `.bottom`.
 Without them the code follows its slide: `start`, unless the slide says otherwise.
-Other options: `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
+Other options: `#id` (the group), `.lines`, `.panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
 
-```ts .left
+```ts .left #g1
 const where = "left";
 ```
 
-```ts .left
+```ts .left #g1
 const where = "still left, now longer";
 ```
 
@@ -19,11 +19,11 @@ const where = "still left, now longer";
 `size=14` fixes the font size in pixels. Without it the code is scaled to fit,
 using the largest frame of the section, so the size never jumps between frames.
 
-```ts size=14
+```ts size=14 #g2
 const small = "size=14";
 ```
 
-```ts size=14
+```ts size=14 #g2
 const small = "size=14, and the same font size in every frame";
 ```
 

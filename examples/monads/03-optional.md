@@ -2,7 +2,7 @@
 
 <!-- Now the error comes back as a value, not through a reference -- but manual checking remains -->
 
-```cpp
+```cpp #flow
 std::optional<int> parseInt(const std::string& s) {
   try {
     return std::stoi(s);
@@ -32,7 +32,7 @@ std::optional<int> process(const std::string& s, int divisor) {
 <!-- This is Haskell's bind/flatMap -- and_then is in std::optional since C++23 -->
 <!-- process() shrinks from 5 lines to a single expression -->
 
-```cpp
+```cpp #flow
 std::optional<int> parseInt(const std::string& s) {
   try {
     return std::stoi(s);

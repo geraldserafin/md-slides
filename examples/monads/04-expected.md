@@ -7,7 +7,7 @@ look identical from the outside.
 
 ## std::expected: Either for C++
 
-```cpp
+```cpp #flow
 std::expected<int, std::string> parseInt(const std::string& s) {
   try {
     return std::stoi(s);
@@ -34,7 +34,7 @@ std::expected<int, std::string> process(const std::string& s, int divisor) {
 
 <!-- The point of this deck: adding another step is one more .and_then, not another level of if -->
 
-```cpp
+```cpp #flow
 std::expected<int, std::string> parseInt(const std::string& s) {
   try {
     return std::stoi(s);

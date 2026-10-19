@@ -2,7 +2,7 @@
 
 <!-- function declaration -> const arrow function -->
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -26,7 +26,7 @@ const calculateTotal = (cartItems: Item[]): number => {
 <!-- two steps: first add the new function (duplicated logic), then swap the call site -->
 <!-- split in two because otherwise the diff gets lost on identical structure -->
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -49,7 +49,7 @@ const calculateTotal = (cartItems: Item[]): number => {
 };
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -74,7 +74,7 @@ const calculateTotal = (cartItems: Item[]): number => {
 
 ## Step 5: .reduce and export
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -88,7 +88,7 @@ const calculateTotal = (cartItems: Item[]): number =>
   cartItems.reduce((total, item) => total + itemTotal(item), 0);
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;

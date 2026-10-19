@@ -1,17 +1,40 @@
-// Markdown -> presentation model. One .md file = one slide; a slide splits into
-// sections at code-block boundaries (text BEFORE a code block belongs to THAT section).
-// Consecutive code blocks with the same classes = consecutive animation frames
-// within one section. HTML comments => presenter notes.
+// Markdown -> presentation model. One .md file = one slide. A slide is a list of sections (a new section starts at
+// a level 1-2 heading); a section is text, images and animated code blocks in reading order, in one or two columns
+// (a `---` line). A `+++` line makes everything after it appear on the next click (a reveal stage). Animated code
+// blocks are independent unless they share a `#id`: blocks with the same id are the frames of one animation.
+// HTML comments => presenter notes.
 import { marked, type Token, type Tokens } from 'marked';
 import { fileUrl } from './files';
 import type { ChromeBar } from './chrome';
 import { langFromTag, type Lang } from './parse';
 
-export type Item =
+export type Item = (
   | { kind: 'html'; html: string; tag: string } // heading/paragraph/list/quote...
   | { kind: 'image'; src: string; alt: string; attrs: Attrs }
   | { kind: 'video'; src: string; attrs: Attrs }
-  | { kind: 'code'; text: string; lang: string }; // static block (language without a grammar)
+  | { kind: 'code'; text: string; lang: string } // static block (language without a grammar)
+  | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
+) & { at: number }; // the reveal stage it appears at (0 = from the start)
+
+/** an item before it is given its reveal stage */
+type ItemInit = Item extends infer I ? (I extends unknown ? Omit<I, 'at'> : never) : never;
+
+export interface Frame {
+  code: string;
+  focus?: string; // lines to keep bright, e.g. "2-4,7"
+  transition?: string; // how it is entered from the previous frame: morph | fade | none
+  at: number; // the reveal stage it appears at
+}
+
+/** An animated code block; blocks with the same id are the frames of one animation. */
+export interface Block {
+  id: string; // explicit (`#name`, shared across the deck) or generated
+  explicit: boolean;
+  lang: Lang;
+  classes: string[]; // fence classes (e.g. "left", "lines", "panel")
+  opts: Record<string, string>; // fence key=value (e.g. size=18, start=10, title=cart.ts)
+  frames: Frame[];
+}
 
 export interface Attrs {
   classes: string[];
@@ -19,18 +42,11 @@ export interface Attrs {
 }
 
 export interface Section {
-  items: Item[]; // the text of the (left) column
+  items: Item[]; // the (left) column
   /** the right column, when the markdown has a `---` line; undefined = a single column */
   right?: Item[];
-  /** which column the animated code sits in: 0 = left (or the only column), 1 = right */
-  codeCol: 0 | 1;
-  classes: string[]; // fence classes (e.g. "left")
-  opts: Record<string, string>; // fence key=value (e.g. size=18)
-  lang?: Lang; // grammar of the animated code
-  codes: string[]; // successive code states
-  focus: (string | undefined)[]; // per frame: lines to keep bright, e.g. "2-4,7"
-  transition: (string | undefined)[]; // per frame: how it is entered from the previous one: morph | fade | none
-  hasFence: boolean;
+  blocks: Block[];
+  stages: number; // reveal stages: 1 + the number of clicks that add content
 }
 
 export interface Slide {
@@ -80,7 +96,16 @@ export interface DeckMeta {
   fonts?: { family: string; src: string; weight?: string; style?: string }[];
   googleFonts?: string[];
   animation?: AnimationOpts;
+  /** look of animated code blocks; a block's own options win */
+  code?: CodeStyle;
   files: string[];
+}
+
+export interface CodeStyle {
+  bg?: string; // "panel" | "none" | any CSS color
+  lines?: boolean; // line numbers
+  radius?: number | string; // panel corner radius (px or CSS length)
+  pad?: string; // panel padding, CSS
 }
 
 export interface Deck {
@@ -95,7 +120,7 @@ const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i;
 export function parseAttrs(s: string | undefined): Attrs {
   const attrs: Attrs = { classes: [], opts: {} };
   if (!s) return attrs;
-  for (const w of s.trim().split(/\s+/).filter(Boolean)) {
+  for (const w of s.trim().match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []) {
     if (w.startsWith('.')) attrs.classes.push(w.slice(1));
     else if (w.includes('=')) {
       const [k, ...v] = w.split('=');
@@ -105,13 +130,14 @@ export function parseAttrs(s: string | undefined): Attrs {
   return attrs;
 }
 
-/** fence info string: "cpp .left size=18" -> language (first recognized word) + attrs */
-function parseFence(info: string): { lang?: Lang; tag: string; attrs: Attrs } {
-  const words = info.trim().split(/\s+/).filter(Boolean);
-  const plain = words.filter((w) => !w.startsWith('.') && !w.includes('='));
+/** fence info string: "cpp #fn .lines start=10 title=\"a b.ts\"" -> language, group id, classes and options */
+function parseFence(info: string): { lang?: Lang; tag: string; id?: string; attrs: Attrs } {
+  const words = info.trim().match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
+  const plain = words.filter((w) => !w.startsWith('.') && !w.startsWith('#') && !w.includes('='));
   const lang = plain.map((w) => langFromTag(w)).find((l) => l !== undefined);
   const rest = words.filter((w) => w.startsWith('.') || w.includes('='));
-  return { lang, tag: plain[0] ?? '', attrs: parseAttrs(rest.join(' ')) };
+  const id = words.find((w) => w.startsWith('#') && w.length > 1)?.slice(1);
+  return { lang, tag: plain[0] ?? '', id, attrs: parseAttrs(rest.join(' ')) };
 }
 
 const resolve = (src: string, base: string) => {
@@ -154,36 +180,34 @@ export function parseSlide(markdown: string, url: string): Slide {
 
   const notes: string[] = [];
   const sections: Section[] = [];
-  let pending: Item[] = []; // text of the left / only column, waiting for its section
-  let pendingR: Item[] | undefined; // right column, after a `---`
-  let inRight = false;
-  let target: Section | undefined; // a section whose right column is being filled (code on the left, `---`, text on the right)
   let title = '';
+  let autoId = 0;
 
-  const add = (item: Item) => {
-    if (target) target.right!.push(item);
-    else if (inRight) pendingR!.push(item);
-    else pending.push(item);
+  // the section being built
+  let cur: Section = { items: [], blocks: [], stages: 1 };
+  let col: Item[] = cur.items; // the column items are added to
+  let stage = 0;
+  let bumped = false; // a `+++` since the last content: the next frame of a group needs no extra click
+  let hasContent = false; // the section holds more than headings
+
+  const startSection = () => {
+    sections.push(cur);
+    cur = { items: [], blocks: [], stages: 1 };
+    col = cur.items;
+    stage = 0;
+    bumped = false;
+    hasContent = false;
+  };
+  const closeSection = () => {
+    cur.stages = stage + 1;
+    if (cur.items.length || cur.right?.length || cur.blocks.length) startSection();
   };
 
-  const reset = () => {
-    pending = [];
-    pendingR = undefined;
-    inRight = false;
+  const add = (item: ItemInit, isHeading = false) => {
+    col.push({ ...item, at: stage } as Item);
+    bumped = false;
+    if (!isHeading) hasContent = true;
   };
-
-  const newSection = (extra: Partial<Section>): Section => ({
-    items: pending,
-    right: pendingR,
-    codeCol: inRight ? 1 : 0,
-    classes: [],
-    opts: {},
-    codes: [],
-    focus: [],
-    transition: [],
-    hasFence: false,
-    ...extra,
-  });
 
   for (const tok of tokens as Token[]) {
     if (tok.type === 'space') continue;
@@ -192,45 +216,47 @@ export function parseSlide(markdown: string, url: string): Slide {
       continue;
     }
     if (tok.type === 'hr') {
-      // a thematic break splits the slide into a left and a right column (once per section)
-      if (inRight || target) continue;
-      const last = sections[sections.length - 1];
-      if (pending.length === 0 && last?.hasFence && last.right === undefined) {
-        last.right = []; // code on the left: what follows is the right column of that section
-        last.codeCol = 0;
-        target = last;
-      } else {
-        inRight = true;
-        pendingR = [];
+      // a thematic break splits the section into a left and a right column (once)
+      if (cur.right === undefined) {
+        cur.right = [];
+        col = cur.right;
       }
       continue;
+    }
+    if (tok.type === 'paragraph' && (tok as Tokens.Paragraph).text.trim() === '+++') {
+      // everything after this line appears on the next click
+      stage++;
+      bumped = true;
+      continue;
+    }
+    // (a heading that opens the right column belongs to it)
+    if (tok.type === 'heading' && (tok as Tokens.Heading).depth <= 2 && hasContent && !(col === cur.right && col.length === 0)) {
+      // a new level 1-2 heading after real content starts the next section
+      closeSection();
     }
     if (tok.type === 'code') {
       const code = tok as Tokens.Code;
       const f = parseFence(code.lang ?? '');
-      const last = sections[sections.length - 1];
-      // same language/classes in a row, no text in between => next frame
-      if (
-        f.lang && last && last.lang === f.lang && pending.length === 0 && !inRight && !target &&
-        last.classes.join(' ') === f.attrs.classes.join(' ')
-      ) {
-        last.codes.push(code.text);
-        last.focus.push(f.attrs.opts.focus);
-        last.transition.push(f.attrs.opts.transition);
+      if (!f.lang) {
+        // language without a grammar: a static block in the text
+        add({ kind: 'code', text: code.text, lang: f.tag });
         continue;
       }
-      target = undefined;
-      if (f.lang) {
-        sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], focus: [f.attrs.opts.focus], transition: [f.attrs.opts.transition], hasFence: true }));
-        reset();
+      const existing = f.id ? cur.blocks.find((b) => b.id === f.id) : undefined;
+      if (existing) {
+        // another frame of the same group: it takes a click of its own, unless a `+++` already made one
+        if (!bumped) stage++;
+        existing.frames.push({ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at: stage });
+        bumped = false;
       } else {
-        // language without a grammar: show as a static block in the column text
-        add({ kind: 'code', text: code.text, lang: f.tag });
+        cur.blocks.push({
+          id: f.id ?? `b${autoId++}`, explicit: !!f.id, lang: f.lang, classes: f.attrs.classes, opts: f.attrs.opts,
+          frames: [{ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at: stage }],
+        });
+        add({ kind: 'block', block: cur.blocks.length - 1 });
       }
       continue;
     }
-    // a heading after the right column already has content starts something new
-    if (tok.type === 'heading' && target && target.right!.length > 0 && (tok as Tokens.Heading).depth <= 3) target = undefined;
     if (tok.type === 'paragraph') {
       const m = SOLO_MEDIA.exec(tok.raw.trim());
       if (m) {
@@ -240,32 +266,35 @@ export function parseSlide(markdown: string, url: string): Slide {
         continue;
       }
     }
-    if (tok.type === 'heading' && !title) title = (tok as Tokens.Heading).text;
+    const isHeading = tok.type === 'heading';
+    if (isHeading && !title) title = (tok as Tokens.Heading).text;
     const html = marked.parser([tok] as Token[]);
-    add({ kind: 'html', html, tag: tok.type === 'heading' ? `h${(tok as Tokens.Heading).depth}` : tok.type });
+    add({ kind: 'html', html, tag: isHeading ? `h${(tok as Tokens.Heading).depth}` : tok.type }, isHeading);
   }
-  if (pending.length || pendingR?.length) sections.push(newSection({ codeCol: 0 }));
+  closeSection();
   const slide: Slide = { meta, own: meta, sections, notes, title: meta.title || title || '(untitled)', url };
   applyLegacyLayout(slide);
   return slide;
 }
 
 /**
- * `layout: side` / `side-right` (the old way of getting two columns) turn every section with code into two columns:
- * text left, code right (side), or code left, text right (side-right). Columns written with `---` are left alone.
+ * `layout: side` / `side-right` (the old way of getting two columns) put the code blocks of every section in the right
+ * (side) or left (side-right) column and the rest in the other one. Sections written with `---` are left alone.
  */
 export function applyLegacyLayout(slide: Slide) {
   const layout = slide.meta.layout;
   if (layout !== 'side' && layout !== 'side-right') return;
   for (const s of slide.sections) {
-    if (!s.hasFence || s.right !== undefined) continue;
+    if (!s.blocks.length || s.right !== undefined) continue;
+    const isCode = (i: Item) => i.kind === 'block';
+    const codes = s.items.filter(isCode);
+    const rest = s.items.filter((i) => !isCode(i));
     if (layout === 'side') {
-      s.right = [];
-      s.codeCol = 1;
+      s.items = rest;
+      s.right = codes;
     } else {
-      s.right = s.items;
-      s.items = [];
-      s.codeCol = 0;
+      s.items = codes;
+      s.right = rest;
     }
   }
 }

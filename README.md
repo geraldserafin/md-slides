@@ -73,13 +73,17 @@ itself a deck: every feature has a live demonstration on the slide that describe
 
 Normal Markdown (headings, paragraphs, lists, quotes, inline code) plus a few conventions.
 
-**Animated code.** A fenced block in a supported language becomes animated code. Consecutive blocks of
-the same language and the same classes are *frames* of one animation:
+**Sections.** A slide (one `.md` file) splits into sections at a `#` or `##` heading. Moving to the next section fades
+the old text and code out and the new ones in. Inside a section you write text, images and code in reading order.
+
+**Animated code.** A fenced block in a supported language is an animated code block. Blocks are **independent** unless
+they share an id: `#name` after the language. Blocks with the same id are the *frames* of one animation, in the same
+place, one click each; the diff between two frames is what moves:
 
 ````markdown
 ## Step 1
 
-```ts
+```ts #total
 function total(items: number[]) {
   let sum = 0;
   for (const x of items) sum += x;
@@ -87,16 +91,40 @@ function total(items: number[]) {
 }
 ```
 
-```ts
+```ts #total
 function total(items: number[]) {
   return items.reduce((sum, x) => sum + x, 0);
 }
 ```
+
+```py
+print("a block of its own, shown right below")
+```
 ````
 
-Tabs in code are expanded to four spaces. Pressing → plays the transition from the first block to the second. Text before a code block belongs to
-that block's section. A section without code is just text. Blocks in languages without a grammar are shown
-as static code.
+A group id can continue across sections and slides (the same id in the next section morphs the code there). Without an id
+a block is shown as it is, and you can have as many as you like on a slide, with text in between. Tabs are expanded
+to four spaces. Blocks in languages without a grammar are shown as static code.
+
+**Reveal.** A line with three plus signs, `+++`, hides everything after it until the next click, like PowerPoint's
+build-in animations. It works for text, lists, images, video and code blocks, and nothing moves when the content appears
+(its space is reserved):
+
+````markdown
+## Plan
+
+The first point is there from the start.
+
++++
+
+The second appears on a click.
+
++++
+
+```ts
+const third = "a code block on the last click";
+```
+````
 
 **Columns.** A slide is one column by default (title, text, code, from the top left). A line with three dashes
 splits it into two columns, 50 / 50 (`split: 40%` in the front matter changes the width of the left one). Either
@@ -117,12 +145,16 @@ let a = 1;
 Put a blank line before `---`, otherwise Markdown reads the line above it as a heading. For code on the left, put the
 fence first and the text after the `---`. Alignment inside the columns is `valign` / `halign` (see below).
 
-**Fence options** go after the language: ` ```cpp .left size=18 fit=none `
+**Fence options** go after the language: ` ```cpp #fn .lines size=18 `
 
 | Option | Meaning |
 | --- | --- |
 | `halign=start\|center\|end` (or `.left` `.center` `.right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
 | `valign=start\|center\|end` (or `.top` `.middle` `.bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
+| `#name` | the group: blocks with the same id are the frames of one animation |
+| `.lines` / `.nolines`, `start=10` | line numbers, and the number of the first line |
+| `.panel` (or `.bg`) / `.nopanel`, `bg=#16213e`, `radius=12`, `pad="1em 1.4em"` | a background box around the code; `bg=` sets its color (and switches it on) |
+| `title="cart.ts"` | a caption above the code, e.g. a file name |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
 | `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |
@@ -175,6 +207,7 @@ Optional, placed in the deck folder:
   "css": "deck.css",
   "vars": { "--font-heading": "Georgia, serif" },
   "defaults": { "justify": "true", "padding": "9vmin 12vmin" },
+  "code": { "bg": "panel", "lines": true, "radius": 10 },
   "columns": { "valign": "center" },
   "textOnly": { "halign": "center", "valign": "center" },
   "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
@@ -199,6 +232,7 @@ Optional, placed in the deck folder:
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
 | `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
+| `code` | look of every code block (a block's own options win): `bg` (`"panel"`, `"none"` or a color), `lines` (line numbers), `radius`, `pad` |
 | `columns` | like `defaults`, but only for slides that have two columns (a `---` line), e.g. `{"valign": "center"}` |
 | `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
@@ -254,7 +288,7 @@ Built in: TypeScript, TSX, JavaScript, C, C++, Python, Rust, Go, Java, Bash, JSO
 
 ## How the diff works
 
-For every pair of consecutive code blocks the viewer matches the two syntax trees and renders the match.
+For every pair of consecutive frames of a code group the viewer matches the two syntax trees and renders the match.
 The matcher (`src/gumtree.ts`) is GumTree plus a few extra cues that reduce false matches:
 
 1. **Top-down** (height ≥ 2): identical subtrees, tallest first. Identical pairs sitting in *different

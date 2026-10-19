@@ -2,31 +2,31 @@
 
 <!-- Each edit changes exactly one token or a tiny region; everything else must stay still. -->
 
-```ts
+```ts #g1
 if (count > 10) {
   alert("too many items: " + count);
 }
 ```
 
-```ts
+```ts #g1
 if (count >= 10) {
   alert("too many items: " + count);
 }
 ```
 
-```ts
+```ts #g1
 if (count >= limit) {
   alert("too many items: " + count);
 }
 ```
 
-```ts
+```ts #g1
 if (count >= limit) {
   alert(`too many items: ${count}`);
 }
 ```
 
-```ts
+```ts #g1
 if (count >= limit) {
   notify(`too many items: ${count}`);
 }
@@ -34,21 +34,21 @@ if (count >= limit) {
 
 ## Reorder arguments
 
-```ts
+```ts #g2
 const point = makePoint(y, x, label, color);
 ```
 
-```ts
+```ts #g2
 const point = makePoint(x, y, label, color);
 ```
 
-```ts
+```ts #g2
 const point = makePoint(x, y, color, label);
 ```
 
 ## if / else to a ternary
 
-```ts
+```ts #g3
 let label;
 if (count === 1) {
   label = "item";
@@ -57,13 +57,13 @@ if (count === 1) {
 }
 ```
 
-```ts
+```ts #g3
 const label = count === 1 ? "item" : "items";
 ```
 
 ## Loop to method chain
 
-```ts
+```ts #g4
 const names = [];
 for (const user of users) {
   if (user.active) {
@@ -72,7 +72,7 @@ for (const user of users) {
 }
 ```
 
-```ts
+```ts #g4
 const names = users
   .filter((user) => user.active)
   .map((user) => user.name);

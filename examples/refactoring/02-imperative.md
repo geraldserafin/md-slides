@@ -3,7 +3,7 @@
 <!-- Start with the bare loop, show it works, then add types gradually -->
 <!-- var->let, then interface, then type annotations, then for-of, then += -->
 
-```ts
+```ts #calc
 function calc(items) {
   var total = 0;
   for (var i = 0; i < items.length; i++) {
@@ -13,7 +13,7 @@ function calc(items) {
 }
 ```
 
-```ts
+```ts #calc
 function calc(items) {
   let total = 0;
   for (let i = 0; i < items.length; i++) {
@@ -23,7 +23,7 @@ function calc(items) {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -38,7 +38,7 @@ function calc(items) {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -53,7 +53,7 @@ function calc(items: Item[]): number {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -68,7 +68,7 @@ function calc(items: Item[]): number {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -87,7 +87,7 @@ function calc(items: Item[]): number {
 
 <!-- rename calc->calculateTotal, items->cartItems, add a guard for an empty cart -->
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -102,7 +102,7 @@ function calculateTotal(items: Item[]): number {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;
@@ -117,7 +117,7 @@ function calculateTotal(cartItems: Item[]): number {
 }
 ```
 
-```ts
+```ts #calc
 interface Item {
   price: number;
   qty: number;

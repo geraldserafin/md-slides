@@ -31,7 +31,7 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
       const si = cells.indexOf(e.target as HTMLElement);
       if (si < 0 || players.has(si)) continue;
       const own = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si);
-      const last = (own.filter((x) => x.s.root).pop() ?? own[own.length - 1]).i;
+      const last = own[own.length - 1].i; // everything revealed
       const frame = e.target.querySelector<HTMLElement>('.frame')!;
       const p = new Player(frame, deck, steps);
       players.set(si, p);

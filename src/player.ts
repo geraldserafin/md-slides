@@ -4,9 +4,8 @@
 // towards the next step's target position.
 import { fenceAlign, place, resolveAlign, type Align } from './align';
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
-import type { Deck, Item, Slide } from './deck';
+import type { Block, CodeStyle, Deck, Item, Section, Slide } from './deck';
 import { fileUrl } from './files';
-import { layoutBounds } from './layout';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
 
@@ -27,7 +26,44 @@ const ALIASES: Record<string, { v: string; px?: boolean }> = {
 };
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 1.6;
-const PAD_X = 0;
+
+/** how one animated code block looks: from the deck defaults ("code" in deck.json) and the block's own fence options */
+interface BlockCfg {
+  panel: boolean; // a background box around the code
+  bg?: string; // its color (default: --code-bg)
+  lines: boolean; // line numbers
+  start: number; // the number of the first line
+  title?: string; // a caption above the code, e.g. a file name
+  radius?: string;
+  pad?: string;
+}
+
+interface BlockView {
+  block: Block;
+  col: number; // the column the block sits in
+  wrap: HTMLElement; // .code-block (panel, title)
+  box: HTMLElement; // .code-box: the exact area the tokens are drawn in
+  cfg: BlockCfg;
+  scale: number; // font scale of the block
+  cols: number; // widest frame, in characters
+  rows: number; // tallest frame
+}
+
+const flag = (b: Block, ...names: string[]) => names.some((n) => b.classes.includes(n));
+
+function blockCfg(b: Block, d: CodeStyle = {}): BlockCfg {
+  const o = b.opts;
+  const bgOpt = o.bg ?? (d.bg !== undefined ? String(d.bg) : undefined);
+  const panel = flag(b, 'nopanel', 'nobg') || o.bg === 'none' ? false
+    : flag(b, 'panel', 'bg') || !!bgOpt && bgOpt !== 'none';
+  const bg = bgOpt && bgOpt !== 'panel' && bgOpt !== 'none' ? bgOpt : undefined;
+  const lines = flag(b, 'nolines') || o.lines === 'false' ? false : flag(b, 'lines') || o.lines === 'true' || d.lines === true;
+  const radius = o.radius ?? (d.radius !== undefined ? String(d.radius) : undefined);
+  return {
+    panel, bg, lines, start: parseInt(o.start ?? '1', 10) || 1, title: o.title,
+    radius: radius && /^\d+(\.\d+)?$/.test(radius) ? `${radius}px` : radius, pad: o.pad ?? d.pad,
+  };
+}
 
 interface Token {
   el: HTMLSpanElement;
@@ -57,8 +93,8 @@ export class Player {
   private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
-  private cols: { el: HTMLElement; text: HTMLElement; code: HTMLElement }[];
-  private codeArea: HTMLElement; // the code area of the column the current section's code sits in
+  private cols: { el: HTMLElement; text: HTMLElement }[];
+  private view?: { section: Section; blocks: BlockView[]; items: { el: HTMLElement; at: number }[] }; // the section on screen
   private codeLayer: HTMLElement;
   private slideShown = -1;
   private ro: ResizeObserver;
@@ -85,6 +121,7 @@ export class Player {
     const rs = root.style;
     rs.setProperty("--move-dur", `${move}s`);
     rs.setProperty("--fade-dur", `${fade}s`);
+    rs.setProperty("--drift", `${this.textDrift}px`);
     if (a.ease) rs.setProperty("--ease", a.ease);
     for (const [k, v] of Object.entries(deck.meta.vars ?? {})) rs.setProperty(k, v);
     const bar = (kind: 'header' | 'footer') => deck.meta[kind]
@@ -93,17 +130,16 @@ export class Player {
     root.innerHTML = `
       ${bar('header')}
       <div class="stage">
-        <div class="col col-0"><div class="text-layer"></div><div class="code-area"></div></div>
-        <div class="col col-1"><div class="text-layer"></div><div class="code-area"></div></div>
+        <div class="col col-0"><div class="text-layer"></div></div>
+        <div class="col col-1"><div class="text-layer"></div></div>
         <div class="code-layer"></div>
       </div>
       ${bar('footer')}
       <div class="hud"><div class="progress"><i></i></div><span class="counter"></span></div>`;
     this.stage = root.querySelector('.stage')!;
     this.cols = [...root.querySelectorAll<HTMLElement>('.col')].map((el) => ({
-      el, text: el.querySelector<HTMLElement>('.text-layer')!, code: el.querySelector<HTMLElement>('.code-area')!,
+      el, text: el.querySelector<HTMLElement>('.text-layer')!,
     }));
-    this.codeArea = this.cols[0].code;
     this.codeLayer = root.querySelector('.code-layer')!;
 
     this.ro = new ResizeObserver(() => this.relayout(true));
@@ -152,6 +188,7 @@ export class Player {
     if (this.textSection !== step.sectionIndex) this.leaveText(first || instant || textCut);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
+    this.applyStage(step, first || instant);
     this.advance(step, first || instant || cut);
     this.updateHud();
     this.onChange?.(this.state());
@@ -266,10 +303,32 @@ export class Player {
 
   // ---- text ------------------------------------------------------------
 
-  private renderItem(it: Item): HTMLElement {
+  private renderItem(it: Item, col: number, section: Section, views: BlockView[]): HTMLElement {
     const el = document.createElement('div');
     el.className = 'item';
     switch (it.kind) {
+      case 'block': {
+        el.classList.add('item-block');
+        const block = section.blocks[it.block];
+        const cfg = blockCfg(block, this.deck.meta.code);
+        const wrap = document.createElement('div');
+        wrap.className = 'code-block' + (cfg.panel ? ' panel' : '');
+        if (cfg.bg) wrap.style.background = cfg.bg;
+        if (cfg.radius) wrap.style.borderRadius = cfg.radius;
+        if (cfg.pad && cfg.panel) wrap.style.padding = cfg.pad;
+        if (cfg.title) {
+          const t = document.createElement('div');
+          t.className = 'code-title';
+          t.textContent = cfg.title;
+          wrap.append(t);
+        }
+        const box = document.createElement('div');
+        box.className = 'code-box';
+        wrap.append(box);
+        el.append(wrap);
+        views.push({ block, col, wrap, box, cfg, scale: 1, cols: 1, rows: 1 });
+        break;
+      }
       case 'html':
         el.classList.add(`item-${it.tag}`);
         el.innerHTML = it.html;
@@ -373,27 +432,57 @@ export class Player {
     this.textSection = step.sectionIndex;
     const sec = step.section;
     const meta = this.deck.slides[step.slide].meta;
+    const views: BlockView[] = [];
+    const items: { el: HTMLElement; at: number }[] = [];
     const columns: Item[][] = [sec.items, sec.right ?? []];
-    this.codeArea = this.cols[sec.codeCol].code;
-    columns.forEach((items, c) => {
+    // widest / tallest frame of every block, from the steps of this section (a stable box across its frames)
+    const metrics = new Map<Block, { cols: number; rows: number }>();
+    for (const st of this.steps) if (st.section === sec) for (const bs of st.blocks) metrics.set(bs.block, { cols: bs.cols, rows: bs.rows });
+    columns.forEach((list, c) => {
       const col = this.cols[c];
-      col.el.classList.toggle('no-text', items.length === 0);
-      col.el.classList.toggle('no-code', !(sec.hasFence && sec.codeCol === c));
-      if (!items.length) {
+      col.el.classList.toggle('no-text', list.length === 0);
+      if (!list.length) {
         col.text.replaceChildren();
         return;
       }
       const el = document.createElement('div');
       el.className = 'text';
-      for (const it of items) el.append(this.renderItem(it));
+      for (const it of list) {
+        const e = this.renderItem(it, c, sec, views);
+        e.dataset.at = String(it.at);
+        if (it.at > step.stage) e.classList.add('pending');
+        items.push({ el: e, at: it.at });
+        el.append(e);
+      }
       col.text.replaceChildren(el);
       // the new text waits until the old one is (almost) gone, so two headings never overlap
-      // the new text starts as the old one is nearly gone: no gap (blink), and no two headings on top of each other
       if (!instant) this.enterText(el, meta, this.leaving ? LEAVE_S * 0.65 : 0);
       this.textEls[c] = el;
     });
+    for (const v of views) {
+      const m = metrics.get(v.block);
+      v.cols = m?.cols ?? 1;
+      v.rows = m?.rows ?? 1;
+    }
+    this.view = { section: sec, blocks: views, items };
     this.leaving = false;
     this.applyAlign(step);
+  }
+
+  /** Reveal: show what the current stage includes, hide what comes later (also when going back). */
+  private applyStage(step: Step, instant: boolean) {
+    const view = this.view;
+    if (!view) return;
+    for (const { el, at } of view.items) {
+      const pending = at > step.stage;
+      if (el.classList.contains('pending') === pending) continue;
+      // inline styles left by the entrance animation would win over the class
+      el.style.opacity = '';
+      el.style.transform = '';
+      el.style.transition = instant ? 'none' : '';
+      el.classList.toggle('pending', pending);
+      if (instant) requestAnimationFrame(() => { el.style.transition = ''; });
+    }
   }
 
   /**
@@ -403,17 +492,17 @@ export class Player {
   private applyAlign(step: Step) {
     const slide = this.deck.slides[step.slide];
     const twoCol = step.section.right !== undefined;
+    const textOnly = step.section.blocks.length === 0;
     const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns, textOnly: this.deck.meta.textOnly };
-    const ctx = { twoColumns: twoCol, textOnly: step.textOnly };
+    const ctx = { twoColumns: twoCol, textOnly };
     const st = this.stage;
     st.dataset.h = resolveAlign('halign', src, ctx);
     st.dataset.v = resolveAlign('valign', src, ctx);
     const justify = slide.own.justify ?? this.deck.meta.defaults?.justify;
     if (justify && !/^(false|no|off|0)$/i.test(justify)) st.dataset.justify = '';
     else delete st.dataset.justify;
-    st.classList.toggle('text-only', step.textOnly);
+    st.classList.toggle('text-only', textOnly);
     st.classList.toggle('two-col', twoCol);
-    st.classList.toggle('code-right', twoCol && step.section.codeCol === 1);
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
@@ -425,7 +514,7 @@ export class Player {
       fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
     };
     const tf = from[kind] ?? '';
-    const targets = stagger > 0 ? [...el.children] as HTMLElement[] : [el];
+    const targets = stagger > 0 ? [...el.children].filter((c) => !c.classList.contains('pending')) as HTMLElement[] : [el];
     targets.forEach((t, i) => {
       t.style.transition = 'none';
       t.style.opacity = '0';
@@ -446,47 +535,43 @@ export class Player {
 
   // ---- code ------------------------------------------------------------
 
-  private placement(step: Step) {
-    // offset*: independent of transform: scale() (overview thumbnails)
-    const ar = {
-      left: this.codeArea.offsetLeft, top: this.codeArea.offsetTop,
-      width: this.codeArea.offsetWidth, height: this.codeArea.offsetHeight,
-    };
-    const availW = Math.max(1, ar.width - 2 * PAD_X);
-    const availH = Math.max(1, ar.height);
-    const { cols, rows } = layoutBounds(step.layout);
+  /**
+   * Size every code block of the section: the font scale fits the widest frame into the column (never above
+   * MAX_SCALE), then, if a column's content is taller than the column, all blocks in it shrink to fit (never below MIN_SCALE).
+   * The block's box gets the exact height of its tallest frame, so the text around it never moves between frames.
+   */
+  private layoutBlocks() {
+    const view = this.view;
+    if (!view) return;
     const lineH = REF_FONT * LINE_RATIO;
-    const codeW = cols * this.charW;
-    const codeH = rows * lineH;
-    const size = parseFloat(step.section.opts.size ?? '');
-    const fit = step.section.opts.fit !== 'none';
-    // fit to the largest frame of the section, so the font size stays constant across its frames
-    let maxCols = cols;
-    let maxRows = rows;
-    for (const s of this.steps) {
-      if (s.sectionIndex !== step.sectionIndex) continue;
-      const b = layoutBounds(s.layout);
-      maxCols = Math.max(maxCols, b.cols);
-      maxRows = Math.max(maxRows, b.rows);
+    const apply = (v: BlockView, s: number) => {
+      v.scale = s;
+      const gutter = v.cfg.lines ? (String(v.cfg.start + v.rows - 1).length + 1.5) * this.charW * s : 0;
+      v.box.style.height = `${v.rows * lineH * s}px`;
+      v.box.style.paddingLeft = `${gutter}px`;
+    };
+    for (const v of view.blocks) {
+      const size = parseFloat(v.block.opts.size ?? '');
+      const fit = v.block.opts.fit !== 'none';
+      const cs = getComputedStyle(v.wrap);
+      const W = v.wrap.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+      const g = v.cfg.lines ? String(v.cfg.start + v.rows - 1).length + 1.5 : 0;
+      apply(v, size > 0 ? size / REF_FONT : !fit ? 1 : Math.max(MIN_SCALE, Math.min(MAX_SCALE, W / ((v.cols + g) * this.charW) || 1)));
     }
-    const fitW = maxCols * this.charW;
-    const fitH = maxRows * lineH;
-    const scale = size > 0
-      ? size / REF_FONT
-      : !fit ? 1
-      : Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitW > 0 ? availW / fitW : 1, fitH > 0 ? availH / fitH : 1));
-    const scaledW = codeW * scale;
-    // the code block's own alignment (fence classes / halign= valign=) wins over the slide's
-    const fa = fenceAlign(step.section.classes, step.section.opts);
-    const hAlign = fa.h ?? (this.stage.dataset.h as Align | undefined) ?? 'start';
-    const vAlign = fa.v ?? (this.stage.dataset.v as Align | undefined) ?? 'start';
-    const baseX = ar.left + PAD_X + place(hAlign, availW, scaledW);
-    const topY = ar.top + place(vAlign, availH, codeH * scale);
-    return { scale, baseX, topY, lineH };
-  }
-
-  private pos(pl: ReturnType<Player['placement']>, row: number, col: number) {
-    return { x: pl.baseX + col * this.charW * pl.scale, y: pl.topY + row * pl.lineH * pl.scale };
+    // a column taller than the stage: shrink its (fittable) blocks
+    for (let pass = 0; pass < 3; pass++) {
+      let again = false;
+      this.cols.forEach((col, c) => {
+        const over = col.text.scrollHeight - col.text.clientHeight;
+        if (over <= 1) return;
+        const mine = view.blocks.filter((v) => v.col === c && !(parseFloat(v.block.opts.size ?? '') > 0) && v.block.opts.fit !== 'none');
+        const codeH = mine.reduce((sum, v) => sum + v.rows * lineH * v.scale, 0);
+        if (!codeH) return;
+        const f = Math.max(0, (codeH - over) / codeH);
+        for (const v of mine) if (v.scale > MIN_SCALE) { apply(v, Math.max(MIN_SCALE, v.scale * f)); again = true; }
+      });
+      if (!again) break;
+    }
   }
 
   private setTransform(el: HTMLElement, x: number, y: number, s: number) {
@@ -515,42 +600,73 @@ export class Player {
   }
 
   private advance(step: Step, instant: boolean) {
-    const pl = this.placement(step);
-    const focus = this.focusRows(step.focus);
+    this.layoutBlocks(); // the geometry may have changed (resize, a late image, a font)
     const dying = this.dyingFor();
     if (instant) this.codeLayer.classList.add('no-anim'); // a cut: no transitions at all
+    const sr = this.stage.getBoundingClientRect();
+    const k = sr.width / (this.stage.offsetWidth || 1) || 1; // a scaled parent (thumbnails)
+    const lineH = REF_FONT * LINE_RATIO;
     const seen = new Set<string>();
-    for (const p of step.layout) {
-      const key = step.keys.get(p.tree.id)!;
+
+    const put = (key: string, text: string, cls: string, x: number, y: number, scale: number, opacity: string) => {
       seen.add(key);
-      const bright = !focus || focus.has(p.row) ? '1' : '0.25';
-      const cls = `tok tok-${tokenClass(p.tree.label)}`;
-      const { x, y } = this.pos(pl, p.row, p.col);
       let tk = this.tokens.get(key);
       if (tk) {
         clearTimeout(tk.timer);
         tk.dying = false;
         tk.el.className = cls;
-        tk.el.textContent = p.tree.text;
+        tk.el.textContent = text;
         tk.el.style.setProperty('--d', instant ? '0s' : `${this.moveDelay}s`);
-        this.setTransform(tk.el, x, y, pl.scale);
-        tk.el.style.opacity = bright;
+        this.setTransform(tk.el, x, y, scale);
+        tk.el.style.opacity = opacity;
       } else {
         const el = document.createElement('span');
         el.className = cls;
-        el.textContent = p.tree.text;
+        el.textContent = text;
         el.style.opacity = '0';
         el.style.transition = 'none';
-        this.setTransform(el, x, y, pl.scale);
+        this.setTransform(el, x, y, scale);
         this.codeLayer.append(el);
         tk = { el, dying: false };
         this.tokens.set(key, tk);
         void el.offsetWidth;
         el.style.transition = '';
         el.style.setProperty('--d', instant ? '0s' : `${this.fadeInDelay}s`);
-        el.style.opacity = bright;
+        el.style.opacity = opacity;
+      }
+    };
+
+    for (const st of step.blocks) {
+      const v = this.view?.blocks.find((b) => b.block === st.block);
+      if (!v) continue;
+      const s = v.scale;
+      const br = v.box.getBoundingClientRect();
+      const cs = getComputedStyle(v.box);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      const x0 = (br.left - sr.left) / k;
+      const y0 = (br.top - sr.top) / k;
+      const innerW = v.box.clientWidth - padL;
+      const boxH = v.box.clientHeight;
+      // the block's own alignment (fence classes / halign= valign=) wins over the slide's
+      const fa = fenceAlign(v.block.classes, v.block.opts);
+      const hAlign = fa.h ?? (this.stage.dataset.h as Align | undefined) ?? 'start';
+      const vAlign = fa.v ?? 'start';
+      const rows = st.layout.reduce((m, p) => Math.max(m, p.row + 1), 1);
+      const xs = x0 + padL + place(hAlign, innerW, st.cols * this.charW * s);
+      const ys = y0 + place(vAlign, boxH, rows * lineH * s);
+      const focus = this.focusRows(st.focus);
+      if (v.cfg.lines) {
+        const digits = String(v.cfg.start + v.rows - 1).length;
+        for (let r = 0; r < rows; r++) {
+          const num = String(v.cfg.start + r);
+          put(`${st.groupKey}|ln${r}`, num, 'tok tok-ln', x0 + (digits - num.length) * this.charW * s, ys + r * lineH * s, s, !focus || focus.has(r) ? '0.45' : '0.12');
+        }
+      }
+      for (const p of st.layout) {
+        put(st.keys.get(p.tree.id)!, p.tree.text, `tok tok-${tokenClass(p.tree.label)}`, xs + p.col * this.charW * s, ys + p.row * lineH * s, s, !focus || focus.has(p.row) ? '1' : '0.25');
       }
     }
+
     for (const [key, tk] of this.tokens) {
       if (seen.has(key) || tk.dying) continue;
       tk.dying = true;
@@ -571,16 +687,6 @@ export class Player {
   /** Re-layout after a window resize / image load. */
   private relayout(instant: boolean) {
     if (this.idx < 0) return;
-    const step = this.steps[this.idx];
-    if (!step.root) return;
-    if (instant) this.codeLayer.classList.add('no-anim');
-    const pl = this.placement(step);
-    for (const p of step.layout) {
-      const tk = this.tokens.get(step.keys.get(p.tree.id)!);
-      if (!tk || tk.dying) continue;
-      const { x, y } = this.pos(pl, p.row, p.col);
-      this.setTransform(tk.el, x, y, pl.scale);
-    }
-    if (instant) requestAnimationFrame(() => this.codeLayer.classList.remove('no-anim'));
+    this.advance(this.steps[this.idx], instant);
   }
 }

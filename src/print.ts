@@ -11,7 +11,7 @@ export async function startPrintView(root: HTMLElement, deck: Deck, steps: Step[
     ? steps.map((_, i) => i)
     : deck.slides.map((_, si) => {
         const own = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si);
-        return (own.filter((x) => x.s.root).pop() ?? own[own.length - 1]).i;
+        return own[own.length - 1].i; // everything revealed
       });
   const players: Promise<void>[] = [];
   for (const i of indices) {

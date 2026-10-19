@@ -6,7 +6,7 @@ unchanged tokens stay, moved tokens glide, new ones fade in.
 
 <!-- Press the right arrow slowly and watch `total`, `items` and `return` keep their identity. -->
 
-```ts
+```ts #g1
 function total(items: number[]) {
   let sum = 0;
   for (const x of items) {
@@ -16,7 +16,7 @@ function total(items: number[]) {
 }
 ```
 
-```ts
+```ts #g1
 function total(items: number[]) {
   const sum = items.reduce(
     (acc, x) => acc + x,
@@ -26,7 +26,7 @@ function total(items: number[]) {
 }
 ```
 
-```ts
+```ts #g1
 const total = (items: number[]) =>
   items.reduce((acc, x) => acc + x, 0);
 ```

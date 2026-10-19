@@ -2,7 +2,7 @@
 
 <!-- ~15 lines of boilerplate shrink to a decorator and annotated fields. -->
 
-```python
+```python #g1
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -15,7 +15,7 @@ class Point:
         return isinstance(other, Point) and self.x == other.x and self.y == other.y
 ```
 
-```python
+```python #g1
 from dataclasses import dataclass
 
 
@@ -25,7 +25,7 @@ class Point:
     y: float
 ```
 
-```python
+```python #g1
 from dataclasses import dataclass
 
 
@@ -40,7 +40,7 @@ class Point:
 
 ## Resource handling
 
-```python
+```python #g2
 def read_first_line(path):
     f = open(path)
     try:
@@ -49,7 +49,7 @@ def read_first_line(path):
         f.close()
 ```
 
-```python
+```python #g2
 def read_first_line(path):
     with open(path) as f:
         return f.readline()

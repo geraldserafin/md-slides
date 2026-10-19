@@ -2,7 +2,7 @@
 
 <!-- append in a loop -> list comprehension. Note how `if` moves inside. -->
 
-```python
+```python #g1
 def squares_of_evens(numbers):
     result = []
     for n in numbers:
@@ -11,19 +11,19 @@ def squares_of_evens(numbers):
     return result
 ```
 
-```python
+```python #g1
 def squares_of_evens(numbers):
     return [n * n for n in numbers if n % 2 == 0]
 ```
 
 ## Lazily: generator expression
 
-```python
+```python #g2
 def total_of_squares(numbers):
     return sum([n * n for n in numbers if n % 2 == 0])
 ```
 
-```python
+```python #g2
 def total_of_squares(numbers):
     return sum(n * n for n in numbers if n % 2 == 0)
 ```

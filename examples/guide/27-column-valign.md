@@ -5,14 +5,14 @@ top of its column with `valign=start` on the fence; a slide can do the same for 
 
 ---
 
-```rust valign=start
+```rust valign=start #g1
 fn main() {
     let name = "slides";
     println!("hello, {name}");
 }
 ```
 
-```rust valign=start
+```rust valign=start #g1
 fn main() {
     let name = "slides";
     let count = 3;

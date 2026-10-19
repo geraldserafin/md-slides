@@ -12,7 +12,7 @@
 The front matter of this slide sets `--tok-keyword`, `--tok-ident`, `--tok-type`,
 `--tok-builtin` and `--tok-punct`. No theme needed.
 
-```ts
+```ts #g1
 interface Point { x: number; y: number }
 
 function norm(p: Point): number {
@@ -20,7 +20,7 @@ function norm(p: Point): number {
 }
 ```
 
-```ts
+```ts #g1
 interface Point { x: number; y: number }
 
 function norm({ x, y }: Point): number {

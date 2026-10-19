@@ -1,6 +1,6 @@
 ## Call site
 
-```cpp
+```cpp #flow
 int main() {
   auto result = process("42", 2);
 

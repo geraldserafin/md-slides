@@ -5,11 +5,11 @@
 Code is scaled to fit the slide (between half and 1.6x). The **largest** frame of a section decides,
 so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size.
 
-```ts
+```ts #g1
 const a = 1;
 ```
 
-```ts
+```ts #g1
 const a = 1;
 const b = 2;
 const c = a + b;
@@ -32,11 +32,11 @@ const p = o + 8;
 
 Two frames, `size=30`: the code is big and stays big.
 
-```ts size=30
+```ts size=30 #g2
 const big = "size=30";
 ```
 
-```ts size=30
+```ts size=30 #g2
 const big = "size=30";
 const bigger = big + "!";
 ```

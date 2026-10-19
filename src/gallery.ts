@@ -26,7 +26,7 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 /** to the audience every animation step looks like a slide of its own, so that is what we count */
 const countSteps = (deck: Deck) =>
-  deck.slides.reduce((n, slide) => n + slide.sections.reduce((m, s) => m + Math.max(1, s.codes.length), 0), 0);
+  deck.slides.reduce((n, slide) => n + slide.sections.reduce((m, s) => m + s.stages, 0), 0);
 
 export function showGallery(app: HTMLElement, entries: DeckEntry[]) {
   app.innerHTML = `
@@ -85,8 +85,7 @@ async function fillCard(card: HTMLElement, entry: DeckEntry) {
   const H = 720;
   frame.style.cssText = `width:${W}px;height:${H}px`;
   new ResizeObserver(() => { frame.style.transform = `scale(${thumb.clientWidth / W})`; }).observe(thumb);
-  const lastCode = steps.map((s, i) => ({ s, i })).filter((x) => x.s.root).pop();
-  await new Player(frame, first, steps, { theme: deck.meta.theme }).start(lastCode ? lastCode.i : 0);
+  await new Player(frame, first, steps, { theme: deck.meta.theme }).start(steps.length - 1); // everything revealed
   thumb.classList.add('ready');
 }
 
