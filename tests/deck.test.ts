@@ -40,3 +40,30 @@ describe('parseSlide', () => {
     expect(t.sections[0].codes).toEqual([]);
   });
 });
+
+import { barVisible, expand, isImage, usesSlideNumber } from '../src/chrome';
+
+describe('chrome (header/footer)', () => {
+  const ctx = { slide: 3, slides: 10, title: 'Deck', slideTitle: 'Intro', author: 'Ann' };
+  it('expands placeholders and leaves unknown ones', () => {
+    expect(expand('{slide} / {slides} · {title} · {author} {nope}', ctx)).toBe('3 / 10 · Deck · Ann {nope}');
+  });
+  it('tells images from text', () => {
+    expect(isImage('logo.svg')).toBe(true);
+    expect(isImage('assets/Logo.PNG?v=2')).toBe(true);
+    expect(isImage('ACME Corp.')).toBe(false);
+  });
+  it('detects the slide number', () => {
+    expect(usesSlideNumber({ right: '{slide}/{slides}' })).toBe(true);
+    expect(usesSlideNumber({ left: ['logo.svg', 'ACME'] })).toBe(false);
+  });
+  it('hides on cover slides and with footer: off', () => {
+    const bar = { left: 'x' };
+    expect(barVisible(bar, {}, 'footer')).toBe(true);
+    expect(barVisible(bar, { layout: 'cover' }, 'footer')).toBe(false);
+    expect(barVisible({ ...bar, cover: true }, { layout: 'cover' }, 'footer')).toBe(true);
+    expect(barVisible(bar, { layout: 'cover', footer: 'on' }, 'footer')).toBe(true);
+    expect(barVisible(bar, { footer: 'off' }, 'footer')).toBe(false);
+    expect(barVisible(undefined, {}, 'footer')).toBe(false);
+  });
+});

@@ -40,7 +40,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); o
 body { font-family: var(--font-text); font-size: var(--text-size); }
 #app { position: fixed; inset: 0; }
 
-.stage { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 3vmin 40px 4vmin; }
+.stage {
+  position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
+  display: flex; flex-direction: column; padding: var(--stage-padding, 3vmin 40px 4vmin);
+}
 .text-layer { flex: 0 0 auto; position: relative; }
 .code-area { flex: 1 1 0; min-height: 0; }
 .stage.centered .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -50,7 +53,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 .text { transition: opacity var(--fade-dur) ease; }
 .ghost { pointer-events: none; }
 .text.leaving { position: absolute; pointer-events: none; transition: opacity var(--fade-dur) ease; }
-.item { margin: 0.3em 0; }
+.item { margin: var(--item-gap, 0.3em) 0; }
 .item > :first-child { margin-top: 0; }
 .item > :last-child { margin-bottom: 0; }
 .item h1, .item h2, .item h3 { font-family: var(--font-heading); color: var(--heading); text-align: center; margin: 0.2em 0; line-height: 1.2; }
@@ -117,26 +120,45 @@ body.show-help::after { opacity: 1; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
 .stage.layout-side { flex-direction: row; align-items: stretch; gap: 4vmin; }
-.stage.layout-side .text-layer { flex: 0 0 36%; align-self: center; }
+.stage.layout-side .text-layer { flex: 0 0 var(--split, 36%); align-self: center; }
 .stage.layout-side .text, .stage.layout-side .item h1, .stage.layout-side .item h2, .stage.layout-side .item h3 { text-align: left; }
 .stage.layout-side .code-area { flex: 1; }
 .stage.layout-side.centered { flex-direction: column; }
 .stage.layout-side-right { flex-direction: row-reverse; }
-.stage.layout-side-right .text-layer { flex: 0 0 36%; align-self: center; }
+.stage.layout-side-right .text-layer { flex: 0 0 var(--split, 36%); align-self: center; }
 .stage.layout-side-right .code-area { flex: 1; }
 .stage.layout-side-right .text, .stage.layout-side-right .item h1, .stage.layout-side-right .item h2 { text-align: left; }
 .stage.layout-cover .text { text-align: center; }
 .stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }
 
-/* ---- slide overview ------------------------------------------------------ */
-.overview { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow: auto; padding: 24px; }
-.overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; justify-items: center; }
-.overview .cell { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--fg); font-size: 14px; max-width: 300px; }
-.overview .cell.sel .thumb { outline: 3px solid var(--accent); }
-.overview .thumb { position: relative; overflow: hidden; border-radius: 6px; background: var(--bg); box-shadow: 0 2px 12px #0006; }
-.overview .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: none; }
-.overview .cell span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ---- slide drawer (overview) ---------------------------------------------------- */
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 244px; z-index: 50; display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--code-bg) 92%, transparent); backdrop-filter: blur(12px);
+  box-shadow: 6px 0 28px #0006; transform: translateX(-104%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--fg); font-size: 13px;
+}
+.drawer.open { transform: none; }
+.drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
+.drawer-close { all: unset; cursor: pointer; padding: 2px 6px; border-radius: 4px; color: var(--muted); }
+.drawer-close:hover { background: #ffffff14; color: var(--fg); }
+.drawer-list { flex: 1; overflow: auto; padding: 4px 14px 28px 8px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
+.drawer .cell { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
+.drawer .num { width: 1.9em; text-align: right; color: var(--muted); font-size: 12px; padding-top: 3px; font-variant-numeric: tabular-nums; flex: none; }
+.drawer .thumb { position: relative; display: block; overflow: hidden; border-radius: 5px; background: var(--bg); box-shadow: 0 0 0 1px #ffffff1a; flex: none; transition: box-shadow 0.15s; }
+.drawer .cell:hover .thumb { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.drawer .cell.sel .thumb { box-shadow: 0 0 0 3px var(--accent); }
+.drawer .cell.sel .num { color: var(--accent); font-weight: 700; }
+.drawer .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: none; display: block; }
 .frame .hud, .print-page .hud { display: none; }
+.drawer-btn {
+  position: fixed; top: 12px; left: 12px; z-index: 40; width: 36px; height: 36px; border-radius: 8px; border: 0; cursor: pointer;
+  background: color-mix(in srgb, var(--code-bg) 85%, transparent); color: var(--fg); font-size: 18px; line-height: 1;
+  opacity: 0; transition: opacity 0.25s; backdrop-filter: blur(6px);
+}
+body.pointer-active .drawer-btn { opacity: 0.85; }
+.drawer-btn:hover { opacity: 1; }
+body.drawer-open .drawer-btn { display: none; }
 
 /* ---- print / PDF ----------------------------------------------------------- */
 body.print-mode { overflow: auto; height: auto; }
@@ -189,3 +211,50 @@ body.print-mode #app { position: static; }
 .card-thumb.ready .frame { opacity: 1; }
 .card-body h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--heading); }
 .card-meta { margin-top: 3px; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
+
+/* ---- text alignment (front matter: align / heading-align) ------------------- */
+.stage[data-align] .item ul, .stage[data-align] .item ol, .stage[data-align] .item blockquote { display: block; margin-left: 0; margin-right: 0; }
+.stage[data-align="left"] .item, .stage[data-align="left"] .item ul, .stage[data-align="left"] .item ol, .stage[data-align="left"] .item blockquote { text-align: left; } .stage[data-align="left"] .item-media { justify-content: flex-start; }
+.stage[data-align="center"] .item, .stage[data-align="center"] .item ul, .stage[data-align="center"] .item ol, .stage[data-align="center"] .item blockquote { text-align: center; } .stage[data-align="center"] .item-media { justify-content: center; }
+.stage[data-align="right"] .item, .stage[data-align="right"] .item ul, .stage[data-align="right"] .item ol, .stage[data-align="right"] .item blockquote { text-align: right; } .stage[data-align="right"] .item-media { justify-content: flex-end; }
+.stage[data-align="justify"] .item, .stage[data-align="justify"] .item ul, .stage[data-align="justify"] .item ol, .stage[data-align="justify"] .item blockquote { text-align: justify; hyphens: auto; } .stage[data-align="justify"] .item-media { justify-content: flex-start; }
+.stage[data-halign="left"] .item h1, .stage[data-halign="left"] .item h2, .stage[data-halign="left"] .item h3 { text-align: left; }
+.stage[data-halign="center"] .item h1, .stage[data-halign="center"] .item h2, .stage[data-halign="center"] .item h3 { text-align: center; }
+.stage[data-halign="right"] .item h1, .stage[data-halign="right"] .item h2, .stage[data-halign="right"] .item h3 { text-align: right; }
+
+/* ---- header / footer bars (deck.json) ---------------------------------------- */
+.bar {
+  position: absolute; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+  padding: 0 clamp(16px, 3vw, 40px); font-size: 0.8rem; color: var(--muted); pointer-events: none;
+}
+.bar[hidden] { display: none; }
+.bar-header { top: 0; } .bar-footer { bottom: 0; }
+.bar.bordered.bar-header { border-bottom: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
+.bar.bordered.bar-footer { border-top: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
+.bar .slot { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
+.bar .slot.center { justify-content: center; } .bar .slot.right { justify-content: flex-end; }
+.bar .slot img { height: var(--bar-img-h, 24px); width: auto; display: block; }
+.own-counter .counter { display: none; }
+
+/* ---- loading spinner -------------------------------------------------------------- */
+.boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: var(--muted); font-size: 14px; background: var(--bg); }
+.boot .label { opacity: 0; animation: boot-in 0.4s ease 0.35s forwards; letter-spacing: 0.02em; }
+.spinner {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 20%, var(--accent));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes boot-in { to { opacity: 1; } }
+/* deck gallery: a soft shimmer until the thumbnail is ready */
+.card-thumb:not(.ready)::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 20%, #ffffff10 50%, transparent 80%); background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+.stage[data-align="right"] .item ul, .stage[data-align="right"] .item ol { list-style-position: inside; padding-left: 0; }
+.stage[data-align="center"] .item ul, .stage[data-align="center"] .item ol { list-style-position: inside; padding-left: 0; }

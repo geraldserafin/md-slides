@@ -31,6 +31,11 @@ configureGrammars({
 const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
 
+/** the loading spinner (index.html paints the same one before the bundle arrives) */
+const showLoader = (label = '') => {
+  app.innerHTML = `<div class="boot"><div class="spinner"></div>${label ? `<div class="label">${label}</div>` : ''}</div>`;
+};
+
 async function chooser() {
   const decks = await loadIndex();
   if (decks.length === 1) return decks[0].name;
@@ -44,7 +49,7 @@ async function main() {
 
   const name = params.get('deck') ?? (await chooser());
   if (!name) return;
-  app.textContent = 'loading…';
+  showLoader('Loading…');
   const deck = await loadDeck(name);
   initialTheme(deck.meta.theme);
   if (deck.meta.css) loadDeckCss(new URL(`decks/${name}/${deck.meta.css}`, document.baseURI).href);
@@ -52,6 +57,7 @@ async function main() {
 
   registerDeckStyle(deck.meta, new URL(`decks/${name}/`, document.baseURI).href);
   initialTheme(deck.meta.theme);
+  showLoader('Preparing code…');
   const steps = await buildSteps(deck);
   if (params.has("print")) return startPrintView(app, deck, steps, params.get("print") || "slides");
   const player = new Player(app, deck, steps);
@@ -60,6 +66,7 @@ async function main() {
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
   player.onChange = (s) => {
     history.replaceState(null, '', `#${s.step + 1}`);
+    if (overview && !overview.closed) overview.setCurrent(s.slide);
     publish();
   };
   ch.onmessage = (e) => {
@@ -68,6 +75,26 @@ async function main() {
   };
 
   let overview: Overview | undefined;
+  const toggleDrawer = () => {
+    if (overview && !overview.closed) { overview.close(); return; }
+    overview = openOverview(deck, steps, player.state().slide, (i) => player.go(i));
+    document.body.classList.add('drawer-open');
+    const probe = setInterval(() => {
+      if (overview?.closed) { document.body.classList.remove('drawer-open'); clearInterval(probe); }
+    }, 120);
+  };
+  const btn = document.createElement('button');
+  btn.className = 'drawer-btn';
+  btn.title = 'Slides (o)';
+  btn.textContent = '☰';
+  btn.onclick = (e) => { e.stopPropagation(); toggleDrawer(); };
+  document.body.append(btn);
+  let hideTimer: number | undefined;
+  addEventListener('mousemove', () => {
+    document.body.classList.add('pointer-active');
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => document.body.classList.remove('pointer-active'), 2500);
+  });
   const fromHash = parseInt(location.hash.slice(1), 10);
   await player.start(Number.isFinite(fromHash) ? fromHash - 1 : 0);
   addEventListener('hashchange', () => {
@@ -85,18 +112,14 @@ async function main() {
       case 'f': document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); break;
       case 't': nextTheme(); break;
       case 'p': window.open(`?presenter=1&deck=${encodeURIComponent(name)}`, 'presenter', 'width=900,height=700'); break;
-      case 'o': {
-        if (overview && !overview.closed) { overview.close(); break; }
-        overview = openOverview(deck, steps, player.state().slide, (i) => player.go(i));
-        break;
-      }
+      case 'o': toggleDrawer(); break;
       case 'h': case '?': document.body.classList.toggle('show-help'); break;
     }
   });
 
   // click: left quarter = back, the rest = forward; swipe on touch
   addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('a,video,button,input')) return;
+    if ((e.target as HTMLElement).closest('a,video,button,input,.drawer')) return;
     if (e.clientX < innerWidth * 0.25) player.prev();
     else player.next();
   });

@@ -6,9 +6,9 @@
 4. **Code options** — alignment, size, fit, **focus lines**
 5. **Text and media** — rich text, images, video
 6. **Layouts** — default, side, side-right, cover
-7. **Per-slide styling** — themes, backgrounds, classes, token colors
+7. **Per-slide styling** — alignment, sizes, themes, backgrounds, classes, token colors
 8. **Motion** — text transitions, slow-motion, instant, bouncy
-9. **Deck configuration** — `deck.json`, fonts, CSS
+9. **Deck configuration** — `deck.json`, defaults, header/footer/logo, fonts, CSS
 10. **Using it** — controls, presenter, export, build targets, deployment
 
 <!-- Roughly 60 slides. Press o at any time for the overview grid, h for help. -->

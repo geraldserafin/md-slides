@@ -4,6 +4,7 @@
 // within one section. HTML comments => presenter notes.
 import { marked, type Token, type Tokens } from 'marked';
 import { fileUrl } from './files';
+import type { ChromeBar } from './chrome';
 import { langFromTag, type Lang } from './parse';
 
 export type Item =
@@ -53,6 +54,10 @@ export interface DeckMeta {
   description?: string; // shown in the deck gallery
   author?: string;
   date?: string;
+  /** front matter applied to every slide unless the slide sets its own, e.g. {"align": "left"} */
+  defaults?: Record<string, string>;
+  header?: ChromeBar;
+  footer?: ChromeBar;
   theme?: string;
   css?: string;
   /** deck-wide CSS variables, e.g. {"--accent": "#f00", "--font-text": "Georgia"} */
@@ -208,7 +213,9 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
       const text = await (await fetch(fileUrl(url))).text();
-      return parseSlide(text, url);
+      const slide = parseSlide(text, url);
+      slide.meta = { ...(meta.defaults ?? {}), ...slide.meta };
+      return slide;
     }),
   );
   return { name, meta, slides };

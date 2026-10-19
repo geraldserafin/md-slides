@@ -2,7 +2,9 @@
 // transitions). Each token's position/scale is independent and computed in
 // stage pixels -- a dying token has a FROZEN transform, so it does not drift
 // towards the next step's target position.
+import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
 import type { Deck, Item, Slide } from './deck';
+import { fileUrl } from './files';
 import { layoutBounds } from './layout';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
@@ -10,6 +12,19 @@ import { tokenClass } from './tokens';
 const LEAVE_S = 0.18; // s, fade-out of the previous slide text
 const REF_FONT = 22; // px, base token size (scaled with a transform)
 const LINE_RATIO = 1.5;
+
+/** front matter keys that are shorthand for CSS variables; plain numbers get "px" */
+const ALIASES: Record<string, { v: string; px?: boolean }> = {
+  'heading-size': { v: '--heading-size', px: true },
+  'text-size': { v: '--text-size', px: true },
+  spacing: { v: '--item-gap', px: true },
+  padding: { v: '--stage-padding', px: true },
+  split: { v: '--split' },
+  accent: { v: '--accent' },
+  'heading-color': { v: '--heading' },
+  'text-color': { v: '--fg' },
+};
+const ALIGNS = new Set(['left', 'center', 'right', 'justify']);
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 1.6;
 const PAD_X = 40;
@@ -69,12 +84,17 @@ export class Player {
     rs.setProperty("--fade-dur", `${fade}s`);
     if (a.ease) rs.setProperty("--ease", a.ease);
     for (const [k, v] of Object.entries(deck.meta.vars ?? {})) rs.setProperty(k, v);
+    const bar = (kind: 'header' | 'footer') => deck.meta[kind]
+      ? `<div class="bar bar-${kind}" hidden><div class="slot left"></div><div class="slot center"></div><div class="slot right"></div></div>`
+      : '';
     root.innerHTML = `
+      ${bar('header')}
       <div class="stage">
         <div class="text-layer"></div>
         <div class="code-area"></div>
         <div class="code-layer"></div>
       </div>
+      ${bar('footer')}
       <div class="hud"><div class="progress"><i></i></div><span class="counter"></span></div>`;
     this.stage = root.querySelector('.stage')!;
     this.textLayer = root.querySelector('.text-layer')!;
@@ -161,11 +181,50 @@ export class Player {
     const st = this.stage;
     st.removeAttribute("style");
     st.className = "stage" + (m.layout ? ` layout-${m.layout}` : "") + (m.class ? ` ${m.class}` : "");
+    delete st.dataset.align;
+    delete st.dataset.halign;
+    const align = ALIGNS.has(m.align) ? m.align : undefined;
+    const halign = ALIGNS.has(m['heading-align']) ? m['heading-align'] : align === 'justify' ? 'left' : align;
+    if (align) st.dataset.align = align;
+    if (halign) st.dataset.halign = halign;
     const theme = m.theme ?? this.opts.theme;
     if (theme) this.root.dataset.theme = theme;
     else delete this.root.dataset.theme;
-    for (const [k, v] of Object.entries(m)) if (k.startsWith("--")) st.style.setProperty(k, v);
+    for (const [k, v] of Object.entries(m)) {
+      if (k.startsWith('--')) st.style.setProperty(k, v);
+      else if (ALIASES[k]) st.style.setProperty(ALIASES[k].v, ALIASES[k].px && /^\d+(\.\d+)?$/.test(v) ? `${v}px` : v);
+    }
     this.setBackground(m.background, slide.url, instant);
+    this.updateChrome(si);
+  }
+
+  /** header / footer: visibility on this slide, size, colors and the slots' content */
+  private updateChrome(si: number) {
+    const meta = this.deck.slides[si].meta;
+    const base = new URL(`decks/${this.deck.name}/`, document.baseURI);
+    const ctx = {
+      slide: si + 1, slides: this.deck.slides.length, title: this.deck.meta.title ?? this.deck.name,
+      slideTitle: this.deck.slides[si].title, author: this.deck.meta.author, date: this.deck.meta.date,
+    };
+    let ownCounter = false; // the bars show the slide number, so the built-in counter would be a duplicate
+    for (const kind of ['header', 'footer'] as const) {
+      const cfg: ChromeBar | undefined = this.deck.meta[kind];
+      const el = this.root.querySelector<HTMLElement>(`.bar-${kind}`);
+      if (!cfg || !el) continue;
+      const show = barVisible(cfg, meta, kind);
+      const h = cfg.height ?? 40;
+      el.hidden = !show;
+      this.root.style.setProperty(`--${kind}-h`, show ? `${h}px` : '0px');
+      el.style.height = `${h}px`;
+      el.style.setProperty('--bar-img-h', `${Math.round(h * 0.6)}px`);
+      el.style.background = cfg.background ?? '';
+      el.style.color = cfg.color ?? '';
+      el.classList.toggle('bordered', !!cfg.border);
+      if (show && usesSlideNumber(cfg)) ownCounter = true;
+      for (const pos of ['left', 'center', 'right'] as const)
+        renderSlot(el.querySelector<HTMLElement>(`.slot.${pos}`)!, cfg[pos], ctx, (s) => fileUrl(new URL(s, base).href));
+    }
+    this.root.classList.toggle('own-counter', ownCounter);
   }
 
   private setBackground(bg: string | undefined, base: string, instant: boolean) {
@@ -258,6 +317,8 @@ export class Player {
     ghost.className = `${this.stage.className} ghost`;
     ghost.style.cssText = this.stage.style.cssText;
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
+    if (this.stage.dataset.align) ghost.dataset.align = this.stage.dataset.align;
+    if (this.stage.dataset.halign) ghost.dataset.halign = this.stage.dataset.halign;
     // keep the current opacity (the text may still be fading in when the user navigates again)
     const opacity = getComputedStyle(old).opacity;
     // measure BEFORE `.leaving` (position: absolute shrinks the box to its content)

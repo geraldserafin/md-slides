@@ -1,85 +1,90 @@
-// Slide overview (`o` key): a grid of thumbnails. Each thumbnail is a real
-// Player in a full-size frame, scaled with a transform (the slide's final state).
+// Slide drawer (`o` key or the corner button): a side panel with a live thumbnail of every slide, like
+// PowerPoint's slide sorter pane. It stays open while you present: the current slide is highlighted
+// and clicking a thumbnail jumps there. Each thumbnail is a real Player in a full-size frame,
+// scaled with a transform and created lazily when it scrolls into view.
 import type { Deck } from './deck';
 import { Player } from './player';
 import type { Step } from './steps';
 
 export interface Overview {
   close(): void;
+  setCurrent(slide: number): void;
   readonly closed: boolean;
 }
 
+const THUMB_W = 176;
+
 export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
-  const el = document.createElement('div');
-  el.className = 'overview';
-  const grid = document.createElement('div');
-  grid.className = 'overview-grid';
-  el.append(grid);
+  const el = document.createElement('aside');
+  el.className = 'drawer';
+  el.innerHTML = `<div class="drawer-head"><span>Slides</span><button class="drawer-close" title="Close (o)">✕</button></div><div class="drawer-list"></div>`;
+  const list = el.querySelector<HTMLElement>('.drawer-list')!;
   document.body.append(el);
 
-  const THUMB_W = 300;
   const scale = THUMB_W / innerWidth;
-  const players: Player[] = [];
+  const players = new Map<number, Player>();
   const cells: HTMLElement[] = [];
+
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const si = cells.indexOf(e.target as HTMLElement);
+      if (si < 0 || players.has(si)) continue;
+      const own = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si);
+      const last = (own.filter((x) => x.s.root).pop() ?? own[own.length - 1]).i;
+      const frame = e.target.querySelector<HTMLElement>('.frame')!;
+      const p = new Player(frame, deck, steps);
+      players.set(si, p);
+      void p.start(last);
+    }
+  }, { root: list, rootMargin: '200px' });
 
   deck.slides.forEach((slide, si) => {
     const cell = document.createElement('button');
     cell.className = 'cell';
     cell.title = slide.title;
-    const thumb = document.createElement('div');
-    thumb.className = 'thumb';
-    thumb.style.cssText = `width:${THUMB_W}px;height:${innerHeight * scale}px`;
-    const frame = document.createElement('div');
-    frame.className = 'frame';
-    frame.style.cssText = `width:${innerWidth}px;height:${innerHeight}px;transform:scale(${scale})`;
-    thumb.append(frame);
-    const label = document.createElement('span');
-    label.textContent = `${si + 1}. ${slide.title}`;
-    cell.append(thumb, label);
+    cell.innerHTML = `<span class="num">${si + 1}</span>
+      <span class="thumb" style="width:${THUMB_W}px;height:${innerHeight * scale}px">
+        <span class="frame" style="width:${innerWidth}px;height:${innerHeight}px;transform:scale(${scale})"></span>
+      </span>`;
     const first = steps.findIndex((s) => s.slide === si);
-    const own = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si);
-    const last = (own.filter((x) => x.s.root).pop() ?? own[own.length - 1]).i;
-    cell.onclick = (e) => { e.stopPropagation(); close(); pick(first); };
-    grid.append(cell);
+    cell.onclick = (e) => { e.stopPropagation(); pick(first); };
+    list.append(cell);
     cells.push(cell);
-    const p = new Player(frame, deck, steps);
-    players.push(p);
-    void p.start(last);
+    io.observe(cell);
   });
 
-  let sel = currentSlide;
-  const mark = () => {
-    cells.forEach((c, i) => c.classList.toggle('sel', i === sel));
-    cells[sel]?.scrollIntoView({ block: 'nearest' });
+  let sel = -1;
+  const setCurrent = (i: number) => {
+    if (i === sel) return;
+    sel = i;
+    cells.forEach((c, k) => c.classList.toggle('sel', k === sel));
+    cells[sel]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
-  mark();
-
-  const cols = () => getComputedStyle(grid).gridTemplateColumns.split(' ').length;
-  const onKey = (e: KeyboardEvent) => {
-    const move = (d: number) => { sel = Math.max(0, Math.min(cells.length - 1, sel + d)); mark(); };
-    switch (e.key) {
-      case 'ArrowRight': move(1); break;
-      case 'ArrowLeft': move(-1); break;
-      case 'ArrowDown': move(cols()); break;
-      case 'ArrowUp': move(-cols()); break;
-      case 'Enter': cells[sel].click(); break;
-      case 'Escape': case 'o': close(); break;
-      default: return;
-    }
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  addEventListener('keydown', onKey, true);
+  setCurrent(currentSlide);
 
   let closed = false;
-  el.onclick = (e) => { e.stopPropagation(); close(); };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    close();
+  };
+  addEventListener('keydown', onKey, true);
+  el.addEventListener('click', (e) => e.stopPropagation());
+  el.querySelector<HTMLElement>('.drawer-close')!.onclick = () => close();
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
 
   function close() {
     if (closed) return;
     closed = true;
     removeEventListener('keydown', onKey, true);
-    players.forEach((p) => p.destroy());
-    el.remove();
+    io.disconnect();
+    el.classList.remove('open');
+    setTimeout(() => {
+      players.forEach((p) => p.destroy());
+      el.remove();
+    }, 300);
   }
-  return { close, get closed() { return closed; } };
+  return { close, setCurrent, get closed() { return closed; } };
 }

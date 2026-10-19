@@ -136,6 +136,11 @@ class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
 transition: slide     # text entrance: fade | slide | slide-left | zoom | none
 stagger: 0.1          # seconds between consecutive text elements
+align: justify        # text alignment: left | center | right | justify (headings follow unless heading-align is set)
+heading-align: left   # left | center | right
+heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (text column in side layouts)
+accent: #ffb454       # also heading-color, text-color
+footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
 ---
 ```
@@ -150,6 +155,8 @@ Optional, placed in the deck folder:
   "theme": "ocean",
   "css": "deck.css",
   "vars": { "--font-heading": "Georgia, serif" },
+  "defaults": { "align": "left", "heading-align": "left" },
+  "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
   "themes": {
     "ocean": { "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--accent": "#3ddc97", "--tok-keyword": "#ff7eb6" }
   },
@@ -169,6 +176,8 @@ Optional, placed in the deck folder:
 | `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
+| `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `align`, `heading-size`, `layout` |
+| `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |
 | `fonts` | local font files (relative to the deck folder) |
 | `googleFonts` | families fetched from Google Fonts (needs network) |
@@ -201,7 +210,7 @@ page whenever a file in the deck folder changes.
 | `→` `Space` `PageDown` `Enter` | next step |
 | `←` `PageUp` `Backspace` | previous step |
 | `Home` / `End` | first / last step |
-| `o` | slide overview (arrows + `Enter`, `Esc` closes) |
+| `o` | slide drawer: thumbnails of all slides on the left, current one highlighted, click to jump (also the ☰ button on mouse move); `Esc` closes |
 | `t` | cycle themes (remembered per browser) |
 | `p` | presenter window: notes, timer, next slide |
 | `f` | fullscreen |
@@ -255,7 +264,7 @@ Layout:
 
 ```
 cli/        the `slides` compiler (dev, build, targets)
-src/        the viewer (browser): parsing, GumTree, layout, renderer, themes, overview, presenter
+src/        the viewer (browser): parsing, GumTree, layout, renderer, themes, drawer, chrome (header/footer), presenter
 tests/      vitest suites; tests/fixtures/ has matcher regression cases (old.*, new.*, expect.txt)
 examples/   demo decks used for development and GitHub Pages
 ```
