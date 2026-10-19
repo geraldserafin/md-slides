@@ -59,6 +59,12 @@ interface BlockView {
 
 const flag = (b: Block, ...names: string[]) => names.some((n) => b.classes.includes(n));
 
+/** what moves in a morph: the picture / video / diagram itself (its wrapper spans the whole cell), else the item */
+const morphBox = (el: HTMLElement): HTMLElement => (el.classList.contains('item-media') ? (el.firstElementChild as HTMLElement) ?? el : el);
+
+/** media are the same when they show the same file (their size may differ), anything else when the markup is */
+const morphSig = (el: HTMLElement) => (el.classList.contains('item-media') ? (el.querySelector<HTMLImageElement | HTMLVideoElement>('img,video')?.src ?? el.innerHTML) : el.innerHTML);
+
 function blockCfg(b: Block, d: CodeStyle = {}): BlockCfg {
   const o = b.opts;
   const bgOpt = o.bg ?? (d.bg !== undefined ? String(d.bg) : undefined);
@@ -104,6 +110,9 @@ export class Player {
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
+  private moveMs = 450;
+  /** items of the section that is leaving that carry a `morph` id, with where they were: the new section's items with the same id glide from there */
+  private morphFrom = new Map<string, { el: HTMLElement; rect: DOMRect }>();
   private charW = 12;
   readonly stage: HTMLElement;
   private view?: { section: Section; blocks: BlockView[]; items: { el: HTMLElement; at: number; out?: number }[] }; // the section on screen
@@ -126,6 +135,7 @@ export class Player {
     this.moveDelay = a.moveDelay ?? 0.04;
     this.fadeInDelay = a.fadeInDelay ?? 0.12;
     const move = a.move ?? 0.45;
+    this.moveMs = move * 1000;
     const fade = a.fade ?? 0.3;
     this.slideFadeMs = (a.slideFade ?? 0.3) * 1000;
     this.textTransition = a.textTransition ?? 'fade';
@@ -380,6 +390,7 @@ export class Player {
         img.src = it.src;
         img.alt = it.alt;
         this.styleMedia(el, img, it.attrs.classes, it.attrs.opts);
+        el.dataset.morph = `img:${it.src}`; // the same picture in the next section glides there (`{morph=none}` turns it off)
         el.append(img);
         break;
       }
@@ -417,7 +428,12 @@ export class Player {
     this.gridEl = undefined;
     if (withHead) this.headEl = undefined;
     if (!olds.length) return;
+    this.morphFrom = new Map();
     if (instant) { olds.forEach((o) => o.remove()); return; }
+    for (const old of olds)
+      old.querySelectorAll<HTMLElement>('[data-morph]').forEach((e) => {
+        if (!e.classList.contains('pending')) this.morphFrom.set(e.dataset.morph!, { el: e, rect: morphBox(e).getBoundingClientRect() });
+      });
     const ghost = document.createElement('div');
     ghost.className = `${this.stage.className} ghost`;
     // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
@@ -522,7 +538,10 @@ export class Player {
     grid.addEventListener('loadedmetadata', () => this.relayout(false), true);
     this.gridEl = grid;
     // the new text waits until the old one is (almost) gone, so two headings never overlap
-    if (!instant) this.enterText([...headItems, ...items.filter((i) => i.at <= step.stage)].map((i) => i.el), this.enterKind, meta, this.leaving ? SYNC_DELAY : 0);
+    if (!instant) {
+      const entering = [...headItems, ...items.filter((i) => i.at <= step.stage)].map((i) => i.el);
+      this.enterText(this.morphItems(entering), this.enterKind, meta, this.leaving ? SYNC_DELAY : 0);
+    }
     for (const v of views) {
       const m = metrics.get(v.block);
       v.cols = m?.cols ?? 1;
@@ -537,10 +556,41 @@ export class Player {
   private applyFx(el: HTMLElement, it: Item): number | undefined {
     const fx = it.fx;
     if (!fx) return undefined;
+    if (fx.morph) { if (fx.morph === 'none') delete el.dataset.morph; else el.dataset.morph = fx.morph; }
     if (fx.anim) el.dataset.anim = fx.anim;
     if (fx.delay) el.style.setProperty('--anim-delay', /^[\d.]+$/.test(fx.delay) ? `${fx.delay}s` : fx.delay);
     if (fx.dur) el.style.setProperty('--anim-dur', /^[\d.]+$/.test(fx.dur) ? `${fx.dur}s` : fx.dur);
     return fx.out !== undefined && /^\d+$/.test(fx.out) ? parseInt(fx.out, 10) : undefined;
+  }
+
+  /**
+   * Morph: an entering item whose `morph` id (`{morph=logo}` after it; images are matched by their file) was also on the
+   * section that just left glides from there (position and size) instead of fading in. Returns the items left to the normal entrance.
+   */
+  private morphItems(els: HTMLElement[]): HTMLElement[] {
+    const from = this.morphFrom;
+    this.morphFrom = new Map();
+    if (!from.size) return els;
+    const sr = this.stage.getBoundingClientRect();
+    const k = sr.width / (this.stage.offsetWidth || 1) || 1;
+    return els.filter((el) => {
+      const old = el.dataset.morph ? from.get(el.dataset.morph) : undefined;
+      if (!old) return true;
+      const box = morphBox(el);
+      const now = box.getBoundingClientRect();
+      if (!now.width || !old.rect.width) return true;
+      const same = morphSig(old.el) === morphSig(el); // the same content: one element travels; changed text cross-fades while it moves
+      if (same) { old.el.style.transition = 'none'; old.el.style.opacity = '0'; } // one element travels, not two
+      const s = Math.min(5, Math.max(0.2, old.rect.width / now.width));
+      box.animate(
+        [
+          { transformOrigin: '0 0', transform: `translate(${(old.rect.left - now.left) / k}px, ${(old.rect.top - now.top) / k}px) scale(${s})`, opacity: same ? 1 : 0 },
+          { transformOrigin: '0 0', transform: 'none', opacity: 1 },
+        ],
+        { duration: this.moveMs, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+      );
+      return false;
+    });
   }
 
   /** Reveal: show what the current stage includes, hide what comes later (also when going back). */

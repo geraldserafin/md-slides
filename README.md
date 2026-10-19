@@ -249,6 +249,8 @@ Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`,
 
 **Animating one element.** A line `{anim=zoom delay=0.2}` right after an item (blank line between) sets how it comes in: `anim` is `fade`, `rise` (default), `zoom`, `left`, `right`, `down`, `blur`, `pop` or `none`; `delay` and `dur` are seconds; `at=2` puts it on click 2 (instead of a `+++`) and `out=4` makes it leave again on click 4. It works on text, images, tables, code blocks and diagrams.
 
+**Morph for anything.** Code morphs by itself; any other item can too. Items with the same id, written `{morph=logo}` after them, glide from their place on the section (or slide) that leaves to their place on the one that arrives, scaling as they go; if their content changed it cross-fades on the way. Images with the same file match automatically (`{morph=none}` turns that off).
+
 **Math.** `$x^2$` inline and `$$ ... $$` as a block are rendered with [KaTeX](https://katex.org) (plain HTML, so it works in every target and in the PDF). A dollar sign next to a space or a digit stays a dollar sign (`$5 and $6`). Math follows the slide's alignment and reveals like any item.
 
 **Diagrams.** A `mermaid` fence draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme changes); fence options work like on images (` ```mermaid width=70% `). The library is loaded on first use and left out of builds whose decks have no mermaid fence.
