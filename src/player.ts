@@ -54,7 +54,8 @@ export class Player {
   private slideFadeMs: number;
   onChange?: (s: PlayerState) => void;
 
-  constructor(private root: HTMLElement, private deck: Deck, private steps: Step[]) {
+  /** opts.theme: the theme slides use when their front matter names none (default: the page's theme) */
+  constructor(private root: HTMLElement, private deck: Deck, private steps: Step[], private opts: { theme?: string } = {}) {
     const a = deck.meta.animation ?? {};
     this.moveDelay = a.moveDelay ?? 0.04;
     this.fadeInDelay = a.fadeInDelay ?? 0.08;
@@ -160,7 +161,8 @@ export class Player {
     const st = this.stage;
     st.removeAttribute("style");
     st.className = "stage" + (m.layout ? ` layout-${m.layout}` : "") + (m.class ? ` ${m.class}` : "");
-    if (m.theme) this.root.dataset.theme = m.theme;
+    const theme = m.theme ?? this.opts.theme;
+    if (theme) this.root.dataset.theme = theme;
     else delete this.root.dataset.theme;
     for (const [k, v] of Object.entries(m)) if (k.startsWith("--")) st.style.setProperty(k, v);
     this.setBackground(m.background, slide.url, instant);

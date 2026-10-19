@@ -1,3 +1,8 @@
+---
+layout: cover
+background: linear-gradient(135deg, #1c1411, #7a3315)
+---
+
 # Rust: ownership step by step
 
 One small function, and the compiler pushes it towards better code.

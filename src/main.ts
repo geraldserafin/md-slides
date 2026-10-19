@@ -1,5 +1,6 @@
 import './style.css';
 import { loadDeck } from './deck';
+import { loadIndex, showGallery } from './gallery';
 import { fileUrl } from './files';
 import { configureGrammars } from './parse';
 import { Player } from './player';
@@ -31,13 +32,9 @@ const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
 
 async function chooser() {
-  const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as {
-    decks: { name: string; title: string; description?: string }[];
-  };
-  if (idx.decks.length === 1) return idx.decks[0].name;
-  app.innerHTML = `<div class="chooser"><h1>slides</h1>${idx.decks
-    .map((d) => `<a href="?deck=${encodeURIComponent(d.name)}">${d.title}${d.description ? `<small>${d.description}</small>` : ''}</a>`)
-    .join('')}</div>`;
+  const decks = await loadIndex();
+  if (decks.length === 1) return decks[0].name;
+  showGallery(app, decks);
   return undefined;
 }
 

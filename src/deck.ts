@@ -50,6 +50,9 @@ export interface AnimationOpts {
 
 export interface DeckMeta {
   title?: string;
+  description?: string; // shown in the deck gallery
+  author?: string;
+  date?: string;
   theme?: string;
   css?: string;
   /** deck-wide CSS variables, e.g. {"--accent": "#f00", "--font-text": "Georgia"} */

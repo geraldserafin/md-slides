@@ -1,3 +1,8 @@
+---
+layout: cover
+background: linear-gradient(135deg, #1b1d33, #2f3a73)
+---
+
 # Refactoring: a cart total
 
 We'll go from an untyped imperative loop to a typed,

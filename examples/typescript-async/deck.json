@@ -1,6 +1,6 @@
 {
   "title": "From callbacks to async/await",
-  "description": "Callbacks to async/await",
+  "description": "One function rewritten four times: callbacks, promises, async/await, Promise.all",
   "order": 3,
   "theme": "dark"
 }
