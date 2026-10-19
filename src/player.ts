@@ -184,6 +184,8 @@ export class Player {
     st.className = "stage" + (m.layout ? ` layout-${m.layout}` : "") + (m.class ? ` ${m.class}` : "");
     delete st.dataset.align;
     delete st.dataset.halign;
+    delete st.dataset.anchor;
+    if (m['text-anchor'] === 'top') st.dataset.anchor = 'top';
     const align = ALIGNS.has(m.align) ? m.align : undefined;
     const halign = ALIGNS.has(m['heading-align']) ? m['heading-align'] : align === 'justify' ? 'left' : align;
     if (align) st.dataset.align = align;
@@ -326,6 +328,7 @@ export class Player {
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
     if (this.stage.dataset.align) ghost.dataset.align = this.stage.dataset.align;
     if (this.stage.dataset.halign) ghost.dataset.halign = this.stage.dataset.halign;
+    if (this.stage.dataset.anchor) ghost.dataset.anchor = this.stage.dataset.anchor;
     // keep the current opacity (the text may still be fading in when the user navigates again)
     const opacity = getComputedStyle(old).opacity;
     // measure BEFORE `.leaving` (position: absolute shrinks the box to its content)

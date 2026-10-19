@@ -16,6 +16,7 @@ align: justify          left | center | right | justify
 heading-align: left     left | center | right
 heading-size: 56        px or any CSS length (also: text-size, spacing, padding, split)
 accent: #ff9e64         also heading-color, text-color
+text-anchor: top        pin the heading at a fixed height (--text-top) on every slide
 footer: off             hide the deck's footer/header on this slide
 --accent: #ff9e64       any CSS variable
 ---

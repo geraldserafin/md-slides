@@ -140,6 +140,7 @@ align: justify        # text alignment: left | center | right | justify (heading
 heading-align: left   # left | center | right
 heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (text column in side layouts)
 accent: #ffb454       # also heading-color, text-color
+text-anchor: top      # pin the text block at --text-top (default 20vh) instead of centering it: headings stay put between slides
 footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
 ---

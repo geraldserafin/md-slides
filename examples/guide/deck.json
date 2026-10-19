@@ -129,6 +129,7 @@
     "--heading-size": "clamp(26px, 4.1vmin, 52px)"
   },
   "defaults": {
-    "layout": "side"
+    "layout": "side",
+    "text-anchor": "top"
   }
 }

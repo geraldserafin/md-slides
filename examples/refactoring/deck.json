@@ -91,6 +91,7 @@
     "height": 48
   },
   "defaults": {
-    "layout": "side"
+    "layout": "side",
+    "text-anchor": "top"
   }
 }
