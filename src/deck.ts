@@ -1,6 +1,7 @@
 // Markdown -> presentation model. One .md file = one slide. A slide is a list of sections (a new section starts at
-// a level 1-2 heading); a section is text, images and animated code blocks in reading order, in one or two columns
-// (a `---` line). A `+++` line makes everything after it appear on the next click (a reveal stage). Animated code
+// a level 1-2 heading); a section is a grid: rows split by `---` lines, cells split by `|||` lines, and in every cell text,
+// images and animated code blocks in reading order. A `+++` line makes everything after it appear on the next click
+// (a reveal stage; `+++ 3` = on click 3). Animated code
 // blocks are independent unless they share a `#id`: blocks with the same id are the frames of one animation.
 // HTML comments => presenter notes.
 import { marked, type Token, type Tokens } from 'marked';
@@ -42,12 +43,14 @@ export interface Attrs {
 }
 
 export interface Section {
-  items: Item[]; // the (left) column
-  /** the right column, when the markdown has a `---` line; undefined = a single column */
-  right?: Item[];
+  /** the grid: rows (split by `---`) of cells (split by `|||`) of items; a plain section is one row with one cell */
+  rows: Item[][][];
   blocks: Block[];
   stages: number; // reveal stages: 1 + the number of clicks that add content
 }
+
+/** all items of a section, in reading order */
+export const sectionItems = (s: Section): Item[] => s.rows.flat(2);
 
 export interface Slide {
   /** slide front matter (layout, theme, background, class, halign, valign, --css-vars), merged over the deck defaults */
@@ -131,13 +134,14 @@ export function parseAttrs(s: string | undefined): Attrs {
 }
 
 /** fence info string: "cpp #fn .lines start=10 title=\"a b.ts\"" -> language, group id, classes and options */
-function parseFence(info: string): { lang?: Lang; tag: string; id?: string; attrs: Attrs } {
+function parseFence(info: string): { lang?: Lang; tag: string; id?: string; at?: number; attrs: Attrs } {
   const words = info.trim().match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
-  const plain = words.filter((w) => !w.startsWith('.') && !w.startsWith('#') && !w.includes('='));
+  const plain = words.filter((w) => !w.startsWith('.') && !w.startsWith('#') && !w.startsWith('@') && !w.includes('='));
   const lang = plain.map((w) => langFromTag(w)).find((l) => l !== undefined);
   const rest = words.filter((w) => w.startsWith('.') || w.includes('='));
   const id = words.find((w) => w.startsWith('#') && w.length > 1)?.slice(1);
-  return { lang, tag: plain[0] ?? '', id, attrs: parseAttrs(rest.join(' ')) };
+  const atWord = words.find((w) => /^@\d+$/.test(w));
+  return { lang, tag: plain[0] ?? '', id, at: atWord ? parseInt(atWord.slice(1), 10) : undefined, attrs: parseAttrs(rest.join(' ')) };
 }
 
 const resolve = (src: string, base: string) => {
@@ -183,28 +187,34 @@ export function parseSlide(markdown: string, url: string): Slide {
   let title = '';
   let autoId = 0;
 
-  // the section being built
-  let cur: Section = { items: [], blocks: [], stages: 1 };
-  let col: Item[] = cur.items; // the column items are added to
+  // the section being built: a grid of rows (`---`) of cells (`|||`)
+  let cur: Section = { rows: [[[]]], blocks: [], stages: 1 };
+  let row = 0;
+  let cell = 0;
   let stage = 0;
   let bumped = false; // a `+++` since the last content: the next frame of a group needs no extra click
   let hasContent = false; // the section holds more than headings
+  let maxStage = 0;
 
+  const col = () => cur.rows[row][cell];
   const startSection = () => {
     sections.push(cur);
-    cur = { items: [], blocks: [], stages: 1 };
-    col = cur.items;
+    cur = { rows: [[[]]], blocks: [], stages: 1 };
+    row = 0;
+    cell = 0;
     stage = 0;
+    maxStage = 0;
     bumped = false;
     hasContent = false;
   };
   const closeSection = () => {
-    cur.stages = stage + 1;
-    if (cur.items.length || cur.right?.length || cur.blocks.length) startSection();
+    cur.stages = Math.max(stage, maxStage) + 1;
+    if (sectionItems(cur).length || cur.blocks.length) startSection();
   };
 
   const add = (item: ItemInit, isHeading = false) => {
-    col.push({ ...item, at: stage } as Item);
+    col().push({ ...item, at: stage } as Item);
+    maxStage = Math.max(maxStage, stage);
     bumped = false;
     if (!isHeading) hasContent = true;
   };
@@ -216,22 +226,33 @@ export function parseSlide(markdown: string, url: string): Slide {
       continue;
     }
     if (tok.type === 'hr') {
-      // a thematic break splits the section into a left and a right column (once)
-      if (cur.right === undefined) {
-        cur.right = [];
-        col = cur.right;
+      // `---`: the next row (nothing yet in the very first cell means a leading `---`: ignore it)
+      if (sectionItems(cur).length || row > 0 || cell > 0) {
+        cur.rows.push([[]]);
+        row++;
+        cell = 0;
       }
       continue;
     }
-    if (tok.type === 'paragraph' && (tok as Tokens.Paragraph).text.trim() === '+++') {
-      // everything after this line appears on the next click
-      stage++;
-      bumped = true;
-      continue;
+    if (tok.type === 'paragraph') {
+      const text = (tok as Tokens.Paragraph).text.trim();
+      if (text === '|||') {
+        // `|||`: the next cell of this row
+        cur.rows[row].push([]);
+        cell++;
+        continue;
+      }
+      const plus = /^\+\+\+(?:\s+(\d+))?$/.exec(text);
+      if (plus) {
+        // `+++`: everything after this appears on the next click; `+++ 3`: on click 3
+        stage = plus[1] !== undefined ? parseInt(plus[1], 10) : stage + 1;
+        maxStage = Math.max(maxStage, stage);
+        bumped = true;
+        continue;
+      }
     }
-    // (a heading that opens the right column belongs to it)
-    if (tok.type === 'heading' && (tok as Tokens.Heading).depth <= 2 && hasContent && !(col === cur.right && col.length === 0)) {
-      // a new level 1-2 heading after real content starts the next section
+    // a new level 1-2 heading after real content starts the next section (one that opens a later cell belongs to it)
+    if (tok.type === 'heading' && (tok as Tokens.Heading).depth <= 2 && hasContent && !((row > 0 || cell > 0) && col().length === 0)) {
       closeSection();
     }
     if (tok.type === 'code') {
@@ -244,16 +265,22 @@ export function parseSlide(markdown: string, url: string): Slide {
       }
       const existing = f.id ? cur.blocks.find((b) => b.id === f.id) : undefined;
       if (existing) {
-        // another frame of the same group: it takes a click of its own, unless a `+++` already made one
-        if (!bumped) stage++;
-        existing.frames.push({ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at: stage });
+        // another frame of the same group: it takes a click of its own, unless a `+++` already made one or @N says which
+        if (f.at === undefined && !bumped) stage++;
+        const at = f.at ?? stage;
+        existing.frames.push({ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at });
+        maxStage = Math.max(maxStage, at);
         bumped = false;
       } else {
+        const at = f.at ?? stage;
         cur.blocks.push({
           id: f.id ?? `b${autoId++}`, explicit: !!f.id, lang: f.lang, classes: f.attrs.classes, opts: f.attrs.opts,
-          frames: [{ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at: stage }],
+          frames: [{ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at }],
         });
-        add({ kind: 'block', block: cur.blocks.length - 1 });
+        col().push({ kind: 'block', block: cur.blocks.length - 1, at });
+        maxStage = Math.max(maxStage, at);
+        bumped = false;
+        hasContent = true;
       }
       continue;
     }
@@ -279,23 +306,17 @@ export function parseSlide(markdown: string, url: string): Slide {
 
 /**
  * `layout: side` / `side-right` (the old way of getting two columns) put the code blocks of every section in the right
- * (side) or left (side-right) column and the rest in the other one. Sections written with `---` are left alone.
+ * (side) or left (side-right) cell and the rest in the other one. Sections that already have a grid are left alone.
  */
 export function applyLegacyLayout(slide: Slide) {
   const layout = slide.meta.layout;
   if (layout !== 'side' && layout !== 'side-right') return;
   for (const s of slide.sections) {
-    if (!s.blocks.length || s.right !== undefined) continue;
-    const isCode = (i: Item) => i.kind === 'block';
-    const codes = s.items.filter(isCode);
-    const rest = s.items.filter((i) => !isCode(i));
-    if (layout === 'side') {
-      s.items = rest;
-      s.right = codes;
-    } else {
-      s.items = codes;
-      s.right = rest;
-    }
+    if (!s.blocks.length || s.rows.length !== 1 || s.rows[0].length !== 1) continue; // already a grid of its own
+    const items = s.rows[0][0];
+    const code = items.filter((i) => i.kind === 'block');
+    const rest = items.filter((i) => i.kind !== 'block');
+    s.rows = [layout === 'side' ? [rest, code] : [code, rest]];
   }
 }
 

@@ -46,15 +46,13 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
   display: flex; flex-direction: row; gap: var(--col-gap, 5vmin); padding: var(--stage-padding, 3vmin 40px 4vmin);
 }
-/* columns: one by default; a `---` line in the markdown makes two, split 50 / 50 (front matter: split: 40%) */
-.col { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; min-height: 0; }
-.col-1 { display: none; }
-.stage.two-col .col-1 { display: flex; }
-.stage.two-col .col-0 { flex: 0 0 calc(var(--split, 50%) - var(--col-gap, 5vmin) / 2); }
-/* a column holds its text and code blocks in reading order; it fills the column so that valign has room to work */
-.text-layer { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; }
-.text-layer > .text { flex: none; }
-.col.no-text .text-layer { display: none; }
+/* the grid of a section: rows (`---`) of cells (`|||`); one row fills the slide, several rows take the height of their content
+   (front matter: rows: auto 1fr 1fr, cols: 1fr 2fr, split: 40%) */
+.grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--row-gap, 3vmin); }
+.grid.leaving { position: absolute; flex: none; pointer-events: none; }
+.row { display: flex; gap: var(--col-gap, 5vmin); min-height: 0; }
+.cell { display: flex; flex-direction: column; justify-content: flex-start; min-width: 0; min-height: 0; position: relative; }
+.cell > .item { flex: none; }
 
 /* animated code: the block is a box in the flow, the tokens are drawn over it (see .code-layer) */
 .code-block { position: relative; width: 100%; box-sizing: border-box; }
@@ -261,7 +259,7 @@ body.print-mode #app { position: static; }
 /* ---- alignment -------------------------------------------------------------------------
    Everything starts at the top left. The stage carries data-h / data-v (start | center | end), set from
    the slide's halign / valign (or the deck's defaults / columns). A text-only slide is one column
-   that fills the stage; the two columns of a `---` slide are aligned vertically each. */
+   that fills the stage; every cell of a grid is aligned vertically on its own. */
 .stage[data-h='start'] .item { text-align: start; }
 .stage[data-h='center'] .item { text-align: center; }
 .stage[data-h='end'] .item { text-align: end; }
@@ -277,7 +275,7 @@ body.print-mode #app { position: static; }
 /* justified paragraphs (front matter: justify: true) */
 .stage[data-justify] .item p { text-align: justify; text-align-last: start; hyphens: auto; }
 
-.stage[data-v='center'] .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
-.stage[data-v='end'] .text-layer { justify-content: safe flex-end; }
+.stage[data-v='center'] .cell, .stage[data-v='center'] .grid { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
+.stage[data-v='end'] .cell, .stage[data-v='end'] .grid { justify-content: safe flex-end; }
 
 .tok.dying { transition: opacity calc(var(--fade-dur) * 0.55) ease-out 0s, color var(--fade-dur) ease; }

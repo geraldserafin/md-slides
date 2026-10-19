@@ -3,7 +3,7 @@
 // morph into each other from step to step -- also across sections and slides, as long as the id is shown in
 // consecutive steps. Token keys are tracked through the WHOLE sequence, so the same token is the same DOM element
 // from the first frame to the last and a CSS transition can move it.
-import type { Block, Deck, Frame, Item, Section } from './deck';
+import { sectionItems, type Block, type Deck, type Frame, type Item, type Section } from './deck';
 import { match, type Matching, type Tree } from './gumtree';
 import { layoutBounds, layoutLeaves, type Placed } from './layout';
 import { parseOne, type Lang } from './parse';
@@ -39,7 +39,7 @@ const parseTransition = (v: string | undefined): BlockState['transition'] => (v 
 
 /** the item that holds block `index` (its `at` is the stage the block appears at) */
 function blockItem(section: Section, index: number): Item | undefined {
-  return [...section.items, ...(section.right ?? [])].find((i) => i.kind === 'block' && i.block === index);
+  return sectionItems(section).find((i) => i.kind === 'block' && i.block === index);
 }
 
 export async function buildSteps(deck: Deck): Promise<Step[]> {

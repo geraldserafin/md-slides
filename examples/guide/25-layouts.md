@@ -1,21 +1,24 @@
-## Columns
+## Rows and columns
 
-A slide is one column by default: **title, text, code**, top left. A line with three dashes splits it into
-two columns, 50 / 50. Each side can hold text, images, code or all of them; code on either side is animated.
+A slide is one column by default: **title, text, code**, top left. Two kinds of separator turn it into a grid. A line of three
+dashes, `---`, starts a new **row**; a line of three bars, `|||`, starts a new **cell** in the same row. Any combination works:
+a title row, then two cells, then three; a 2 × 2 grid; a single wide cell.
 
 ````markdown
-## Code that moves
-
-The text goes in the left column.
+## Title             <- row 1, one cell
 
 ---
 
-```ts
-let a = 1;
-```
+left                 <- row 2 ...
+|||
+right
+
+---
+
+a  |||  b  |||  c    <- row 3: three cells (each on its own lines)
 ````
 
-Leave a blank line before `---` (right after a line of text it would turn that line into a heading).
-The next slides show it live: text left with code right, code left with text right, and the `split:` option.
+Every cell holds text, images and code blocks. Leave a blank line around `---` and `|||`.
+Sizes: `split: 35%` (two cells), `cols: 1fr 2fr 1fr` (every row), `rows: auto 1fr` (heights).
 
 <!-- Front matter: layout: cover for a title slide. The older `layout: side` / `side-right` still work: they put the text left and the code right (or the other way round). -->

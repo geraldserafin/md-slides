@@ -126,24 +126,50 @@ const third = "a code block on the last click";
 ```
 ````
 
-**Columns.** A slide is one column by default (title, text, code, from the top left). A line with three dashes
-splits it into two columns, 50 / 50 (`split: 40%` in the front matter changes the width of the left one). Either
-side can hold text, images, or code, and code on either side is animated:
+**Rows and columns.** A slide is one column by default (title, text, code, from the top left). A line with three dashes,
+`---`, starts a new **row**; a line with three bars, `|||`, starts a new **cell** in the row. Any combination works: two
+columns, three, a title row above two cells, a 2 × 2 grid. Every cell holds text, images and code blocks, and code in any
+cell is animated:
 
 ````markdown
-## Code that moves
-
-The text goes in the left column.
+## What the diff does       <- row 1: a title
 
 ---
 
-```ts
-let a = 1;
+### rename                  <- row 2, cell 1
+```ts #r
+...
 ```
+
+|||
+
+### insert                  <- row 2, cell 2
+```ts #i
+...
+```
+
+---
+
+### delete                  <- row 3 ...
 ````
 
-Put a blank line before `---`, otherwise Markdown reads the line above it as a heading. For code on the left, put the
-fence first and the text after the `---`. Alignment inside the columns is `valign` / `halign` (see below).
+Leave a blank line around `---` and `|||` (right after a line of text `---` would turn it into a heading). Sizes come from the
+front matter: `cols: 1fr 2fr` (cell widths, every row), `rows: auto 1fr` (row heights), `split: 40%` (two cells). By default
+cells are equal and a row is as tall as its content (a single row fills the slide). Alignment inside the cells is `valign` /
+`halign` (see below). Code blocks in cells next to each other share one font size.
+
+**Clicks across cells.** `@1` on a fence puts that frame on click 1 instead of the next free one, so every group with an
+`@1` frame advances on the same click; `+++ 3` puts what follows on click 3:
+
+````markdown
+```ts #r
+function area(r) {}
+```
+
+```ts #r @1
+function circleArea(radius) {}
+```
+````
 
 **Fence options** go after the language: ` ```cpp #fn .lines size=18 `
 
@@ -152,6 +178,7 @@ fence first and the text after the `---`. Alignment inside the columns is `valig
 | `halign=start\|center\|end` (or `.left` `.center` `.right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
 | `valign=start\|center\|end` (or `.top` `.middle` `.bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
 | `#name` | the group: blocks with the same id are the frames of one animation |
+| `@1` | the click this frame appears on (default: the next one); `@1` on frames of several groups = one click for all |
 | `.lines` / `.nolines`, `start=10` | line numbers, and the number of the first line |
 | `.panel` (or `.bg`) / `.nopanel`, `bg=#16213e`, `radius=12`, `pad="1em 1.4em"` | a background box around the code; `bg=` sets its color (and switches it on) |
 | `title="cart.ts"` | a caption above the code, e.g. a file name |
@@ -189,7 +216,7 @@ class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
 transition: slide     # text entrance: fade | slide | slide-left | zoom | none (none = a hard cut, no fade at all)
 stagger: 0.1          # seconds between consecutive text elements
-heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (width of the left column, default 50%)
+heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (width of the left cell, default equal), cols, rows (grid track sizes)
 accent: #ffb454       # also heading-color, text-color
 footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
@@ -233,7 +260,7 @@ Optional, placed in the deck folder:
 | `vars` | CSS variables applied to the whole deck |
 | `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
 | `code` | look of every code block (a block's own options win): `bg` (`"panel"`, `"none"` or a color), `lines` (line numbers), `radius`, `pad` |
-| `columns` | like `defaults`, but only for slides that have two columns (a `---` line), e.g. `{"valign": "center"}` |
+| `columns` | like `defaults`, but only for the classic two-column slide (one row, several cells with `|||`), e.g. `{"valign": "center"}`; grids of several rows use `defaults` |
 | `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |

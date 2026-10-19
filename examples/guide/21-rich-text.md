@@ -13,6 +13,5 @@ Markdown goes well beyond bold and italics: ~~strikethrough~~, <kbd>Ctrl</kbd> +
 - [x] task lists
 - [ ] your idea here
 
----
 
 <!-- GFM tables, task lists, strikethrough, <kbd>, <mark> and raw HTML all pass through marked. -->

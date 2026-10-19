@@ -5,7 +5,7 @@
 3. **Languages** — what is supported
 4. **Code options** — alignment, size, fit, **focus lines**
 5. **Text and media** — rich text, images, video
-6. **Columns** — `---`, split, alignment, covers
+6. **Rows and columns** — `---`, `|||`, grids, clicks across cells (`@1`)
 7. **Per-slide styling** — alignment, sizes, themes, backgrounds, classes, token colors
 8. **Motion** — text transitions, slow-motion, instant, bouncy
 9. **Deck configuration** — `deck.json`, defaults, header/footer/logo, fonts, CSS

@@ -40,7 +40,8 @@ interface BlockCfg {
 
 interface BlockView {
   block: Block;
-  col: number; // the column the block sits in
+  row: number; // the grid row it sits in
+  cells: number; // how many cells that row has
   wrap: HTMLElement; // .code-block (panel, title)
   box: HTMLElement; // .code-box: the exact area the tokens are drawn in
   cfg: BlockCfg;
@@ -87,13 +88,12 @@ export interface PlayerState {
 export class Player {
   private idx = -1;
   private tokens = new Map<string, Token>();
-  private textEls: (HTMLElement | undefined)[] = [undefined, undefined]; // per column
+  private gridEl?: HTMLElement; // the grid (rows of cells) of the section on screen
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
-  private cols: { el: HTMLElement; text: HTMLElement }[];
   private view?: { section: Section; blocks: BlockView[]; items: { el: HTMLElement; at: number }[] }; // the section on screen
   private codeLayer: HTMLElement;
   private slideShown = -1;
@@ -130,25 +130,15 @@ export class Player {
     root.innerHTML = `
       ${bar('header')}
       <div class="stage">
-        <div class="col col-0"><div class="text-layer"></div></div>
-        <div class="col col-1"><div class="text-layer"></div></div>
         <div class="code-layer"></div>
       </div>
       ${bar('footer')}
       <div class="hud"><div class="progress"><i></i></div><span class="counter"></span></div>`;
     this.stage = root.querySelector('.stage')!;
-    this.cols = [...root.querySelectorAll<HTMLElement>('.col')].map((el) => ({
-      el, text: el.querySelector<HTMLElement>('.text-layer')!,
-    }));
     this.codeLayer = root.querySelector('.code-layer')!;
 
     this.ro = new ResizeObserver(() => this.relayout(true));
     this.ro.observe(this.stage);
-    // images/videos change the text height once loaded
-    for (const c of this.cols) {
-      c.text.addEventListener('load', () => this.relayout(false), true);
-      c.text.addEventListener('loadedmetadata', () => this.relayout(false), true);
-    }
   }
 
   get index() { return this.idx; }
@@ -303,7 +293,7 @@ export class Player {
 
   // ---- text ------------------------------------------------------------
 
-  private renderItem(it: Item, col: number, section: Section, views: BlockView[]): HTMLElement {
+  private renderItem(it: Item, section: Section, views: BlockView[], row: number, cells: number): HTMLElement {
     const el = document.createElement('div');
     el.className = 'item';
     switch (it.kind) {
@@ -326,7 +316,7 @@ export class Player {
         box.className = 'code-box';
         wrap.append(box);
         el.append(wrap);
-        views.push({ block, col, wrap, box, cfg, scale: 1, cols: 1, rows: 1 });
+        views.push({ block, row, cells, wrap, box, cfg, scale: 1, cols: 1, rows: 1 });
         break;
       }
       case 'html':
@@ -374,15 +364,15 @@ export class Player {
   }
 
   /**
-   * Moves the current text into a "ghost" copy of the current stage (same layout classes, inline
-   * variables and theme), pinned at its current pixel position, and fades it out there. The ghost
-   * keeps the old look no matter how the stage changes for the next slide.
+   * Moves the current grid into a "ghost" copy of the current stage (same layout classes, inline variables and
+   * theme), pinned at its current pixel position, and fades it out there. The ghost keeps the old look no matter
+   * how the stage changes for the next slide.
    */
   private leaveText(instant: boolean) {
-    const olds = this.textEls.filter((e): e is HTMLElement => !!e);
-    this.textEls = [undefined, undefined];
-    if (!olds.length) return;
-    if (instant) { olds.forEach((o) => o.remove()); return; }
+    const old = this.gridEl;
+    this.gridEl = undefined;
+    if (!old) return;
+    if (instant) { old.remove(); return; }
     const ghost = document.createElement('div');
     ghost.className = `${this.stage.className} ghost`;
     // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
@@ -391,40 +381,30 @@ export class Player {
     for (const k of ['h', 'v', 'justify']) if (this.stage.dataset[k] !== undefined) ghost.dataset[k] = this.stage.dataset[k];
     const sr = this.stage.getBoundingClientRect();
     const k = sr.width / (this.stage.offsetWidth || 1) || 1;
-    // measure everything BEFORE moving anything (`.leaving` is position: absolute and shrinks the box to its content).
-    // Fractional pixels (getBoundingClientRect, undone for a scaled parent), not the rounded offset*: even a
-    // sub-pixel difference makes the old text hop when the ghost takes over.
-    const infos = olds.map((old) => {
-      const first = old.firstElementChild;
-      // keep the current opacity (the text may still be fading in when the user navigates again)
-      const opacity = getComputedStyle(old).opacity;
-      // as an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it
-      const m = first ? parseFloat(getComputedStyle(first).marginTop) || 0 : 0;
-      const or = old.getBoundingClientRect();
-      return { old, first, opacity, fBefore: first?.getBoundingClientRect(), box: `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k - m}px;width:${or.width / k}px` };
-    });
-    for (const i of infos) {
-      i.old.classList.add('leaving');
-      i.old.style.cssText = `${i.box};opacity:${i.opacity};transition:opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`;
-      ghost.append(i.old);
-    }
+    // measure BEFORE moving it, in fractional pixels (getBoundingClientRect, undone for a scaled parent): even a
+    // sub-pixel difference makes the old text hop when the ghost takes over. Keep the current opacity (the text
+    // may still be fading in when the user navigates again).
+    const or = old.getBoundingClientRect();
+    const opacity = getComputedStyle(old).opacity;
+    old.classList.add('leaving');
+    old.style.cssText = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k}px;width:${or.width / k}px;height:${or.height / k}px;opacity:${opacity};transition:opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`;
+    ghost.append(old);
     this.stage.after(ghost);
-    for (const i of infos) {
-      // whether that first-item margin collapsed out of the box depends on the layout (block child vs flex item),
-      // so do not assume: compare where the first item is now with where it was and correct the difference
-      if (i.first && i.fBefore) {
-        const fAfter = i.first.getBoundingClientRect();
-        const dy = (i.fBefore.top - fAfter.top) / k;
-        const dx = (i.fBefore.left - fAfter.left) / k;
-        if (Math.abs(dy) > 0.01) i.old.style.top = `${parseFloat(i.old.style.top) + dy}px`;
-        if (Math.abs(dx) > 0.01) i.old.style.left = `${parseFloat(i.old.style.left) + dx}px`;
-      }
-    }
     void ghost.offsetWidth;
     // the old text fades out while lifting away a little; the new text rises into place (see enterText)
-    infos.forEach((i) => { i.old.style.opacity = '0'; i.old.style.transform = `translateY(${-this.textDrift * 0.6}px)`; });
+    old.style.opacity = '0';
+    old.style.transform = `translateY(${-this.textDrift * 0.6}px)`;
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
     this.leaving = true;
+  }
+
+  /** Track sizes from the front matter ("auto", "1fr", "2fr", "40%", "12em") as a CSS flex value. */
+  private trackFlex(t: string | undefined, dflt: string): string {
+    const v = (t ?? dflt).trim();
+    if (v === 'auto') return '0 0 auto'; // never shrink below its content: a row that is too tall overflows (and the code scales down) instead of overlapping
+    const fr = /^(\d*\.?\d+)fr$/.exec(v);
+    if (fr) return `${fr[1]} 1 0`;
+    return `0 0 ${v}`;
   }
 
   private swapText(step: Step, instant: boolean) {
@@ -434,31 +414,41 @@ export class Player {
     const meta = this.deck.slides[step.slide].meta;
     const views: BlockView[] = [];
     const items: { el: HTMLElement; at: number }[] = [];
-    const columns: Item[][] = [sec.items, sec.right ?? []];
     // widest / tallest frame of every block, from the steps of this section (a stable box across its frames)
     const metrics = new Map<Block, { cols: number; rows: number }>();
     for (const st of this.steps) if (st.section === sec) for (const bs of st.blocks) metrics.set(bs.block, { cols: bs.cols, rows: bs.rows });
-    columns.forEach((list, c) => {
-      const col = this.cols[c];
-      col.el.classList.toggle('no-text', list.length === 0);
-      if (!list.length) {
-        col.text.replaceChildren();
-        return;
-      }
-      const el = document.createElement('div');
-      el.className = 'text';
-      for (const it of list) {
-        const e = this.renderItem(it, c, sec, views);
-        e.dataset.at = String(it.at);
-        if (it.at > step.stage) e.classList.add('pending');
-        items.push({ el: e, at: it.at });
-        el.append(e);
-      }
-      col.text.replaceChildren(el);
-      // the new text waits until the old one is (almost) gone, so two headings never overlap
-      if (!instant) this.enterText(el, meta, this.leaving ? LEAVE_S * 0.65 : 0);
-      this.textEls[c] = el;
+
+    // the grid: rows (front matter `rows:`) of cells (`cols:`, or `split:` for two); one row fills the slide
+    const rowTracks = (meta.rows ?? '').split(/\s+/).filter(Boolean);
+    const colTracks = (meta.cols ?? '').split(/\s+/).filter(Boolean);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    sec.rows.forEach((cells, r) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'row';
+      rowEl.style.flex = this.trackFlex(rowTracks[r], sec.rows.length === 1 ? '1fr' : 'auto');
+      cells.forEach((list, c) => {
+        const cellEl = document.createElement('div');
+        cellEl.className = 'cell text';
+        const split = cells.length === 2 && !colTracks.length && meta.split ? [meta.split, '1fr'] : colTracks;
+        cellEl.style.flex = this.trackFlex(split[c], '1fr');
+        for (const it of list) {
+          const e = this.renderItem(it, sec, views, r, cells.length);
+          e.dataset.at = String(it.at);
+          if (it.at > step.stage) e.classList.add('pending');
+          items.push({ el: e, at: it.at });
+          cellEl.append(e);
+        }
+        rowEl.append(cellEl);
+      });
+      grid.append(rowEl);
     });
+    this.stage.insertBefore(grid, this.codeLayer);
+    grid.addEventListener('load', () => this.relayout(false), true); // images/videos change the height once loaded
+    grid.addEventListener('loadedmetadata', () => this.relayout(false), true);
+    this.gridEl = grid;
+    // the new text waits until the old one is (almost) gone, so two headings never overlap
+    if (!instant) this.enterText(items.filter((i) => i.at <= step.stage).map((i) => i.el), meta, this.leaving ? LEAVE_S * 0.65 : 0);
     for (const v of views) {
       const m = metrics.get(v.block);
       v.cols = m?.cols ?? 1;
@@ -487,14 +477,15 @@ export class Player {
 
   /**
    * Alignment of this section: halign / valign (start | center | end, default start) from the slide, or, for a slide that
-   * really shows two columns, from the deck's "columns" defaults. The classes tell the CSS which shape the stage has.
+   * has several cells in a row, from the deck's "columns" defaults. The classes tell the CSS which shape the stage has.
    */
   private applyAlign(step: Step) {
     const slide = this.deck.slides[step.slide];
-    const twoCol = step.section.right !== undefined;
+    // "columns" = the classic two-column slide: a single row of cells. A grid of several rows starts at the top.
+    const columns = step.section.rows.length === 1 && step.section.rows[0].length > 1;
     const textOnly = step.section.blocks.length === 0;
     const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns, textOnly: this.deck.meta.textOnly };
-    const ctx = { twoColumns: twoCol, textOnly };
+    const ctx = { twoColumns: columns, textOnly };
     const st = this.stage;
     st.dataset.h = resolveAlign('halign', src, ctx);
     st.dataset.v = resolveAlign('valign', src, ctx);
@@ -502,11 +493,11 @@ export class Player {
     if (justify && !/^(false|no|off|0)$/i.test(justify)) st.dataset.justify = '';
     else delete st.dataset.justify;
     st.classList.toggle('text-only', textOnly);
-    st.classList.toggle('two-col', twoCol);
+    st.classList.toggle('has-cols', columns);
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
-  private enterText(el: HTMLElement, meta: Record<string, string>, baseDelay = 0) {
+  private enterText(els: HTMLElement[], meta: Record<string, string>, baseDelay = 0) {
     const kind = meta.transition ?? this.textTransition;
     const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
     if (kind === 'none') return;
@@ -514,8 +505,7 @@ export class Player {
       fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
     };
     const tf = from[kind] ?? '';
-    const targets = stagger > 0 ? [...el.children].filter((c) => !c.classList.contains('pending')) as HTMLElement[] : [el];
-    targets.forEach((t, i) => {
+    els.forEach((t, i) => {
       t.style.transition = 'none';
       t.style.opacity = '0';
       t.style.transform = tf;
@@ -558,19 +548,27 @@ export class Player {
       const g = v.cfg.lines ? String(v.cfg.start + v.rows - 1).length + 1.5 : 0;
       apply(v, size > 0 ? size / REF_FONT : !fit ? 1 : Math.max(MIN_SCALE, Math.min(MAX_SCALE, W / ((v.cols + g) * this.charW) || 1)));
     }
-    // a column taller than the stage: shrink its (fittable) blocks
-    for (let pass = 0; pass < 3; pass++) {
-      let again = false;
-      this.cols.forEach((col, c) => {
-        const over = col.text.scrollHeight - col.text.clientHeight;
-        if (over <= 1) return;
-        const mine = view.blocks.filter((v) => v.col === c && !(parseFloat(v.block.opts.size ?? '') > 0) && v.block.opts.fit !== 'none');
+    // blocks in cells next to each other share one font size (the smallest that fits), so they can be compared
+    const sideBySide = view.blocks.filter((v) => v.cells > 1 && !(parseFloat(v.block.opts.size ?? '') > 0) && v.block.opts.fit !== 'none');
+    if (sideBySide.length > 1) {
+      const smallest = Math.min(...sideBySide.map((v) => v.scale));
+      for (const v of sideBySide) apply(v, smallest);
+    }
+    // a grid taller than the stage: shrink the (fittable) blocks
+    const grid = this.gridEl;
+    if (grid) {
+      const mine = view.blocks.filter((v) => !(parseFloat(v.block.opts.size ?? '') > 0) && v.block.opts.fit !== 'none');
+      for (let pass = 0; pass < 4; pass++) {
+        const over = grid.scrollHeight - grid.clientHeight;
+        if (over <= 1) break;
         const codeH = mine.reduce((sum, v) => sum + v.rows * lineH * v.scale, 0);
-        if (!codeH) return;
-        const f = Math.max(0, (codeH - over) / codeH);
-        for (const v of mine) if (v.scale > MIN_SCALE) { apply(v, Math.max(MIN_SCALE, v.scale * f)); again = true; }
-      });
-      if (!again) break;
+        if (!codeH) break;
+        // the rows stack, so shrinking every block by the same factor removes about that share of the overflow
+        const f = Math.max(0.3, 1 - over / codeH);
+        let changed = false;
+        for (const v of mine) if (v.scale > MIN_SCALE) { apply(v, Math.max(MIN_SCALE, v.scale * f)); changed = true; }
+        if (!changed) break;
+      }
     }
   }
 

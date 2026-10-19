@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSlide, splitFrontMatter } from '../src/deck';
+import { parseSlide, sectionItems, splitFrontMatter } from '../src/deck';
 
 describe('front matter', () => {
   it('parses keys and strips the block', () => {
@@ -25,13 +25,13 @@ describe('parseSlide', () => {
     expect(blocks[0].opts.size).toBe('18');
     expect(blocks[0].id).toBe('f');
     expect(blocks[0].explicit).toBe(true);
-    const img = s.sections[0].items.find((i) => i.kind === 'image');
+    const img = sectionItems(s.sections[0]).find((i) => i.kind === 'image');
     expect(img).toMatchObject({ src: 'http://x/d/img.png', attrs: { classes: ['left'], opts: { width: '50%' } } });
   });
   it('code blocks are independent unless they share an id', () => {
     const t = parseSlide('```ts\na;\n```\n\n```ts\nb;\n```\n\n```ts #x\nc;\n```\n\n```ts #x\nd;\n```\n', 'http://x/s.md');
     expect(t.sections[0].blocks.map((b) => b.frames.length)).toEqual([1, 1, 2]);
-    expect(t.sections[0].items.filter((i) => i.kind === 'block')).toHaveLength(3);
+    expect(sectionItems(t.sections[0]).filter((i) => i.kind === 'block')).toHaveLength(3);
   });
   it('per-frame focus option', () => {
     const t = parseSlide('```ts focus=2 #a\na;\nb;\n```\n\n```ts focus=1-2,4 #a\na;\nb;\n```\n', 'http://x/s.md');
@@ -43,12 +43,12 @@ describe('parseSlide', () => {
     expect(bl).toMatchObject({ id: 'fn', lang: 'rust', classes: ['lines', 'panel'], opts: { start: '10', title: 'my file.rs' } });
   });
   it('video by extension', () => {
-    const v = parseSlide('![](clip.mp4){autoplay loop}\n', 'http://x/d/s.md').sections[0].items[0];
+    const v = sectionItems(parseSlide('![](clip.mp4){autoplay loop}\n', 'http://x/d/s.md').sections[0])[0];
     expect(v).toMatchObject({ kind: 'video', attrs: { opts: { autoplay: 'true', loop: 'true' } } });
   });
   it('language without a grammar = static block', () => {
     const t = parseSlide('```yaml-x\na: 1\n```\n', 'http://x/s.md');
-    expect(t.sections[0].items[0].kind).toBe('code');
+    expect(sectionItems(t.sections[0])[0].kind).toBe('code');
     expect(t.sections[0].blocks).toEqual([]);
   });
 });
@@ -65,7 +65,7 @@ describe('sections and reveal stages', () => {
   it('+++ makes what follows appear on the next click', () => {
     const t = parse('first\n\n+++\n\nsecond\n\n+++\n\nthird\n');
     expect(t.sections[0].stages).toBe(3);
-    expect(t.sections[0].items.map((i) => i.at)).toEqual([0, 1, 2]);
+    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 1, 2]);
   });
   it('frames of a group take a click each; a +++ before one does not add another', () => {
     const t = parse('```ts #a\n1;\n```\n\n```ts #a\n2;\n```\n\n+++\n\n```ts #a\n3;\n```\n');
@@ -74,7 +74,7 @@ describe('sections and reveal stages', () => {
   });
   it('a block can appear on a later click', () => {
     const t = parse('text\n\n+++\n\n```ts\na;\n```\n');
-    expect(t.sections[0].items.map((i) => [i.kind, i.at])).toEqual([['html', 0], ['block', 1]]);
+    expect(sectionItems(t.sections[0]).map((i) => [i.kind, i.at])).toEqual([['html', 0], ['block', 1]]);
   });
 });
 
@@ -105,39 +105,52 @@ describe('chrome (header/footer)', () => {
   });
 });
 
-describe('columns (a --- line)', () => {
+describe('grid: rows (---) and cells (|||)', () => {
   const parse = (md: string) => parseSlide(md, 'http://x/s.md');
   const kinds = (items: { kind: string }[] = []) => items.map((i) => i.kind);
+  const shape = (md: string) => parse(md).sections[0].rows.map((r) => r.map((c) => kinds(c)));
 
   it('text left, code right', () => {
-    const s = parse('## T\n\nleft\n\n---\n\n```ts\na;\n```\n');
-    expect(s.sections).toHaveLength(1);
-    expect(kinds(s.sections[0].items)).toEqual(['html', 'html']);
-    expect(kinds(s.sections[0].right)).toEqual(['block']);
+    expect(shape('## T\n\nleft\n\n|||\n\n```ts\na;\n```\n')).toEqual([[['html', 'html'], ['block']]]);
   });
 
   it('code left, text right', () => {
-    const s = parse('```ts\na;\n```\n\n---\n\n## Right\n\nmore\n');
-    expect(s.sections).toHaveLength(1);
-    expect(kinds(s.sections[0].items)).toEqual(['block']);
-    expect(kinds(s.sections[0].right)).toEqual(['html', 'html']);
+    expect(shape('```ts\na;\n```\n\n|||\n\n## Right\n\nmore\n')).toEqual([[['block'], ['html', 'html']]]);
+    expect(parse('```ts\na;\n```\n\n|||\n\n## Right\n').sections).toHaveLength(1);
   });
 
-  it('text in both columns, no code', () => {
-    const s = parse('left\n\n---\n\nright\n');
-    expect(kinds(s.sections[0].items)).toEqual(['html']);
-    expect(kinds(s.sections[0].right)).toEqual(['html']);
-    expect(s.sections[0].blocks).toHaveLength(0);
+  it('a 2x2 grid under a title', () => {
+    expect(shape('## Title\n\n---\n\na\n\n|||\n\nb\n\n---\n\nc\n\n|||\n\nd\n'))
+      .toEqual([[['html']], [['html'], ['html']], [['html'], ['html']]]);
   });
 
-  it('no --- means one column', () => {
-    const s = parse('text\n\n```ts\na;\n```\n');
-    expect(s.sections[0].right).toBeUndefined();
+  it('three cells in a row', () => {
+    expect(parse('a\n\n|||\n\nb\n\n|||\n\nc\n').sections[0].rows[0]).toHaveLength(3);
+  });
+
+  it('a leading --- is ignored', () => {
+    expect(shape('---\nlayout: x\n---\n\n---\n\ntext\n')).toEqual([[['html']]]);
+  });
+
+  it('no separators: one row, one cell', () => {
+    expect(shape('text\n\n```ts\na;\n```\n')).toEqual([[['html', 'block']]]);
   });
 
   it('the old layout: side puts the code right', () => {
-    const s = parse('---\nlayout: side\n---\n\ntext\n\n```ts\na;\n```\n');
-    expect(kinds(s.sections[0].items)).toEqual(['html']);
-    expect(kinds(s.sections[0].right)).toEqual(['block']);
+    expect(shape('---\nlayout: side\n---\n\ntext\n\n```ts\na;\n```\n')).toEqual([[['html'], ['block']]]);
+  });
+});
+
+describe('click numbers (@N)', () => {
+  const parse = (md: string) => parseSlide(md, 'http://x/s.md');
+  it('@1 puts a frame on click 1 without using up a click', () => {
+    const t = parse('```ts #a\n1;\n```\n\n```ts #a @1\n2;\n```\n\n|||\n\n```ts #b\n1;\n```\n\n```ts #b @1\n2;\n```\n');
+    expect(t.sections[0].blocks.map((b) => b.frames.map((f) => f.at))).toEqual([[0, 1], [0, 1]]);
+    expect(t.sections[0].stages).toBe(2);
+  });
+  it('+++ N jumps to an absolute click', () => {
+    const t = parse('a\n\n+++ 3\n\nb\n');
+    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 3]);
+    expect(t.sections[0].stages).toBe(4);
   });
 });
