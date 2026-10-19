@@ -108,18 +108,11 @@
       "src": "fonts/KaTeX_Main-BoldItalic.woff2",
       "weight": "700",
       "style": "italic"
-    },
-    {
-      "family": "CM Typewriter",
-      "src": "fonts/KaTeX_Typewriter-Regular.woff2",
-      "weight": "400",
-      "style": "normal"
     }
   ],
   "vars": {
     "--font-text": "\"CM Serif\", \"Latin Modern Roman\", Georgia, serif",
     "--font-heading": "\"CM Serif\", \"Latin Modern Roman\", Georgia, serif",
-    "--font-code": "\"CM Typewriter\", ui-monospace, Menlo, monospace",
     "--text-size": "clamp(19px, 2.8vmin, 36px)",
     "--heading-size": "clamp(32px, 5.4vmin, 68px)"
   }

@@ -5,4 +5,4 @@
 - `googleFonts` — families loaded from Google Fonts
 - `css` — a stylesheet for anything else; combine with `class:` in the front matter
 
-Code is drawn in the monospace font `--font-code`; the layout measures it, so use monospace fonts.
+Code is drawn in the monospace font `--font-code` (Iosevka by default); the layout measures it, so use monospace fonts.

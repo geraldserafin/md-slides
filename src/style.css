@@ -1,6 +1,8 @@
 @font-face {
-  font-family: 'DejaVu Sans Mono';
-  src: url('./assets/DejaVuSansMono.ttf') format('truetype');
+  font-family: 'Iosevka';
+  src: url('./assets/Iosevka-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
   font-display: block;
 }
 
@@ -27,7 +29,7 @@
 :root {
   --font-text: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-text);
-  --font-code: 'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace;
+  --font-code: 'Iosevka', ui-monospace, Menlo, Consolas, monospace;
   --text-size: clamp(16px, 2.3vmin, 30px);
   --heading-size: clamp(26px, 4.6vmin, 56px);
   --move-dur: 0.45s;
