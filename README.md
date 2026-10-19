@@ -307,15 +307,6 @@ PDF export is also available from any browser: open `?print=slides` or `?print=s
 `slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
-### Built-in editor
-
-In `slides dev` press `e` (or open `?edit=1&deck=<name>`) for a side-by-side editor: the slide's markdown on the left
-(CodeMirror), the live preview on the right. The preview is rebuilt ~250 ms after you stop typing and stays on the
-same step, so you can tune a transition while looking at it. Use ◀ ▶ to step through the slide, the file picker (or
-‹ ›) to switch slides, `deck.json` is editable too, ＋ creates a slide, and the gutter resizes the panes.
-Changes are saved to the deck folder automatically (`Ctrl+S` saves at once); *Present* jumps to the same step.
-The editor exists only in the dev server: it is not part of `build` output.
-
 ## Viewer controls
 
 | Key | Action |
@@ -327,7 +318,6 @@ The editor exists only in the dev server: it is not part of `build` output.
 | `t` | cycle themes (remembered per browser) |
 | `p` | presenter window: notes, timer, next slide |
 | `f` | fullscreen |
-| `e` | open the editor (`slides dev` only) |
 | `h` or `?` | help |
 
 Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<step>` in the URL (deep link),

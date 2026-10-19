@@ -3,7 +3,7 @@
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
 // A deck = a folder of .md files (+ deck.json, images, videos...). See README.md.
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -137,36 +137,14 @@ async function cmdBuild(o) {
   }
 }
 
-/** the editor's backend: PUT /__slides/file?deck=<name>&file=<name.md|deck.json> writes into the deck folder */
-function saveEndpoint(req, res, dirs, mark) {
-  const url = new URL(req.url, 'http://x');
-  const reply = (code, body = '') => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(body)); };
-  if (url.pathname === '/ping') return reply(200, { edit: true });
-  if (url.pathname !== '/file' || req.method !== 'PUT') return reply(404, { error: 'not found' });
-  const dir = dirs.find((d) => basename(d) === url.searchParams.get('deck'));
-  const file = url.searchParams.get('file') ?? '';
-  if (!dir || !/^[^/\\.][^/\\]*\.(md|json)$/.test(file)) return reply(400, { error: 'bad deck or file' });
-  const chunks = [];
-  req.on('data', (c) => chunks.push(c));
-  req.on('end', () => {
-    try { mark(); writeFileSync(join(dir, file), Buffer.concat(chunks)); reply(200, { ok: true }); }
-    catch (e) { reply(500, { error: String(e.message ?? e) }); }
-  });
-}
-
 async function cmdDev(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
   const dirs = expandDecks(o.decks);
   const publicDir = tmp();
   stageDecks(dirs, publicDir);
-  let editorWrite = 0; // the editor's own saves must not reload the page it lives in
   const server = await createServer({
     root: rootDir, configFile: join(rootDir, 'vite.config.ts'), publicDir,
     server: { port: o.port, open: o.open, fs: { allow: [rootDir, ...dirs] } },
-    plugins: [{
-      name: 'slides-editor',
-      configureServer(s) { s.middlewares.use('/__slides', (req, res) => saveEndpoint(req, res, dirs, () => (editorWrite = Date.now()))); },
-    }],
   });
   await server.listen();
   server.printUrls();
@@ -177,7 +155,7 @@ async function cmdDev(o) {
       watch(d, { recursive: true }, () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
-          try { stageDecks(dirs, publicDir); if (Date.now() - editorWrite > 1500) server.ws.send({ type: 'full-reload' }); } catch (e) { console.error(String(e.message ?? e)); }
+          try { stageDecks(dirs, publicDir); server.ws.send({ type: 'full-reload' }); } catch (e) { console.error(String(e.message ?? e)); }
         }, 150);
       });
 }
