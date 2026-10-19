@@ -40,8 +40,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
 body { font-family: var(--font-text); font-size: var(--text-size); }
-#app { position: fixed; inset: 0; transition: left 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
-body.drawer-open #app { left: 316px; }
+/* the drawer pushes the slide aside by scaling it (no re-layout, so nothing jumps): --ds / --dy are set from main.ts */
+#app { position: fixed; inset: 0; transform-origin: 0 0; transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+body.drawer-open #app { transform: translate(316px, var(--dy, 0px)) scale(var(--ds, 1)); }
 
 .stage {
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
