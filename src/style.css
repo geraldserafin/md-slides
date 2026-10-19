@@ -109,10 +109,10 @@ body.drawer-open #app { left: 316px; }
 .tok-builtin { color: var(--tok-builtin); } .tok-comment { color: var(--tok-comment); font-style: italic; }
 .tok-punct { color: var(--tok-punct); } .tok-plain { color: var(--tok-plain); }
 
-.hud { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; pointer-events: none; }
+.hud { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; pointer-events: none; }
 .progress { height: 3px; background: transparent; }
 .progress i { display: block; height: 100%; background: var(--accent); transition: width 0.3s ease; opacity: 0.8; }
-.counter { position: fixed; right: 14px; bottom: 10px; font-size: 13px; color: var(--muted); opacity: 0.7; font-variant-numeric: tabular-nums; }
+.counter { position: absolute; right: 14px; bottom: 10px; font-size: 13px; color: var(--muted); opacity: 0.7; font-variant-numeric: tabular-nums; }
 
 body::after {
   content: 'Arrows/space — navigate · f — fullscreen · t — theme · p — presenter · o — overview · h — this help';
