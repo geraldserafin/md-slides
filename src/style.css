@@ -281,3 +281,8 @@ body.print-mode #app { position: static; }
 /* a text-only slide in a side layout is a column: the text block must fill the width (not be centered by the
    row-direction `align-self: center`) so its left edge stays where it is on two-column slides */
 .stage.layout-side.centered .text-layer, .stage.layout-side-right.centered .text-layer { flex: 1; align-self: stretch; }
+/* in single-column side-layout slides lists and quotes stay on the left edge with the heading */
+.stage.layout-side.centered .item ul, .stage.layout-side.centered .item ol, .stage.layout-side.centered .item blockquote,
+.stage.layout-side-right.centered .item ul, .stage.layout-side-right.centered .item ol, .stage.layout-side-right.centered .item blockquote {
+  display: block; margin-left: 0; margin-right: 0; text-align: left;
+}

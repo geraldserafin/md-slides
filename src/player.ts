@@ -376,6 +376,28 @@ export class Player {
     this.textEl = el;
     const valign = this.deck.slides[step.slide].meta.valign;
     this.stage.classList.toggle("centered", valign ? valign === "center" || valign === "middle" : step.centered);
+    this.fitAnchor();
+  }
+
+  /**
+   * `text-anchor: top` pins the text at --text-top, but a tall text must not run into the footer: pull the anchor up
+   * by as much as it takes (never above the top edge). Recomputed on resize.
+   */
+  private fitAnchor() {
+    const st = this.stage;
+    const tl = this.textLayer;
+    tl.style.marginTop = '';
+    tl.style.paddingTop = '';
+    if (st.dataset.anchor !== 'top' || !this.textEl) return;
+    const centered = st.classList.contains('centered');
+    const cs = getComputedStyle(tl);
+    const want = parseFloat(centered ? cs.paddingTop : cs.marginTop) || 0;
+    if (!want) return;
+    const ss = getComputedStyle(st);
+    const avail = st.clientHeight - (parseFloat(ss.paddingTop) || 0) - (parseFloat(ss.paddingBottom) || 0);
+    const h = this.textEl.getBoundingClientRect().height / ((st.getBoundingClientRect().height / st.offsetHeight) || 1) + 8;
+    const top = Math.max(0, Math.min(want, avail - h));
+    if (Math.abs(top - want) > 0.5) tl.style[centered ? 'paddingTop' : 'marginTop'] = `${top}px`;
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
@@ -536,6 +558,7 @@ export class Player {
   private relayout(instant: boolean) {
     if (this.idx < 0) return;
     const step = this.steps[this.idx];
+    this.fitAnchor();
     if (!step.root) return;
     if (instant) this.codeLayer.classList.add('no-anim');
     const pl = this.placement(step);

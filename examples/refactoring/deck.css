@@ -15,6 +15,6 @@
 
 /* room under headings (each markdown block is its own .item); body paragraphs justified with a centered last line */
 .item-h1, .item-h2, .item-h3 { margin-bottom: 0.9em; }
-.item p { text-align: justify; text-align-last: center; hyphens: auto; margin: 0.55em 0; }
+.item p { text-align: justify; text-align-last: left; hyphens: auto; margin: 0.55em 0; }
 /* in the side layout the text column is justified with a left last line */
 .stage[class*='layout-side']:not(.centered) .item p { text-align-last: left; }
