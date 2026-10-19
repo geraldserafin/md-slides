@@ -103,7 +103,7 @@ languages without a grammar are shown as static code.
 | Option | Meaning |
 | --- | --- |
 | `.left` `.center` `.right` | horizontal alignment of the code block |
-| `.top` `.middle` | vertical alignment |
+| `.top` `.middle` | vertical alignment; code is centered vertically in its area by default, `.top` pins it to the top |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
 | `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |

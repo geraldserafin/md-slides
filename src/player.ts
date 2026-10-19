@@ -414,8 +414,8 @@ export class Player {
     const cls = step.section.classes;
     const baseX = ar.left + PAD_X +
       (cls.includes('left') ? 0 : cls.includes('right') ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
-    const side = this.stage.classList.contains("layout-side") || this.stage.classList.contains("layout-side-right");
-    const middle = cls.includes("middle") || (side && !cls.includes("top"));
+    
+    const middle = !cls.includes("top"); // code is vertically centered in its area unless pinned with .top
     const topY = ar.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);
     return { scale, baseX, topY, lineH };
   }
