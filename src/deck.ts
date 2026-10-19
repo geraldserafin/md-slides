@@ -14,6 +14,7 @@ export type Item = (
   | { kind: 'html'; html: string; tag: string } // heading/paragraph/list/quote...
   | { kind: 'image'; src: string; alt: string; attrs: Attrs }
   | { kind: 'video'; src: string; attrs: Attrs }
+  | { kind: 'diagram'; text: string; attrs: Attrs } // a ```mermaid fence
   | { kind: 'code'; text: string; lang: string } // static block (language without a grammar)
   | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
 ) & { at: number }; // the reveal stage it appears at (0 = from the start)
@@ -334,6 +335,10 @@ export function parseSlide(markdown: string, url: string): Slide {
     if (tok.type === 'code') {
       const code = tok as Tokens.Code;
       const f = parseFence(code.lang ?? '');
+      if (f.tag.toLowerCase() === 'mermaid') {
+        add({ kind: 'diagram', text: code.text, attrs: f.attrs });
+        continue;
+      }
       if (!f.lang || inHead) {
         // language without a grammar: a static block in the text
         add({ kind: 'code', text: code.text, lang: f.tag });

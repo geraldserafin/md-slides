@@ -325,3 +325,9 @@ body.print-mode #app { position: static; }
 .item .katex-display > .katex { text-align: inherit; }
 .item .katex { font-size: 1.12em; }
 .stage[data-h='center'] .item .katex-display > .katex { display: block; }
+
+/* diagrams (mermaid) */
+.item-diagram { display: block; }
+.diagram { max-width: 100%; }
+.diagram svg { width: 100%; max-width: none !important; height: auto; }
+.diagram-error { font: 0.8em var(--font-code); color: var(--muted); white-space: pre-wrap; }

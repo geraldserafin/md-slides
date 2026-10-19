@@ -28,6 +28,7 @@
   "dependencies": {
     "katex": "^0.19.0",
     "marked": "^18.1.1",
+    "mermaid": "^12.2.0",
     "postject": "^1.0.0-alpha.6",
     "puppeteer-core": "^25.14.0",
     "tree-sitter-wasms": "^0.1.13",

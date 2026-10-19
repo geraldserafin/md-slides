@@ -43,6 +43,11 @@ function parseArgs(argv) {
   return o;
 }
 
+/** does any deck use a ```mermaid fence? (the diagram library is left out of the build otherwise) */
+function usesMermaid(dirs) {
+  return dirs.some((d) => readdirSync(d).some((f) => f.endsWith('.md') && /^[ \t]*(?:`{3,}|~{3,})[ \t]*mermaid\b/m.test(readFileSync(join(d, f), 'utf8'))));
+}
+
 /** languages used in the decks' fences (to drop unused grammars from the single target) */
 function usedLanguages(dirs) {
   const used = new Set();
@@ -94,7 +99,7 @@ async function compile(dirs, outDir, extra = {}, hubDir) {
     build: {
       outDir, emptyOutDir: true, ...extra.build,
       rollupOptions: { ...extra.build?.rollupOptions, onwarn: (w, h) => w.code !== 'EVAL' && h(w) },
-    }, ...extra.top,
+    }, define: { __USE_MERMAID__: String(usesMermaid(dirs)) }, ...extra.top,
   });
   rmSync(publicDir, { recursive: true, force: true });
 }

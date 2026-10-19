@@ -2,6 +2,7 @@
 // transitions). Each token's position/scale is independent and computed in
 // stage pixels -- a dying token has a FROZEN transform, so it does not drift
 // towards the next step's target position.
+import { renderDiagram } from './diagram';
 import { fenceAlign, parseAlign, place, resolveAlign, type Align } from './align';
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
 import type { Block, CodeStyle, Deck, Item, Section, Slide } from './deck';
@@ -362,6 +363,15 @@ export class Player {
         const pre = document.createElement('pre');
         pre.textContent = it.text;
         el.append(pre);
+        break;
+      }
+      case 'diagram': {
+        el.classList.add('item-media', 'item-diagram');
+        const box = document.createElement('div');
+        box.className = 'diagram';
+        this.styleMedia(el, box, it.attrs.classes, it.attrs.opts);
+        el.append(box);
+        renderDiagram(box, it.text, () => this.relayout(true));
         break;
       }
       case 'image': {
