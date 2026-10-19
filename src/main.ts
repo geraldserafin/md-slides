@@ -110,19 +110,12 @@ async function main() {
     clearDrawing(); // the ink stays on the slide it was drawn on
     publish();
   };
-  const publishOutline = () => ch.postMessage({
-    type: 'outline',
-    slides: deck.slides.map((s, i) => ({ title: s.title || `Slide ${i + 1}`, step: steps.findIndex((st) => st.slide === i) })).filter((o) => o.step >= 0),
-  });
-  // the presenter window: it moves us, runs the tools here (they draw on the audience's screen) and ends the show
+  // the presenter window moves us and ends the show
   ch.onmessage = (e) => {
     const m = e.data;
     if (m?.type === 'cmd') player.go(m.step);
-    else if (m?.type === 'hello') { publish(); publishOutline(); }
-    else if (m?.type === 'tool') {
-      ({ draw: toggleDraw, laser: toggleLaser, zoom: () => toggleZoom(app), black: toggleBlack } as Record<string, () => unknown>)[m.name]?.();
-      refreshTools();
-    } else if (m?.type === 'end') { if (document.fullscreenElement) void document.exitFullscreen(); location.href = location.pathname; }
+    else if (m?.type === 'hello') publish();
+    else if (m?.type === 'end') { if (document.fullscreenElement) void document.exitFullscreen(); location.href = location.pathname; }
   };
 
   let overview: Overview | undefined;

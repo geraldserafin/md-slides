@@ -1,15 +1,13 @@
-// Presenter view (a separate window: ?presenter=1&deck=name), laid out like PowerPoint's: a strip with the
-// stopwatch, slide counter, clock and "End show" on top; the current slide big on the left with the pen / laser /
-// magnifier / black screen / all-slides tools and the ← → arrows under it; on the right the next slide, and the
-// notes with A− A+. The previews are the viewer itself in iframes (?embed=1), so they look exactly like the audience
-// window. It talks to the presentation window through a BroadcastChannel; either window can drive.
+// Presenter view (a separate window: ?presenter=1&deck=name), laid out like PowerPoint's: a strip with the timer,
+// slide counter, clock and "End show" on top; the current slide big on the left with the ← → arrows under it; on
+// the right the next slide and the notes with A− A+. The previews are the viewer itself in iframes (?embed=1), so they
+// look exactly like the audience window. It talks to the presentation window through a BroadcastChannel; either window
+// can drive.
 import type { PlayerState } from './player';
 
 export const CHANNEL = 'slides-sync';
 const FRAME_W = 1600;
 const FRAME_H = 900;
-
-export interface OutlineEntry { title: string; step: number }
 
 const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
 const hms = (s: number) => `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -64,19 +62,11 @@ export function startPresenterView(root: HTMLElement, deck: string) {
         <section class="pv-left">
           <div class="pv-now-holder" id="now-holder"><div class="pv-screen" id="now"></div></div>
           <div class="pv-bar">
-            <div class="pv-tools">
-              <button data-tool="draw" title="Pen: draw on the slide (the audience window)">${svg('<path d="M4 20l1-4L16 5l3 3L8 19z"/>')}</button>
-              <button data-tool="laser" title="Laser pointer">${svg('<circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8"/>')}</button>
-              <button data-tool="zoom" title="Magnifier">${svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>')}</button>
-              <button data-tool="black" title="Black screen">${svg('<rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor"/>')}</button>
-              <button id="all" title="See all slides">${svg('<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>')}</button>
-            </div>
             <div class="pv-nav">
               <button id="prev" title="Previous (←)">${svg('<path d="M15 5l-7 7 7 7"/>')}</button>
               <span id="steps"></span>
               <button id="nextbtn" title="Next (→, space)">${svg('<path d="M9 5l7 7-7 7"/>')}</button>
             </div>
-            <div class="pv-spacer"></div>
           </div>
         </section>
         <aside class="pv-side">
@@ -92,7 +82,6 @@ export function startPresenterView(root: HTMLElement, deck: string) {
           </div>
         </aside>
       </main>
-      <div class="pv-all" id="all-slides" hidden></div>
     </div>`;
   const $ = (id: string) => root.querySelector<HTMLElement>('#' + id)!;
 
@@ -104,7 +93,6 @@ export function startPresenterView(root: HTMLElement, deck: string) {
   let cur = 0;
   let total = 1;
   let first = true;
-  let outline: OutlineEntry[] = [];
   const render = (s: PlayerState) => {
     cur = s.step;
     total = s.steps;
@@ -119,37 +107,15 @@ export function startPresenterView(root: HTMLElement, deck: string) {
     $('notes').scrollTop = 0;
     first = false;
     if (!running && elapsed === 0) toggleTimer(); // the timer starts with the first state
-    root.querySelectorAll('.pv-all .cell').forEach((c) => c.classList.toggle('sel', Number((c as HTMLElement).dataset.slide) === s.slide));
   };
-  ch.onmessage = (e) => {
-    if (e.data?.type === 'state') render(e.data.state);
-    else if (e.data?.type === 'outline') { outline = e.data.slides; buildAll(); }
-  };
+  ch.onmessage = (e) => e.data?.type === 'state' && render(e.data.state);
   const cmd = (step: number) => ch.postMessage({ type: 'cmd', step: Math.max(0, Math.min(total - 1, step)) });
   $('prev').onclick = () => cmd(cur - 1);
   $('nextbtn').onclick = () => cmd(cur + 1);
 
-  // the tools act on the audience window
-  root.querySelectorAll<HTMLElement>('[data-tool]').forEach((b) => (b.onclick = () => {
-    ch.postMessage({ type: 'tool', name: b.dataset.tool });
-    if (b.dataset.tool !== 'black') b.classList.toggle('on');
-    else b.classList.toggle('on');
-  }));
   $('end').onclick = () => { ch.postMessage({ type: 'end' }); window.close(); };
 
-  // see all slides: titles in a grid, click to jump
-  const all = $('all-slides');
-  const buildAll = () => {
-    all.innerHTML = `<div class="pv-all-head"><strong>All slides</strong><button id="all-close" title="Close (Esc)">${svg('<path d="M6 6l12 12M18 6L6 18"/>')}</button></div><div class="pv-all-grid">${
-      outline.map((o, i) => `<button class="cell" data-slide="${i}" data-step="${o.step}"><span>${i + 1}</span>${esc(o.title)}</button>`).join('')}</div>`;
-    all.querySelector<HTMLElement>('#all-close')!.onclick = () => (all.hidden = true);
-    all.querySelectorAll<HTMLElement>('.cell').forEach((c) => (c.onclick = () => { cmd(Number(c.dataset.step)); all.hidden = true; }));
-  };
-  $('all').onclick = () => { all.hidden = !all.hidden; };
-
   addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { all.hidden = true; return; }
-    if (!all.hidden) return;
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key === 'Enter') { e.preventDefault(); cmd(cur + 1); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); cmd(cur - 1); }
     else if (e.key === 'Home') cmd(0);
