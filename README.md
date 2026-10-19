@@ -377,6 +377,8 @@ page whenever a file in the deck folder changes.
 | `a` | autoplay: step every few seconds until you press a key or click |
 | `h` or `?` | help |
 
+The mouse reveals two sets of buttons: ☰ in the top left (slide drawer) and a column in the top right with the presenter window, fullscreen, theme, laser, draw, magnifier, autoplay and help (the active ones are highlighted).
+
 Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<step>` in the URL (deep link),
 `?theme=light|dark|paper|<yours>`, `?deck=<name>`.
 
