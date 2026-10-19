@@ -22,7 +22,7 @@
       "--code-bg": "#f1eee6"
     },
     "midnight": {
-      "--bg": "#0a0a0a",
+      "--bg": "#1c1c1c",
       "--fg": "#d4d4d4",
       "--heading": "#fafafa",
       "--muted": "#8a8a8a",
@@ -35,7 +35,7 @@
       "--tok-comment": "#6b6b6b",
       "--tok-punct": "#7a7a7a",
       "--tok-plain": "#c4c4c4",
-      "--code-bg": "#171717"
+      "--code-bg": "#141414"
     },
     "sunset": {
       "--bg": "#2a1b2e",
