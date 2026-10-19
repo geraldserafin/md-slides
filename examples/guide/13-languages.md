@@ -5,6 +5,7 @@ for the languages a deck uses.
 
 - `ts` `tsx` `js` `jsx` &nbsp;·&nbsp; `c` `cpp` &nbsp;·&nbsp; `py` `rs` `go` `java` `lua`
 - `sh`/`bash` &nbsp;·&nbsp; `json` `html` `css`
+- the next three slides show a live transition in **every** one of them
 - anything else (`text`, `toml`, `markdown`, …) is shown as a **static code block**
 - tabs are expanded to four spaces
 

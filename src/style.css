@@ -160,3 +160,17 @@ body.print-mode #app { position: static; }
   display: table; margin-left: auto; margin-right: auto; text-align: left;
 }
 .chooser a small { display: block; margin-top: 4px; color: var(--muted); font-size: 0.8em; }
+
+/* rich text: tables, keys, highlights */
+.item table { border-collapse: collapse; margin: 0.5em auto; font-size: 0.92em; }
+.item th, .item td { padding: 0.35em 0.9em; border-bottom: 1px solid var(--code-bg); text-align: left; }
+.item th { color: var(--heading); border-bottom: 2px solid var(--accent); }
+.item td { color: var(--fg); }
+.item kbd {
+  font-family: var(--font-code); font-size: 0.85em; padding: 0.1em 0.45em; border-radius: 4px;
+  background: var(--code-bg); border: 1px solid var(--muted); border-bottom-width: 2px; color: var(--heading);
+}
+.item mark { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--heading); padding: 0 0.2em; border-radius: 3px; }
+.item del { opacity: 0.6; }
+.item hr { border: 0; border-top: 1px solid var(--muted); opacity: 0.4; width: 60%; }
+.item img { max-width: 100%; }

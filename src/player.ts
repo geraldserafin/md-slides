@@ -51,7 +51,6 @@ export class Player {
   private bgEl?: HTMLElement;
   private moveDelay: number;
   private fadeInDelay: number;
-  private dyingMs: number;
   private slideFadeMs: number;
   onChange?: (s: PlayerState) => void;
 
@@ -61,7 +60,6 @@ export class Player {
     this.fadeInDelay = a.fadeInDelay ?? 0.08;
     const move = a.move ?? 0.45;
     const fade = a.fade ?? 0.3;
-    this.dyingMs = (Math.max(move, fade) + 0.25) * 1000;
     this.slideFadeMs = (a.slideFade ?? 0.3) * 1000;
     this.textTransition = a.textTransition ?? 'fade';
     this.textStagger = a.textStagger ?? 0;
@@ -364,12 +362,36 @@ export class Player {
     el.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
   }
 
+  /** "2-4,7" (1-based lines) -> set of 0-based rows; undefined = no focus */
+  private focusRows(spec: string | undefined): Set<number> | undefined {
+    if (!spec) return undefined;
+    const rows = new Set<number>();
+    for (const part of spec.split(',')) {
+      const [a, b = a] = part.trim().split('-').map((n) => parseInt(n, 10));
+      if (Number.isFinite(a) && Number.isFinite(b)) for (let r = a; r <= b; r++) rows.add(r - 1);
+    }
+    return rows.size ? rows : undefined;
+  }
+
+  /** how long a fading token must stay in the DOM: the stage's own durations (slides may override them) */
+  private dyingFor(): number {
+    const secs = (name: string, fallback: number) => {
+      const v = getComputedStyle(this.stage).getPropertyValue(name).trim();
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? (v.endsWith('ms') ? n / 1000 : n) : fallback;
+    };
+    return (Math.max(secs('--move-dur', 0.45), secs('--fade-dur', 0.3)) + 0.25) * 1000;
+  }
+
   private advance(step: Step, instant: boolean) {
     const pl = this.placement(step);
+    const focus = this.focusRows(step.focus);
+    const dying = this.dyingFor();
     const seen = new Set<string>();
     for (const p of step.layout) {
       const key = step.keys.get(p.tree.id)!;
       seen.add(key);
+      const bright = !focus || focus.has(p.row) ? '1' : '0.25';
       const cls = `tok tok-${tokenClass(p.tree.label)}`;
       const { x, y } = this.pos(pl, p.row, p.col);
       let tk = this.tokens.get(key);
@@ -380,7 +402,7 @@ export class Player {
         tk.el.textContent = p.tree.text;
         tk.el.style.setProperty('--d', instant ? '0s' : `${this.moveDelay}s`);
         this.setTransform(tk.el, x, y, pl.scale);
-        tk.el.style.opacity = '1';
+        tk.el.style.opacity = bright;
       } else {
         const el = document.createElement('span');
         el.className = cls;
@@ -394,7 +416,7 @@ export class Player {
         void el.offsetWidth;
         el.style.transition = '';
         el.style.setProperty('--d', instant ? '0s' : `${this.fadeInDelay}s`);
-        el.style.opacity = '1';
+        el.style.opacity = bright;
       }
     }
     for (const [key, tk] of this.tokens) {
@@ -405,7 +427,7 @@ export class Player {
       tk.timer = window.setTimeout(() => {
         tk.el.remove();
         if (this.tokens.get(key) === tk) this.tokens.delete(key);
-      }, instant ? 0 : this.dyingMs);
+      }, instant ? 0 : dying);
     }
   }
 

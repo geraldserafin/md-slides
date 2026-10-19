@@ -25,6 +25,11 @@ describe('parseSlide', () => {
     const img = s.sections[0].items.find((i) => i.kind === 'image');
     expect(img).toMatchObject({ src: 'http://x/d/img.png', attrs: { classes: ['left'], opts: { width: '50%' } } });
   });
+  it('per-frame focus option', () => {
+    const s = parseSlide('```ts focus=2\na;\nb;\n```\n\n```ts focus=1-2,4\na;\nb;\n```\n', 'http://x/s.md');
+    expect(s.sections[0].codes).toHaveLength(2);
+    expect(s.sections[0].focus).toEqual(['2', '1-2,4']);
+  });
   it('video by extension', () => {
     const v = parseSlide('![](clip.mp4){autoplay loop}\n', 'http://x/d/s.md').sections[0].items[0];
     expect(v).toMatchObject({ kind: 'video', attrs: { opts: { autoplay: 'true', loop: 'true' } } });

@@ -23,6 +23,7 @@ export interface Section {
   opts: Record<string, string>; // fence key=value (e.g. size=18)
   lang?: Lang; // grammar of the animated code
   codes: string[]; // successive code states
+  focus: (string | undefined)[]; // per frame: lines to keep bright, e.g. "2-4,7"
   hasFence: boolean;
 }
 
@@ -139,6 +140,7 @@ export function parseSlide(markdown: string, url: string): Slide {
     classes: [],
     opts: {},
     codes: [],
+    focus: [],
     hasFence: false,
     ...extra,
   });
@@ -164,10 +166,11 @@ export function parseSlide(markdown: string, url: string): Slide {
         last.classes.join(' ') === f.attrs.classes.join(' ')
       ) {
         last.codes.push(code.text);
+        last.focus.push(f.attrs.opts.focus);
         continue;
       }
       if (f.lang) {
-        sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], hasFence: true }));
+        sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], focus: [f.attrs.opts.focus], hasFence: true }));
         pending = [];
       } else {
         // language without a grammar: show as a static block in the section text

@@ -11,6 +11,7 @@ export interface Step {
   section: Section;
   sectionIndex: number; // globally unique section number (to detect text changes)
   code: string;
+  focus?: string; // lines to keep bright (see Section.focus); the rest is dimmed
   lang?: Lang;
   centered: boolean; // section without a fence => block centered on screen
   root?: Tree;
@@ -25,9 +26,9 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
     for (const section of slide.sections) {
       // tabs -> 4 spaces: the monospace grid has no notion of tab stops
       const codes = section.codes.length ? section.codes.map((c) => c.replace(/\t/g, '    ')) : [''];
-      for (const code of codes) {
+      for (const [fi, code] of codes.entries()) {
         steps.push({
-          slide: si, section, sectionIndex, code,
+          slide: si, section, sectionIndex, code, focus: section.focus[fi],
           lang: section.lang,
           centered: !section.hasFence,
           layout: [], keys: new Map(),

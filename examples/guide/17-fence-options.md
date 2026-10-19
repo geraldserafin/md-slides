@@ -3,6 +3,7 @@
 <!-- Options go after the language in the fence: ```ts .left size=18 -->
 
 Classes: `.left` `.center` (default) `.right` for horizontal alignment, `.top` `.middle` for vertical.
+Other options: `size=`, `fit=none`, `focus=` (see the next slides).
 
 ```ts .left
 const where = "left";
@@ -26,6 +27,8 @@ const small = "size=14, and the same font size in every frame";
 ```
 
 ## Fence options: `.right`, `.top`
+
+<!-- Next: focus=, fit and size in detail. -->
 
 ```ts .right .top
 const corner = "top right";

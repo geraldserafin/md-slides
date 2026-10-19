@@ -1,0 +1,8 @@
+---
+background: repeating-linear-gradient(45deg, #14142b 0 24px, #191936 24px 48px)
+---
+
+## Backgrounds: patterns
+
+Any CSS works, including `repeating-linear-gradient(...)`. Or point `background:` at an image
+file, as the cover slides in this guide do with `bg.svg`.

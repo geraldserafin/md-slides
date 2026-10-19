@@ -57,12 +57,12 @@ With a single deck the viewer opens it directly; with several it shows a chooser
 
 ## Examples
 
-`examples/` has eight decks you can read as templates. Start with **`guide`**, a 33-slide manual that is
-itself a deck and uses every feature it describes.
+`examples/` has eight decks you can read as templates. Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
+itself a deck: every feature has a live demonstration on the slide that describes it.
 
 | Deck | Shows |
 | --- | --- |
-| `guide` | the complete guide: slides/sections/frames, what the diff does, languages, fence options, text, images, video, layouts, front matter, themes, `deck.json`, animation, controls, export, build targets, deployment |
+| `guide` | the complete guide: sections and frames, every kind of edit, a live transition in each language, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
 | `demo` | a tour of the viewer: layouts, themes, backgrounds, images, alignment, text transitions, a custom theme |
 | `refactoring` | TypeScript: types, naming, functional style, Extract Method |
 | `typescript-async` | callbacks → promises → `async`/`await` → `Promise.all` |
@@ -108,6 +108,9 @@ languages without a grammar are shown as static code.
 | `.top` `.middle` | vertical alignment |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
+| `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |
+
+The font size is fitted to the largest frame of a section and stays constant across its frames.
 
 **Images and video.** A paragraph that contains only an image or video:
 
@@ -134,7 +137,7 @@ class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
 transition: slide     # text entrance: fade | slide | slide-left | zoom | none
 stagger: 0.1          # seconds between consecutive text elements
---accent: #ff9e64     # any CSS variable, for this slide only
+--accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
 ---
 ```
 

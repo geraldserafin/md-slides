@@ -4,5 +4,19 @@
   "order": 0,
   "theme": "dark",
   "css": "deck.css",
+  "themes": {
+    "sunset": {
+      "--bg": "#2a1b2e", "--fg": "#f0d4c0", "--heading": "#fff4ea", "--muted": "#d3a98f", "--accent": "#ff9e64",
+      "--tok-keyword": "#ff6b81", "--tok-ident": "#ffe9d6", "--tok-property": "#ffb86b", "--tok-type": "#f9c74f",
+      "--tok-builtin": "#ff9e64", "--tok-comment": "#8f6c7e", "--tok-punct": "#b98a9d", "--tok-plain": "#f0d4c0",
+      "--code-bg": "#1f1322"
+    },
+    "terminal": {
+      "--bg": "#050805", "--fg": "#5fdc5f", "--heading": "#b9ffb9", "--muted": "#3f9a3f", "--accent": "#b9ffb9",
+      "--tok-keyword": "#b9ffb9", "--tok-ident": "#5fdc5f", "--tok-property": "#8bf58b", "--tok-type": "#d6ff7a",
+      "--tok-builtin": "#ffd166", "--tok-comment": "#2f6f2f", "--tok-punct": "#3f9a3f", "--tok-plain": "#5fdc5f",
+      "--code-bg": "#0b130b", "--font-heading": "ui-monospace, Menlo, Consolas, monospace"
+    }
+  },
   "animation": { "move": 0.5, "fade": 0.3, "textTransition": "fade" }
 }
