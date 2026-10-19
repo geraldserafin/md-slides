@@ -80,6 +80,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 .item p { margin: 0.4em 0; line-height: 1.45; color: var(--muted); }
 .item a { color: var(--accent); }
 .item code { font-family: var(--font-code); font-size: 0.92em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+.item h1 code, .item h2 code, .item h3 code { background: none; padding: 0; font-size: 0.9em; font-weight: 600; color: var(--accent); }
 .item ul, .item ol { color: var(--muted); line-height: 1.5; }
 .item blockquote { margin: 0.5em 0; padding-left: 1em; border-left: 3px solid var(--accent); color: var(--muted); }
 .item-code pre { text-align: left; margin: 0; padding: 0.8em 1em; background: var(--code-bg); border-radius: 8px; font-family: var(--font-code); font-size: 0.85em; overflow: auto; }
@@ -295,9 +296,9 @@ body.print-mode #app { position: static; }
 /* Space around headings scales with the heading: a little under a small heading, more under a big one. It is set in
    em of the heading itself (below) and in the heading size (above, between blocks). */
 .item-h1, .item-h2, .item-h3 { margin-bottom: 0; }
-.item.item-h1 > h1 { margin-bottom: 0.6em; }
-.item.item-h2 > h2 { margin-bottom: 0.5em; }
-.item.item-h3 > h3 { margin-bottom: 0.4em; }
+.item.item-h1 > h1 { margin-bottom: 0.3em; }
+.item.item-h2 > h2 { margin-bottom: 0.1em; }
+.item.item-h3 > h3 { margin-bottom: 0; }
 .item + .item-h1 { margin-top: calc(var(--heading-size) * 1.1); }
 .item + .item-h2 { margin-top: calc(var(--heading-size) * 0.8); }
 .item + .item-h3 { margin-top: calc(var(--heading-size) * 0.55); }

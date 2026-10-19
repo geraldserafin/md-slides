@@ -6,7 +6,7 @@ section-transition: slide-right
 
 Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next.
 
-## rename
+## `rename`
 
 Only the identifiers change; every other token stays exactly where it is.
 
@@ -22,7 +22,7 @@ function circleArea(radius: number) {
 }
 ```
 
-## insert
+## `insert`
 
 New lines fade in; the lines below glide down to make room.
 
@@ -41,7 +41,7 @@ function greet(name: string) {
 }
 ```
 
-## delete
+## `delete`
 
 Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion.
 
@@ -61,7 +61,7 @@ function connect(url: string) {
 }
 ```
 
-## move
+## `move`
 
 Statements swap places; every token glides to its new position instead of disappearing and reappearing.
 
@@ -81,7 +81,7 @@ function init() {
 }
 ```
 
-## wrap
+## `wrap`
 
 Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in.
 
@@ -103,7 +103,7 @@ function save(data: Data) {
 }
 ```
 
-## extract
+## `extract`
 
 The moved lines keep their identity inside the new function.
 
