@@ -22,14 +22,14 @@ function variables(box: HTMLElement) {
     background: bg, mainBkg: panel, primaryColor: panel, primaryTextColor: fg, primaryBorderColor: accent,
     secondaryColor: panel, tertiaryColor: bg, lineColor: v('--muted', fg), textColor: fg, nodeTextColor: fg,
     edgeLabelBackground: bg, clusterBkg: bg, clusterBorder: v('--muted', fg), titleColor: fg,
-    fontFamily: cs.fontFamily, fontSize: '16px',
+    fontFamily: cs.fontFamily, fontSize: '16px', dropShadow: 'none',
   };
 }
 
 async function draw({ box, text, done }: Live) {
   try {
     const m = await load();
-    m.initialize({ startOnLoad: false, theme: 'base', securityLevel: 'strict', themeVariables: variables(box) });
+    m.initialize({ startOnLoad: false, theme: 'base', securityLevel: 'strict', look: 'classic', htmlLabels: false, flowchart: { htmlLabels: false }, fontFamily: getComputedStyle(box).fontFamily, themeVariables: variables(box) });
     const { svg } = await m.render(`diagram-${++counter}`, text);
     box.innerHTML = svg;
     box.classList.remove('diagram-error');

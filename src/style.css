@@ -385,6 +385,8 @@ body.zoomed .drawer-btn { display: none; }
 .item-diagram { display: block; }
 .diagram { max-width: 100%; }
 .diagram svg { width: 100%; max-width: none !important; height: auto; }
+.diagram svg * { filter: none !important; } /* mermaid adds a grey drop shadow to nodes: flat looks better on a slide */
+.diagram foreignObject div, .diagram foreignObject span, .diagram .label { text-align: center !important; } /* the slide alignment must not push labels to the left of their boxes */
 .diagram-error { font: 0.8em var(--font-code); color: var(--muted); white-space: pre-wrap; }
 
 /* per-element animation: {anim=fade|rise|zoom|left|right|down|blur|pop|none delay=0.2 dur=0.6 at=2 out=4} after an item.
