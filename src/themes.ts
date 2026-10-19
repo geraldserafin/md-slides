@@ -37,6 +37,12 @@ export function toggleColorScheme(): string {
   return applyTheme(light ? 'dark' : 'light', true);
 }
 
+/** Load every font the deck declares before the first slide is laid out; a late swap would make text reflow (and everything under it jump). */
+export async function preloadDeckFonts(meta: DeckMeta) {
+  await Promise.all((meta.fonts ?? []).map((f) =>
+    document.fonts.load(`${f.style ?? 'normal'} ${f.weight ?? '400'} 20px "${f.family}"`).catch(() => [])));
+}
+
 /** Extra deck stylesheet (deck.json: "css": "theme.css", relative to the deck folder). */
 export function loadDeckCss(href: string) {
   const link = document.createElement('link');

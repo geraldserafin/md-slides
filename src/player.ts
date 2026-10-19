@@ -214,8 +214,9 @@ export class Player {
       if (!cfg || !el) continue;
       const show = barVisible(cfg, meta, kind);
       const h = cfg.height ?? 40;
-      el.classList.toggle('off', !show); // fades; the stage glides into the freed space (see .stage transition)
-      this.root.style.setProperty(`--${kind}-h`, show ? `${h}px` : '0px');
+      el.classList.toggle('off', !show); // fades out/in
+      // the space stays reserved even when the bar is hidden: a stage that resizes between slides makes everything jump
+      this.root.style.setProperty(`--${kind}-h`, `${h}px`);
       el.style.height = `${h}px`;
       el.style.setProperty('--bar-img-h', `${Math.round(h * 0.6)}px`);
       el.style.background = cfg.background ?? '';
@@ -230,11 +231,6 @@ export class Player {
     if (ownCounter) this.root.classList.add('own-counter');
     else if (instant) this.root.classList.remove('own-counter');
     else this.counterTimer = window.setTimeout(() => this.root.classList.remove('own-counter'), 320);
-    if (instant) {
-      // first paint / thumbnails: no glide
-      this.stage.style.transition = 'none';
-      requestAnimationFrame(() => requestAnimationFrame(() => (this.stage.style.transition = '')));
-    }
   }
 
   private setBackground(bg: string | undefined, base: string, instant: boolean) {

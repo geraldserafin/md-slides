@@ -8,7 +8,7 @@ import { startPresenterView, CHANNEL } from './presenter';
 import { buildSteps } from './steps';
 import { openOverview, type Overview } from './overview';
 import { startPrintView } from './print';
-import { initialTheme, loadDeckCss, nextTheme, registerDeckStyle } from './themes';
+import { initialTheme, loadDeckCss, nextTheme, preloadDeckFonts, registerDeckStyle } from './themes';
 import runtimeWasm from 'web-tree-sitter/tree-sitter.wasm?url';
 
 // Grammars are loaded lazily (each is a separate .wasm file) -- only those the deck actually uses.
@@ -58,6 +58,7 @@ async function main() {
   registerDeckStyle(deck.meta, new URL(`decks/${name}/`, document.baseURI).href);
   initialTheme(deck.meta.theme);
   showLoader('Preparing code…');
+  await preloadDeckFonts(deck.meta);
   const steps = await buildSteps(deck);
   if (params.has("print")) return startPrintView(app, deck, steps, params.get("print") || "slides");
   const player = new Player(app, deck, steps);
