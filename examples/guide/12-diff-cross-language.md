@@ -1,9 +1,11 @@
-## Across languages
+# Across languages
 
 <!-- Matching needs two trees of the same language. Between languages the old code fades out and the new one fades in. -->
 
-The same function in TypeScript, then in Python. The diff can't match different grammars,
-so this is a plain cross-fade.
+The same function in three languages, one section each under this title. The diff can't match different
+grammars, so moving from one to the next is a plain cross-fade.
+
+## TypeScript
 
 ```ts
 function clamp(x: number, lo: number, hi: number) {
@@ -11,14 +13,14 @@ function clamp(x: number, lo: number, hi: number) {
 }
 ```
 
-## ...and in Python
+## Python
 
 ```python
 def clamp(x, lo, hi):
     return min(max(x, lo), hi)
 ```
 
-## ...and in Go
+## Go
 
 ```go
 func Clamp(x, lo, hi int) int {
