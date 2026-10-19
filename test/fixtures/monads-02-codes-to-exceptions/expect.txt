@@ -1,0 +1,9 @@
+# function body braces stay body braces; try-block brace does not exist in old
+M 1 { 1 {
+M 19 parsed 13 parsed
+M 23 divided 14 divided
+M 24 safeDivide 14 safeDivide
+M 14 a 9 a
+M 14 b 9 b
+# out-param type (int& result, 2nd int on line 18) must not become the new return type
+U 18 int 2

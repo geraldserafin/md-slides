@@ -1,0 +1,3 @@
+# old function body brace must not become the new try brace (line 2)
+M 1 { 1 {
+V 2 {

@@ -1,0 +1,2 @@
+# completely different code: parseInt params must not become main params
+NOFUNCS
