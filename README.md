@@ -54,7 +54,7 @@ my-talk/
 
 `slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
 With a single deck the viewer opens it directly; with several it shows a **gallery**: a card per deck with a
-live thumbnail of its first slide, the number of slides and steps, the languages used and the description.
+live thumbnail of its first slide, the title and a line with author, date and the number of slides.
 Make the first slide a `layout: cover` slide with a background and the card looks good.
 
 ## Examples
@@ -170,7 +170,7 @@ Optional, placed in the deck folder:
 | Key | Purpose |
 | --- | --- |
 | `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
-| `description`, `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
+| `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { parseSlide, splitFrontMatter } from '../src/deck';
-import { deckStats } from '../src/gallery';
 
 describe('front matter', () => {
   it('parses keys and strips the block', () => {
@@ -10,15 +9,6 @@ describe('front matter', () => {
   });
   it('leaves content alone without front matter', () => {
     expect(splitFrontMatter('# T\n---\nx').meta).toEqual({});
-  });
-});
-
-describe('deckStats', () => {
-  it('counts slides, steps (frames) and languages without parsing', () => {
-    const a = parseSlide('# A\n', 'http://x/a.md');
-    const b = parseSlide('```ts\n1\n```\n\n```ts\n2\n```\n\n## Next\n\n```py\n3\n```\n', 'http://x/b.md');
-    const st = deckStats({ name: 'd', meta: { files: [] }, slides: [a, b] });
-    expect(st).toEqual({ slides: 2, steps: 4, langs: ['TypeScript', 'Python'] });
   });
 });
 

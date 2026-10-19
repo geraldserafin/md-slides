@@ -171,32 +171,21 @@ body.print-mode #app { position: static; }
 .item img { max-width: 100%; }
 
 /* ---- deck gallery ----------------------------------------------------------- */
-.gallery { position: absolute; inset: 0; overflow: auto; padding: 9vh 32px 64px; }
-.gallery > header, .gallery .cards { max-width: 1180px; margin: 0 auto; }
-.gallery header { margin-bottom: 40px; }
-.gallery > header h1 {
-  margin: 0 0 8px; font-size: clamp(36px, 6vmin, 64px); letter-spacing: -0.02em; line-height: 1.05;
-  background: linear-gradient(90deg, var(--heading), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent;
+.gallery { position: absolute; inset: 0; overflow: auto; padding: 56px clamp(24px, 5vw, 80px) 80px; }
+.gallery > header { margin: 0 0 36px; }
+.gallery > header h1 { margin: 0; font-size: clamp(28px, 4vmin, 44px); font-weight: 650; letter-spacing: -0.02em; color: var(--heading); }
+.gallery > header p { margin: 6px 0 0; color: var(--muted); font-size: clamp(14px, 1.8vmin, 18px); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 40px 32px; }
+.card { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--fg); outline: none; }
+.card-thumb {
+  position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: var(--code-bg);
+  box-shadow: 0 0 0 1px #ffffff14, 0 6px 20px #0004; transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.gallery > header p { margin: 0; color: var(--muted); font-size: clamp(16px, 2.2vmin, 22px); }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; }
-.card {
-  display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; text-decoration: none; color: var(--fg);
-  background: var(--code-bg); box-shadow: 0 2px 10px #0004; transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card:hover, .card:focus-visible { transform: translateY(-5px); box-shadow: 0 12px 32px #0006; outline: 2px solid var(--accent); outline-offset: 0; }
-.card-thumb { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--bg); border-bottom: 1px solid #ffffff12; }
+.card:hover .card-thumb, .card:focus-visible .card-thumb { transform: translateY(-3px); box-shadow: 0 0 0 2px var(--accent), 0 14px 30px #0006; }
 .card-thumb .frame {
   position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg);
   pointer-events: none; opacity: 0; transition: opacity 0.4s ease;
 }
 .card-thumb.ready .frame { opacity: 1; }
-.card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
-.card-body h2 { margin: 0; font-size: 1.05rem; color: var(--heading); }
-.card-body p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
-.card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
-.chip {
-  font-size: 0.74rem; padding: 2px 9px; border-radius: 999px; color: var(--fg);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-}
-.card-meta .by, .card-meta .dim { font-size: 0.74rem; color: var(--muted); margin-left: auto; }
+.card-body h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--heading); }
+.card-meta { margin-top: 3px; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
