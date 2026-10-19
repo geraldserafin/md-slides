@@ -249,7 +249,7 @@ Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`,
 
 **Math.** `$x^2$` inline and `$$ ... $$` as a block are rendered with [KaTeX](https://katex.org) (plain HTML, so it works in every target and in the PDF). A dollar sign next to a space or a digit stays a dollar sign (`$5 and $6`). Math follows the slide's alignment and reveals like any item.
 
-**Diagrams.** A `mermaid` fence draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme changes); fence options work like on images: ````mermaid width=70%`. The library is loaded on first use and left out of builds whose decks have no mermaid fence.
+**Diagrams.** A `mermaid` fence draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme changes); fence options work like on images (` ```mermaid width=70% `). The library is loaded on first use and left out of builds whose decks have no mermaid fence.
 
 **Presenter notes.** HTML comments (`<!-- like this -->`) become notes in the presenter window.
 
