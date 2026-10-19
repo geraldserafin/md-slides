@@ -2,7 +2,7 @@
 // transitions). Each token's position/scale is independent and computed in
 // stage pixels -- a dying token has a FROZEN transform, so it does not drift
 // towards the next step's target position.
-import { fenceAlign, place, resolveAlign, type Align } from './align';
+import { fenceAlign, parseAlign, place, resolveAlign, type Align } from './align';
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
 import type { Block, CodeStyle, Deck, Item, Section, Slide } from './deck';
 import { fileUrl } from './files';
@@ -42,6 +42,8 @@ interface BlockView {
   block: Block;
   row: number; // the grid row it sits in
   cells: number; // how many cells that row has
+  cellH?: Align; // the cell's own alignment (`||| halign=end valign=center`)
+  cellV?: Align;
   wrap: HTMLElement; // .code-block (panel, title)
   box: HTMLElement; // .code-box: the exact area the tokens are drawn in
   cfg: BlockCfg;
@@ -89,6 +91,8 @@ export class Player {
   private idx = -1;
   private tokens = new Map<string, Token>();
   private gridEl?: HTMLElement; // the grid (rows of cells) of the section on screen
+  private headEl?: HTMLElement; // the slide's head (a level 1 heading above its sections)
+  private headSlide = -1;
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
@@ -175,7 +179,7 @@ export class Player {
     // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
     // `transition: none` (per slide or deck-wide) means a hard cut for the text: the old text goes away at once, too
     const textCut = (this.deck.slides[step.slide].meta.transition ?? this.textTransition) === 'none';
-    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant || textCut);
+    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant || textCut, step.slide !== this.headSlide);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
     this.applyStage(step, first || instant);
@@ -368,11 +372,12 @@ export class Player {
    * theme), pinned at its current pixel position, and fades it out there. The ghost keeps the old look no matter
    * how the stage changes for the next slide.
    */
-  private leaveText(instant: boolean) {
-    const old = this.gridEl;
+  private leaveText(instant: boolean, withHead: boolean) {
+    const olds = [this.gridEl, withHead ? this.headEl : undefined].filter((e): e is HTMLElement => !!e);
     this.gridEl = undefined;
-    if (!old) return;
-    if (instant) { old.remove(); return; }
+    if (withHead) this.headEl = undefined;
+    if (!olds.length) return;
+    if (instant) { olds.forEach((o) => o.remove()); return; }
     const ghost = document.createElement('div');
     ghost.className = `${this.stage.className} ghost`;
     // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
@@ -381,19 +386,22 @@ export class Player {
     for (const k of ['h', 'v', 'justify']) if (this.stage.dataset[k] !== undefined) ghost.dataset[k] = this.stage.dataset[k];
     const sr = this.stage.getBoundingClientRect();
     const k = sr.width / (this.stage.offsetWidth || 1) || 1;
-    // measure BEFORE moving it, in fractional pixels (getBoundingClientRect, undone for a scaled parent): even a
+    // measure BEFORE moving anything, in fractional pixels (getBoundingClientRect, undone for a scaled parent): even a
     // sub-pixel difference makes the old text hop when the ghost takes over. Keep the current opacity (the text
     // may still be fading in when the user navigates again).
-    const or = old.getBoundingClientRect();
-    const opacity = getComputedStyle(old).opacity;
-    old.classList.add('leaving');
-    old.style.cssText = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k}px;width:${or.width / k}px;height:${or.height / k}px;opacity:${opacity};transition:opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`;
-    ghost.append(old);
+    const infos = olds.map((old) => ({ old, or: old.getBoundingClientRect(), opacity: getComputedStyle(old).opacity }));
+    for (const { old, or, opacity } of infos) {
+      old.classList.add('leaving');
+      old.style.cssText = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k}px;width:${or.width / k}px;height:${or.height / k}px;opacity:${opacity};transition:opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`;
+      ghost.append(old);
+    }
     this.stage.after(ghost);
     void ghost.offsetWidth;
     // the old text fades out while lifting away a little; the new text rises into place (see enterText)
-    old.style.opacity = '0';
-    old.style.transform = `translateY(${-this.textDrift * 0.6}px)`;
+    for (const { old } of infos) {
+      old.style.opacity = '0';
+      old.style.transform = `translateY(${-this.textDrift * 0.6}px)`;
+    }
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
     this.leaving = true;
   }
@@ -421,6 +429,23 @@ export class Player {
     // the grid: rows (front matter `rows:`) of cells (`cols:`, or `split:` for two); one row fills the slide
     const rowTracks = (meta.rows ?? '').split(/\s+/).filter(Boolean);
     const colTracks = (meta.cols ?? '').split(/\s+/).filter(Boolean);
+    // the slide's head: a level 1 heading above its sections; it stays while the sections below swap
+    const slide = this.deck.slides[step.slide];
+    const headItems: { el: HTMLElement; at: number }[] = [];
+    if (this.headSlide !== step.slide) {
+      this.headSlide = step.slide;
+      if (slide.head.length) {
+        const head = document.createElement('div');
+        head.className = 'head';
+        for (const it of slide.head) {
+          const e = this.renderItem(it, sec, views, 0, 1);
+          headItems.push({ el: e, at: 0 });
+          head.append(e);
+        }
+        this.stage.insertBefore(head, this.codeLayer);
+        this.headEl = head;
+      }
+    }
     const grid = document.createElement('div');
     grid.className = 'grid';
     sec.rows.forEach((cells, r) => {
@@ -430,8 +455,15 @@ export class Player {
       cells.forEach((list, c) => {
         const cellEl = document.createElement('div');
         cellEl.className = 'cell text';
+        const co = sec.cellOpts[r]?.[c] ?? {};
         const split = cells.length === 2 && !colTracks.length && meta.split ? [meta.split, '1fr'] : colTracks;
-        cellEl.style.flex = this.trackFlex(split[c], '1fr');
+        // `||| span=2` makes the cell twice as wide as one with span 1 (unless cols: says otherwise)
+        cellEl.style.flex = co.span && !split[c] ? `${parseFloat(co.span) || 1} 1 0` : this.trackFlex(split[c], '1fr');
+        const cellH = parseAlign(co.halign);
+        const cellV = parseAlign(co.valign);
+        if (cellH) cellEl.dataset.h = cellH;
+        if (cellV) cellEl.dataset.v = cellV;
+        const first = views.length;
         for (const it of list) {
           const e = this.renderItem(it, sec, views, r, cells.length);
           e.dataset.at = String(it.at);
@@ -439,6 +471,7 @@ export class Player {
           items.push({ el: e, at: it.at });
           cellEl.append(e);
         }
+        for (const v of views.slice(first)) { v.cellH = cellH; v.cellV = cellV; }
         rowEl.append(cellEl);
       });
       grid.append(rowEl);
@@ -448,7 +481,7 @@ export class Player {
     grid.addEventListener('loadedmetadata', () => this.relayout(false), true);
     this.gridEl = grid;
     // the new text waits until the old one is (almost) gone, so two headings never overlap
-    if (!instant) this.enterText(items.filter((i) => i.at <= step.stage).map((i) => i.el), meta, this.leaving ? LEAVE_S * 0.65 : 0);
+    if (!instant) this.enterText([...headItems, ...items.filter((i) => i.at <= step.stage)].map((i) => i.el), meta, this.leaving ? LEAVE_S * 0.65 : 0);
     for (const v of views) {
       const m = metrics.get(v.block);
       v.cols = m?.cols ?? 1;
@@ -647,8 +680,8 @@ export class Player {
       const boxH = v.box.clientHeight;
       // the block's own alignment (fence classes / halign= valign=) wins over the slide's
       const fa = fenceAlign(v.block.classes, v.block.opts);
-      const hAlign = fa.h ?? (this.stage.dataset.h as Align | undefined) ?? 'start';
-      const vAlign = fa.v ?? 'start';
+      const hAlign = fa.h ?? v.cellH ?? (this.stage.dataset.h as Align | undefined) ?? 'start';
+      const vAlign = fa.v ?? v.cellV ?? 'start';
       const rows = st.layout.reduce((m, p) => Math.max(m, p.row + 1), 1);
       const xs = x0 + padL + place(hAlign, innerW, st.cols * this.charW * s);
       const ys = y0 + place(vAlign, boxH, rows * lineH * s);

@@ -108,7 +108,7 @@ to four spaces. Blocks in languages without a grammar are shown as static code.
 
 **Reveal.** A line with three plus signs, `+++`, hides everything after it until the next click, like PowerPoint's
 build-in animations. It works for text, lists, images, video and code blocks, and nothing moves when the content appears
-(its space is reserved):
+(its space is reserved). Write `{.steps}` on a line after a list to show it bullet by bullet:
 
 ````markdown
 ## Plan
@@ -157,6 +157,24 @@ Leave a blank line around `---` and `|||` (right after a line of text `---` woul
 front matter: `cols: 1fr 2fr` (cell widths, every row), `rows: auto 1fr` (row heights), `split: 40%` (two cells). By default
 cells are equal and a row is as tall as its content (a single row fills the slide). Alignment inside the cells is `valign` /
 `halign` (see below). Code blocks in cells next to each other share one font size.
+
+**Cell options and `grid:`.** Options go after the bars: `||| span=2` (twice as wide), `||| halign=end valign=center`
+(at the start of a cell, after a `---`, they apply to that cell). `grid: 3` in the front matter wraps the cells into rows
+of three, so a grid is just a list of `|||` cells.
+
+**A slide with a head (a sub-presentation).** A level 1 heading at the start of a slide, with `##` sections after it,
+is the slide's *head*: it stays on screen while the sections below swap one after another. Use it for a title with several
+examples that you present one at a time:
+
+````markdown
+# What the diff does       <- stays
+
+Six kinds of edit, one at a time.
+
+## rename                  <- section 1 (then → plays its code, → again for the next)
+...
+## insert                  <- section 2
+````
 
 **Clicks across cells.** `@1` on a fence puts that frame on click 1 instead of the next free one, so every group with an
 `@1` frame advances on the same click; `+++ 3` puts what follows on click 3:

@@ -44,12 +44,14 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 
 .stage {
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
-  display: flex; flex-direction: row; gap: var(--col-gap, 5vmin); padding: var(--stage-padding, 3vmin 40px 4vmin);
+  display: flex; flex-direction: column; padding: var(--stage-padding, 3vmin 40px 4vmin);
 }
 /* the grid of a section: rows (`---`) of cells (`|||`); one row fills the slide, several rows take the height of their content
    (front matter: rows: auto 1fr 1fr, cols: 1fr 2fr, split: 40%) */
 .grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--row-gap, 3vmin); }
-.grid.leaving { position: absolute; flex: none; pointer-events: none; }
+.grid.leaving, .head.leaving { position: absolute; flex: none; pointer-events: none; }
+.head { flex: none; margin-bottom: var(--row-gap, 3vmin); }
+.head > .item { flex: none; }
 .row { display: flex; gap: var(--col-gap, 5vmin); min-height: 0; }
 .cell { display: flex; flex-direction: column; justify-content: flex-start; min-width: 0; min-height: 0; position: relative; }
 .cell > .item { flex: none; }
@@ -279,3 +281,13 @@ body.print-mode #app { position: static; }
 .stage[data-v='end'] .cell, .stage[data-v='end'] .grid { justify-content: safe flex-end; }
 
 .tok.dying { transition: opacity calc(var(--fade-dur) * 0.55) ease-out 0s, color var(--fade-dur) ease; }
+
+/* a cell's own alignment (`||| halign=end valign=center`) beats the slide's */
+.stage .cell[data-v='start'] { justify-content: flex-start; }
+.stage .cell[data-v='center'] { justify-content: safe center; }
+.stage .cell[data-v='end'] { justify-content: safe flex-end; }
+.stage .cell[data-h='start'] .item { text-align: start; }
+.stage .cell[data-h='center'] .item { text-align: center; }
+.stage .cell[data-h='end'] .item { text-align: end; }
+.stage .cell[data-h='center'] .item-media { justify-content: center; }
+.stage .cell[data-h='end'] .item-media { justify-content: flex-end; }

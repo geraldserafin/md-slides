@@ -19,3 +19,13 @@ const clicks = 3; // the code block came last
 ```
 
 <!-- Works for text, lists, images, video and code blocks. Frames of a code group count as clicks too. -->
+
++++
+
+A list can appear bullet by bullet: add a line `{.steps}` right after it.
+
+- first click
+- second click
+- third click
+
+{.steps}

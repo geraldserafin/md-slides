@@ -45,6 +45,8 @@ export interface Attrs {
 export interface Section {
   /** the grid: rows (split by `---`) of cells (split by `|||`) of items; a plain section is one row with one cell */
   rows: Item[][][];
+  /** options of the cells (after a `||| span=2 valign=center`), parallel to rows: cellOpts[row][cell] */
+  cellOpts: Record<string, string>[][];
   blocks: Block[];
   stages: number; // reveal stages: 1 + the number of clicks that add content
 }
@@ -57,6 +59,8 @@ export interface Slide {
   meta: Record<string, string>;
   /** the slide's own front matter, before the deck defaults were merged in */
   own: Record<string, string>;
+  /** a level 1 heading (and what follows it) before the first level 2 heading: stays while the sections below swap */
+  head: Item[];
   sections: Section[];
   notes: string[];
   title: string;
@@ -188,7 +192,13 @@ export function parseSlide(markdown: string, url: string): Slide {
   let autoId = 0;
 
   // the section being built: a grid of rows (`---`) of cells (`|||`)
-  let cur: Section = { rows: [[[]]], blocks: [], stages: 1 };
+  // a level 1 heading at the start, with level 2 headings after it: the h1 part is the slide's head, shown above every section
+  const real = (tokens as Token[]).filter((t) => t.type !== 'space' && !(t.type === 'html' && t.raw.trim().startsWith('<!--')));
+  const hasHead = real[0]?.type === 'heading' && (real[0] as Tokens.Heading).depth === 1 &&
+    real.some((t) => t.type === 'heading' && (t as Tokens.Heading).depth === 2);
+  let inHead = hasHead;
+  const head: Item[] = [];
+  let cur: Section = { rows: [[[]]], cellOpts: [[{}]], blocks: [], stages: 1 };
   let row = 0;
   let cell = 0;
   let stage = 0;
@@ -199,7 +209,7 @@ export function parseSlide(markdown: string, url: string): Slide {
   const col = () => cur.rows[row][cell];
   const startSection = () => {
     sections.push(cur);
-    cur = { rows: [[[]]], blocks: [], stages: 1 };
+    cur = { rows: [[[]]], cellOpts: [[{}]], blocks: [], stages: 1 };
     row = 0;
     cell = 0;
     stage = 0;
@@ -213,11 +223,33 @@ export function parseSlide(markdown: string, url: string): Slide {
   };
 
   const add = (item: ItemInit, isHeading = false) => {
+    if (inHead) {
+      head.push({ ...item, at: 0 } as Item);
+      return;
+    }
     col().push({ ...item, at: stage } as Item);
     maxStage = Math.max(maxStage, stage);
     bumped = false;
     if (!isHeading) hasContent = true;
   };
+
+  /** split the list that was just added into one item per bullet, each on a click of its own */
+  const stepList = () => {
+    const items = col();
+    const last = items[items.length - 1];
+    const list = lastList;
+    if (!list || !last || last.kind !== 'html' || last.tag !== 'list') return;
+    items.pop();
+    const base = stage;
+    list.items.forEach((li, i) => {
+      const one = { ...list, items: [li], start: list.ordered ? (Number(list.start) || 1) + i : list.start } as Tokens.List;
+      col().push({ kind: 'html', html: marked.parser([one] as Token[]), tag: 'list', at: base + 1 + i });
+    });
+    stage = base + list.items.length;
+    maxStage = Math.max(maxStage, stage);
+    bumped = true;
+  };
+  let lastList: Tokens.List | undefined;
 
   for (const tok of tokens as Token[]) {
     if (tok.type === 'space') continue;
@@ -229,6 +261,7 @@ export function parseSlide(markdown: string, url: string): Slide {
       // `---`: the next row (nothing yet in the very first cell means a leading `---`: ignore it)
       if (sectionItems(cur).length || row > 0 || cell > 0) {
         cur.rows.push([[]]);
+        cur.cellOpts.push([{}]);
         row++;
         cell = 0;
       }
@@ -236,10 +269,23 @@ export function parseSlide(markdown: string, url: string): Slide {
     }
     if (tok.type === 'paragraph') {
       const text = (tok as Tokens.Paragraph).text.trim();
-      if (text === '|||') {
-        // `|||`: the next cell of this row
-        cur.rows[row].push([]);
-        cell++;
+      const bars = /^\|\|\|(?:\s+(.+))?$/.exec(text);
+      if (bars) {
+        // `|||`: the next cell of this row; `||| span=2 valign=center` gives it options. At the start of a cell it only
+        // sets the options of that (still empty) cell.
+        const opts = parseAttrs(bars[1]).opts;
+        if (col().length === 0 && !(row === 0 && cell === 0 && !bars[1])) {
+          Object.assign(cur.cellOpts[row][cell], opts);
+        } else {
+          cur.rows[row].push([]);
+          cur.cellOpts[row].push(opts);
+          cell++;
+        }
+        continue;
+      }
+      if (text === '{.steps}') {
+        // the list right before it appears bullet by bullet, one click each
+        stepList();
         continue;
       }
       const plus = /^\+\+\+(?:\s+(\d+))?$/.exec(text);
@@ -251,6 +297,7 @@ export function parseSlide(markdown: string, url: string): Slide {
         continue;
       }
     }
+    if (inHead && tok.type === 'heading' && (tok as Tokens.Heading).depth === 2) inHead = false;
     // a new level 1-2 heading after real content starts the next section (one that opens a later cell belongs to it)
     if (tok.type === 'heading' && (tok as Tokens.Heading).depth <= 2 && hasContent && !((row > 0 || cell > 0) && col().length === 0)) {
       closeSection();
@@ -258,7 +305,7 @@ export function parseSlide(markdown: string, url: string): Slide {
     if (tok.type === 'code') {
       const code = tok as Tokens.Code;
       const f = parseFence(code.lang ?? '');
-      if (!f.lang) {
+      if (!f.lang || inHead) {
         // language without a grammar: a static block in the text
         add({ kind: 'code', text: code.text, lang: f.tag });
         continue;
@@ -293,14 +340,16 @@ export function parseSlide(markdown: string, url: string): Slide {
         continue;
       }
     }
+    lastList = tok.type === 'list' ? (tok as Tokens.List) : undefined;
     const isHeading = tok.type === 'heading';
     if (isHeading && !title) title = (tok as Tokens.Heading).text;
     const html = marked.parser([tok] as Token[]);
     add({ kind: 'html', html, tag: isHeading ? `h${(tok as Tokens.Heading).depth}` : tok.type }, isHeading);
   }
   closeSection();
-  const slide: Slide = { meta, own: meta, sections, notes, title: meta.title || title || '(untitled)', url };
+  const slide: Slide = { meta, own: meta, head, sections, notes, title: meta.title || title || '(untitled)', url };
   applyLegacyLayout(slide);
+  applyGrid(slide);
   return slide;
 }
 
@@ -308,6 +357,27 @@ export function parseSlide(markdown: string, url: string): Slide {
  * `layout: side` / `side-right` (the old way of getting two columns) put the code blocks of every section in the right
  * (side) or left (side-right) cell and the rest in the other one. Sections that already have a grid are left alone.
  */
+/**
+ * `grid: 3` (or `3x2`) in the front matter: cells that overflow N per row wrap into the next row, so a grid is just N
+ * and a list of `|||` cells (rows written with `---` are kept; only rows longer than N are cut).
+ */
+export function applyGrid(slide: Slide) {
+  const n = parseInt(slide.meta.grid ?? '', 10);
+  if (!(n >= 1)) return;
+  for (const s of slide.sections) {
+    const rows: Item[][][] = [];
+    const opts: Record<string, string>[][] = [];
+    s.rows.forEach((cells, r) => {
+      for (let i = 0; i < cells.length; i += n) {
+        rows.push(cells.slice(i, i + n));
+        opts.push(s.cellOpts[r].slice(i, i + n));
+      }
+    });
+    s.rows = rows;
+    s.cellOpts = opts;
+  }
+}
+
 export function applyLegacyLayout(slide: Slide) {
   const layout = slide.meta.layout;
   if (layout !== 'side' && layout !== 'side-right') return;
@@ -317,6 +387,7 @@ export function applyLegacyLayout(slide: Slide) {
     const code = items.filter((i) => i.kind === 'block');
     const rest = items.filter((i) => i.kind !== 'block');
     s.rows = [layout === 'side' ? [rest, code] : [code, rest]];
+    s.cellOpts = [[{}, {}]];
   }
 }
 
@@ -330,6 +401,7 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
       const slide = parseSlide(text, url);
       slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
       applyLegacyLayout(slide);
+      applyGrid(slide);
       return slide;
     }),
   );

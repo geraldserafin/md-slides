@@ -154,3 +154,44 @@ describe('click numbers (@N)', () => {
     expect(t.sections[0].stages).toBe(4);
   });
 });
+
+describe('slide head, cell options, steps lists, grid: N', () => {
+  const parse = (md: string) => parseSlide(md, 'http://x/s.md');
+
+  it('a level 1 heading with level 2 sections below is the slide head', () => {
+    const s = parse('# Title\n\nintro\n\n## A\n\ntext\n\n## B\n\nmore\n');
+    expect(s.head).toHaveLength(2);
+    expect(s.sections).toHaveLength(2);
+    expect(s.title).toBe('Title');
+  });
+
+  it('without level 2 sections the h1 is ordinary content', () => {
+    const s = parse('# Title\n\ntext\n');
+    expect(s.head).toHaveLength(0);
+    expect(s.sections).toHaveLength(1);
+  });
+
+  it('||| takes options for the cell that follows', () => {
+    const s = parse('a\n\n||| span=2 valign=center\n\nb\n');
+    expect(s.sections[0].rows[0]).toHaveLength(2);
+    expect(s.sections[0].cellOpts[0]).toEqual([{}, { span: '2', valign: 'center' }]);
+  });
+
+  it('||| at the start of an empty cell only sets its options', () => {
+    const s = parse('a\n\n---\n\n||| halign=end\n\nb\n');
+    expect(s.sections[0].rows.map((r) => r.length)).toEqual([1, 1]);
+    expect(s.sections[0].cellOpts[1][0]).toEqual({ halign: 'end' });
+  });
+
+  it('{.steps} turns a list into one click per bullet', () => {
+    const s = parse('intro\n\n- a\n- b\n- c\n\n{.steps}\n\nafter\n');
+    const items = sectionItems(s.sections[0]);
+    expect(items.map((i) => i.at)).toEqual([0, 1, 2, 3, 3]);
+    expect(s.sections[0].stages).toBe(4);
+  });
+
+  it('grid: N wraps cells into rows of N', () => {
+    const s = parse('---\ngrid: 2\n---\n\na\n\n|||\n\nb\n\n|||\n\nc\n\n|||\n\nd\n\n|||\n\ne\n');
+    expect(s.sections[0].rows.map((r) => r.length)).toEqual([2, 2, 1]);
+  });
+});
