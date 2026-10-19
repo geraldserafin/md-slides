@@ -1,0 +1,41 @@
+{
+  "name": "slides",
+  "version": "0.1.0",
+  "description": "Markdown presentations with code transitions animated by an AST diff (GumTree).",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "slides": "cli/slides.mjs"
+  },
+  "files": [
+    "cli",
+    "src",
+    "index.html",
+    "vite.config.ts",
+    "tsconfig.json"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "slides": "node cli/slides.mjs",
+    "dev": "node cli/slides.mjs dev examples",
+    "build": "tsc --noEmit && node cli/slides.mjs build examples -o dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "marked": "^18.1.1",
+    "postject": "^1.0.0-alpha.6",
+    "puppeteer-core": "^25.14.0",
+    "tree-sitter-wasms": "^0.1.13",
+    "vite": "^8.3.4",
+    "web-tree-sitter": "^0.22.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

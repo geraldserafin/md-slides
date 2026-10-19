@@ -1,0 +1,58 @@
+## The classic approach: error codes
+
+<!-- Show the pain: every return must be checked separately, out-params instead of return values -->
+
+```cpp
+bool parseInt(const std::string& s, int& out) {
+  try {
+    out = std::stoi(s);
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+bool safeDivide(int a, int b, int& out) {
+  if (b == 0) {
+    return false;
+  }
+  out = a / b;
+  return true;
+}
+
+bool process(const std::string& s, int divisor, int& result) {
+  int parsed;
+  if (!parseInt(s, parsed)) {
+    return false;
+  }
+  int divided;
+  if (!safeDivide(parsed, divisor, divided)) {
+    return false;
+  }
+  result = divided;
+  return true;
+}
+```
+
+## Or: exceptions
+
+<!-- A different problem: the error is not in the signature, call sites have to guess what may be thrown -->
+
+```cpp
+int parseInt(const std::string& s) {
+  return std::stoi(s);
+}
+
+int safeDivide(int a, int b) {
+  if (b == 0) {
+    throw std::runtime_error("division by zero");
+  }
+  return a / b;
+}
+
+int process(const std::string& s, int divisor) {
+  int parsed = parseInt(s);
+  int divided = safeDivide(parsed, divisor);
+  return divided;
+}
+```
