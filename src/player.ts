@@ -113,13 +113,16 @@ export class Player {
     const j = Math.max(0, Math.min(this.steps.length - 1, i));
     if (j === this.idx && !instant) return;
     const first = this.idx < 0;
+    const prev = this.idx;
     this.idx = j;
     const step = this.steps[j];
+    // a pair of neighbouring steps uses the later one's transition, so going back mirrors going forward
+    const cut = !first && this.steps[Math.abs(j - prev) === 1 ? Math.max(j, prev) : j].transition === 'none';
     // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
     if (this.textSection !== step.sectionIndex) this.leaveText(first || instant);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
-    this.advance(step, first || instant);
+    this.advance(step, first || instant || cut);
     this.updateHud();
     this.onChange?.(this.state());
   }
@@ -387,6 +390,7 @@ export class Player {
     const pl = this.placement(step);
     const focus = this.focusRows(step.focus);
     const dying = this.dyingFor();
+    if (instant) this.codeLayer.classList.add('no-anim'); // a cut: no transitions at all
     const seen = new Set<string>();
     for (const p of step.layout) {
       const key = step.keys.get(p.tree.id)!;
@@ -428,6 +432,10 @@ export class Player {
         tk.el.remove();
         if (this.tokens.get(key) === tk) this.tokens.delete(key);
       }, instant ? 0 : dying);
+    }
+    if (instant) {
+      void this.codeLayer.offsetWidth; // apply the styles without transitions before re-enabling them
+      this.codeLayer.classList.remove('no-anim');
     }
   }
 

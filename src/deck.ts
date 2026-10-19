@@ -24,6 +24,7 @@ export interface Section {
   lang?: Lang; // grammar of the animated code
   codes: string[]; // successive code states
   focus: (string | undefined)[]; // per frame: lines to keep bright, e.g. "2-4,7"
+  transition: (string | undefined)[]; // per frame: how it is entered from the previous one: morph | fade | none
   hasFence: boolean;
 }
 
@@ -141,6 +142,7 @@ export function parseSlide(markdown: string, url: string): Slide {
     opts: {},
     codes: [],
     focus: [],
+    transition: [],
     hasFence: false,
     ...extra,
   });
@@ -167,10 +169,11 @@ export function parseSlide(markdown: string, url: string): Slide {
       ) {
         last.codes.push(code.text);
         last.focus.push(f.attrs.opts.focus);
+        last.transition.push(f.attrs.opts.transition);
         continue;
       }
       if (f.lang) {
-        sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], focus: [f.attrs.opts.focus], hasFence: true }));
+        sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], focus: [f.attrs.opts.focus], transition: [f.attrs.opts.transition], hasFence: true }));
         pending = [];
       } else {
         // language without a grammar: show as a static block in the section text

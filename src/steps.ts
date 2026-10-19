@@ -12,12 +12,16 @@ export interface Step {
   sectionIndex: number; // globally unique section number (to detect text changes)
   code: string;
   focus?: string; // lines to keep bright (see Section.focus); the rest is dimmed
+  /** how this step is entered from the previous one: morph (diff animation), fade (cross-fade), none (cut) */
+  transition: 'morph' | 'fade' | 'none';
   lang?: Lang;
   centered: boolean; // section without a fence => block centered on screen
   root?: Tree;
   layout: Placed[];
   keys: Map<number, string>; // treeId -> canonical key
 }
+
+const parseTransition = (v: string | undefined): Step['transition'] => (v === 'fade' || v === 'none' ? v : 'morph');
 
 export async function buildSteps(deck: Deck): Promise<Step[]> {
   const steps: Step[] = [];
@@ -29,6 +33,7 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
       for (const [fi, code] of codes.entries()) {
         steps.push({
           slide: si, section, sectionIndex, code, focus: section.focus[fi],
+          transition: parseTransition(section.transition[fi]),
           lang: section.lang,
           centered: !section.hasFence,
           layout: [], keys: new Map(),
@@ -47,7 +52,8 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
   // matchings[i]: step i -> i+1 (empty if either side has no code or the languages differ)
   const matchings: Matching[] = steps.slice(0, -1).map((a, i) => {
     const b = steps[i + 1];
-    return a.root && b.root && a.lang === b.lang ? match(a.root, b.root) : new Map();
+    // fade/none: no shared tokens, so the old code fades out and the new one in (or is cut in)
+    return b.transition === 'morph' && a.root && b.root && a.lang === b.lang ? match(a.root, b.root) : new Map();
   });
 
   // keys are computed from the end: a node inherits its partner's key from the next step

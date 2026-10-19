@@ -109,6 +109,7 @@ languages without a grammar are shown as static code.
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
 | `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |
+| `transition=morph\|fade\|none` | how *this frame* is entered from the previous one: the diff animation (default), a plain cross-fade, or a hard cut |
 
 The font size is fitted to the largest frame of a section and stays constant across its frames.
 

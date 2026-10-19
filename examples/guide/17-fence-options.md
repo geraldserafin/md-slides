@@ -3,7 +3,7 @@
 <!-- Options go after the language in the fence: ```ts .left size=18 -->
 
 Classes: `.left` `.center` (default) `.right` for horizontal alignment, `.top` `.middle` for vertical.
-Other options: `size=`, `fit=none`, `focus=` (see the next slides).
+Other options: `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
 
 ```ts .left
 const where = "left";
