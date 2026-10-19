@@ -157,6 +157,7 @@ Optional, placed in the deck folder:
   "vars": { "--font-heading": "Georgia, serif" },
   "defaults": { "layout": "side", "justify": "true" },
   "columns": { "valign": "center" },
+  "textOnly": { "halign": "center", "valign": "center" },
   "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
   "themes": {
     "ocean": { "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--accent": "#3ddc97", "--tok-keyword": "#ff7eb6" }
@@ -180,6 +181,7 @@ Optional, placed in the deck folder:
 | `vars` | CSS variables applied to the whole deck |
 | `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
 | `columns` | like `defaults`, but only for slides that show two columns (text next to code in a `side` layout), e.g. `{"valign": "center"}` |
+| `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |
 | `fonts` | local font files (relative to the deck folder) |

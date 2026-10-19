@@ -378,10 +378,11 @@ export class Player {
     const slide = this.deck.slides[step.slide];
     const layout = slide.meta.layout;
     const twoCol = (layout === 'side' || layout === 'side-right') && !step.textOnly;
-    const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns };
+    const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns, textOnly: this.deck.meta.textOnly };
+    const ctx = { twoColumns: twoCol, textOnly: step.textOnly };
     const st = this.stage;
-    st.dataset.h = resolveAlign('halign', src, twoCol);
-    st.dataset.v = resolveAlign('valign', src, twoCol);
+    st.dataset.h = resolveAlign('halign', src, ctx);
+    st.dataset.v = resolveAlign('valign', src, ctx);
     const justify = slide.own.justify ?? this.deck.meta.defaults?.justify;
     if (justify && !/^(false|no|off|0)$/i.test(justify)) st.dataset.justify = '';
     else delete st.dataset.justify;

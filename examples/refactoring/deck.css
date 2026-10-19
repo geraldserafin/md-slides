@@ -16,3 +16,7 @@
 /* room under headings (each markdown block is its own .item) */
 .item-h1, .item-h2, .item-h3 { margin-bottom: 0.9em; }
 .item p { margin: 0.55em 0; }
+
+/* the short rule under a cover title follows the title's alignment */
+.stage[data-h='center'].layout-cover .item h1::after { margin-inline: auto; }
+.stage[data-h='end'].layout-cover .item h1::after { margin-inline: auto 0; }

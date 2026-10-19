@@ -1,5 +1,7 @@
 ---
 justify: true
+halign: start
+valign: start
 ---
 
 ## Alignment: everything starts at the top left
@@ -11,7 +13,8 @@ in `defaults` in `deck.json`, and on a code fence (`halign=center`, `valign=end`
 `justify: true` stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start.
 This slide uses it. `defaults` in `deck.json` can switch it on for a whole deck.
 
-For slides that really show **two columns** (text next to code), `columns` in `deck.json` sets defaults of its own,
-for example `{"valign": "center"}`. Every other layout stays at the start unless a slide says otherwise.
+`deck.json` can set defaults for the two shapes of slide: `columns` for slides with two columns (text next to code), for
+example `{"valign": "center"}`, and `textOnly` for slides without code, for example `{"halign": "center", "valign": "center"}`.
+This deck centers its text-only slides; this one opts out with `halign: start` and `valign: start`.
 
 <!-- start/center/end are also accepted as left/right/top/middle/bottom. -->

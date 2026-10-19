@@ -62,6 +62,8 @@ export interface DeckMeta {
   defaults?: Record<string, string>;
   /** like defaults, but only for slides that show two columns (text next to code); e.g. {"valign": "center"} */
   columns?: Record<string, string>;
+  /** like defaults, but only for slides without code (a single column of text); e.g. {"halign": "center", "valign": "center"} */
+  textOnly?: Record<string, string>;
   header?: ChromeBar;
   footer?: ChromeBar;
   theme?: string;

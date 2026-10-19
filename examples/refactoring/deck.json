@@ -96,5 +96,9 @@
   },
   "columns": {
     "valign": "center"
+  },
+  "textOnly": {
+    "halign": "center",
+    "valign": "center"
   }
 }

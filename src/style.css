@@ -267,8 +267,8 @@ body.print-mode #app { position: static; }
 .stage[data-justify] .item p { text-align: justify; text-align-last: start; hyphens: auto; }
 
 .stage.text-only .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-.stage.text-only[data-v='center'] .text-layer { justify-content: center; }
-.stage.text-only[data-v='end'] .text-layer { justify-content: flex-end; }
+.stage.text-only[data-v='center'] .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
+.stage.text-only[data-v='end'] .text-layer { justify-content: safe flex-end; }
 .stage.text-only .code-area { flex: 0; }
 .stage.two-col[data-v='center'] .text-layer { align-self: center; }
 .stage.two-col[data-v='end'] .text-layer { align-self: flex-end; }

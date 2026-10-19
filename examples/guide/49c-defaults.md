@@ -1,6 +1,6 @@
 ## Deck-wide defaults
 
-`defaults` in `deck.json` is front matter applied to **every** slide; `columns` is the same for slides that show two columns. A slide's own front matter wins.
+`defaults` in `deck.json` is front matter applied to **every** slide; `columns` is the same for slides that show two columns and `textOnly` for slides without code. A slide's own front matter wins.
 
 ````jsonc
 "defaults": {
@@ -9,6 +9,10 @@
   "heading-size": "56"
 },
 "columns": {
+  "valign": "center"
+},
+"textOnly": {
+  "halign": "center",
   "valign": "center"
 }
 ````

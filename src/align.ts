@@ -1,6 +1,7 @@
 // Alignment model: everything is `start` unless told otherwise.
 //   halign / valign: start | center | end   (front matter, deck.json "defaults" and "columns", fence options)
-// `columns` is the deck-wide default for slides that actually show two columns (text + code in a side layout).
+// `columns` is the deck-wide default for slides that actually show two columns (text + code in a side layout),
+// `textOnly` the one for slides that show a single column of text and no code.
 export type Align = 'start' | 'center' | 'end';
 
 const WORDS: Record<string, Align> = {
@@ -15,13 +16,20 @@ export interface AlignSources {
   own: Record<string, string>; // the slide's own front matter
   defaults?: Record<string, string>; // deck.json "defaults"
   columns?: Record<string, string>; // deck.json "columns": applies to two-column slides only
+  textOnly?: Record<string, string>; // deck.json "textOnly": applies to slides without code only
 }
 
-/** the slide's own value beats the two-column default, which beats the deck default, which beats `start` */
-export function resolveAlign(key: 'halign' | 'valign', src: AlignSources, twoColumns: boolean): Align {
+export interface AlignContext {
+  twoColumns: boolean;
+  textOnly: boolean;
+}
+
+/** the slide's own value beats the shape-specific default (columns / textOnly), which beats the deck default, which beats `start` */
+export function resolveAlign(key: 'halign' | 'valign', src: AlignSources, ctx: AlignContext): Align {
   return (
     parseAlign(src.own[key]) ??
-    (twoColumns ? parseAlign(src.columns?.[key]) : undefined) ??
+    (ctx.twoColumns ? parseAlign(src.columns?.[key]) : undefined) ??
+    (ctx.textOnly ? parseAlign(src.textOnly?.[key]) : undefined) ??
     parseAlign(src.defaults?.[key]) ??
     'start'
   );
