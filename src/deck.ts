@@ -30,8 +30,10 @@ export interface Section {
 }
 
 export interface Slide {
-  /** slide front matter (layout, theme, background, class, valign, --css-vars) */
+  /** slide front matter (layout, theme, background, class, halign, valign, --css-vars), merged over the deck defaults */
   meta: Record<string, string>;
+  /** the slide's own front matter, before the deck defaults were merged in */
+  own: Record<string, string>;
   sections: Section[];
   notes: string[];
   title: string;
@@ -58,6 +60,8 @@ export interface DeckMeta {
   date?: string;
   /** front matter applied to every slide unless the slide sets its own, e.g. {"align": "left"} */
   defaults?: Record<string, string>;
+  /** like defaults, but only for slides that show two columns (text next to code); e.g. {"valign": "center"} */
+  columns?: Record<string, string>;
   header?: ChromeBar;
   footer?: ChromeBar;
   theme?: string;
@@ -205,7 +209,7 @@ export function parseSlide(markdown: string, url: string): Slide {
     pending.push({ kind: 'html', html, tag: tok.type === 'heading' ? `h${(tok as Tokens.Heading).depth}` : tok.type });
   }
   flushTextOnly();
-  return { meta, sections, notes, title: meta.title || title || '(untitled)', url };
+  return { meta, own: meta, sections, notes, title: meta.title || title || '(untitled)', url };
 }
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
@@ -216,7 +220,7 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
       const url = root + encodeURI(f);
       const text = await (await fetch(fileUrl(url))).text();
       const slide = parseSlide(text, url);
-      slide.meta = { ...(meta.defaults ?? {}), ...slide.meta };
+      slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
       return slide;
     }),
   );

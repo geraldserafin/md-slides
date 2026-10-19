@@ -2,6 +2,7 @@
 // transitions). Each token's position/scale is independent and computed in
 // stage pixels -- a dying token has a FROZEN transform, so it does not drift
 // towards the next step's target position.
+import { fenceAlign, place, resolveAlign, type Align } from './align';
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
 import type { Deck, Item, Slide } from './deck';
 import { fileUrl } from './files';
@@ -24,10 +25,9 @@ const ALIASES: Record<string, { v: string; px?: boolean }> = {
   'heading-color': { v: '--heading' },
   'text-color': { v: '--fg' },
 };
-const ALIGNS = new Set(['left', 'center', 'right', 'justify']);
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 1.6;
-const PAD_X = 40;
+const PAD_X = 0;
 
 interface Token {
   el: HTMLSpanElement;
@@ -184,14 +184,9 @@ export class Player {
     const st = this.stage;
     st.removeAttribute("style");
     st.className = "stage" + (m.layout ? ` layout-${m.layout}` : "") + (m.class ? ` ${m.class}` : "");
-    delete st.dataset.align;
-    delete st.dataset.halign;
-    delete st.dataset.anchor;
-    if (m['text-anchor'] === 'top') st.dataset.anchor = 'top';
-    const align = ALIGNS.has(m.align) ? m.align : undefined;
-    const halign = ALIGNS.has(m['heading-align']) ? m['heading-align'] : align === 'justify' ? 'left' : align;
-    if (align) st.dataset.align = align;
-    if (halign) st.dataset.halign = halign;
+    delete st.dataset.h;
+    delete st.dataset.v;
+    delete st.dataset.justify;
     const theme = m.theme ?? this.opts.theme;
     if (theme) this.root.dataset.theme = theme;
     else delete this.root.dataset.theme;
@@ -328,9 +323,7 @@ export class Player {
     // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
     ghost.style.cssText = `${this.stage.style.cssText};top:${this.stage.offsetTop}px;bottom:${this.root.clientHeight - this.stage.offsetTop - this.stage.offsetHeight}px`;
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
-    if (this.stage.dataset.align) ghost.dataset.align = this.stage.dataset.align;
-    if (this.stage.dataset.halign) ghost.dataset.halign = this.stage.dataset.halign;
-    if (this.stage.dataset.anchor) ghost.dataset.anchor = this.stage.dataset.anchor;
+    for (const k of ['h', 'v', 'justify']) if (this.stage.dataset[k] !== undefined) ghost.dataset[k] = this.stage.dataset[k];
     // keep the current opacity (the text may still be fading in when the user navigates again)
     const opacity = getComputedStyle(old).opacity;
     // measure BEFORE `.leaving` (position: absolute shrinks the box to its content).
@@ -374,30 +367,26 @@ export class Player {
     if (!instant) this.enterText(el, this.deck.slides[step.slide].meta, this.leaving ? LEAVE_S * 0.8 : 0);
     this.leaving = false;
     this.textEl = el;
-    const valign = this.deck.slides[step.slide].meta.valign;
-    this.stage.classList.toggle("centered", valign ? valign === "center" || valign === "middle" : step.centered);
-    this.fitAnchor();
+    this.applyAlign(step);
   }
 
   /**
-   * `text-anchor: top` pins the text at --text-top, but a tall text must not run into the footer: pull the anchor up
-   * by as much as it takes (never above the top edge). Recomputed on resize.
+   * Alignment of this section: halign / valign (start | center | end, default start) from the slide, or, for a slide that
+   * really shows two columns, from the deck's "columns" defaults. The classes tell the CSS which shape the stage has.
    */
-  private fitAnchor() {
+  private applyAlign(step: Step) {
+    const slide = this.deck.slides[step.slide];
+    const layout = slide.meta.layout;
+    const twoCol = (layout === 'side' || layout === 'side-right') && !step.textOnly;
+    const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns };
     const st = this.stage;
-    const tl = this.textLayer;
-    tl.style.marginTop = '';
-    tl.style.paddingTop = '';
-    if (st.dataset.anchor !== 'top' || !this.textEl) return;
-    const centered = st.classList.contains('centered');
-    const cs = getComputedStyle(tl);
-    const want = parseFloat(centered ? cs.paddingTop : cs.marginTop) || 0;
-    if (!want) return;
-    const ss = getComputedStyle(st);
-    const avail = st.clientHeight - (parseFloat(ss.paddingTop) || 0) - (parseFloat(ss.paddingBottom) || 0);
-    const h = this.textEl.getBoundingClientRect().height / ((st.getBoundingClientRect().height / st.offsetHeight) || 1) + 8;
-    const top = Math.max(0, Math.min(want, avail - h));
-    if (Math.abs(top - want) > 0.5) tl.style[centered ? 'paddingTop' : 'marginTop'] = `${top}px`;
+    st.dataset.h = resolveAlign('halign', src, twoCol);
+    st.dataset.v = resolveAlign('valign', src, twoCol);
+    const justify = slide.own.justify ?? this.deck.meta.defaults?.justify;
+    if (justify && !/^(false|no|off|0)$/i.test(justify)) st.dataset.justify = '';
+    else delete st.dataset.justify;
+    st.classList.toggle('text-only', step.textOnly);
+    st.classList.toggle('two-col', twoCol);
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
@@ -460,15 +449,12 @@ export class Player {
       : !fit ? 1
       : Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitW > 0 ? availW / fitW : 1, fitH > 0 ? availH / fitH : 1));
     const scaledW = codeW * scale;
-    const cls = step.section.classes;
-    // horizontal alignment: centered by default, left in the side layouts (no jitter between frames of different width)
-    const side = this.stage.classList.contains('layout-side') || this.stage.classList.contains('layout-side-right');
-    const hAlign = cls.includes('left') ? 'left' : cls.includes('right') ? 'right' : cls.includes('center') ? 'center' : side ? 'left' : 'center';
-    const baseX = ar.left + PAD_X +
-      (hAlign === 'left' ? 0 : hAlign === 'right' ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
-    
-    const middle = !cls.includes("top"); // code is vertically centered in its area unless pinned with .top
-    const topY = ar.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);
+    // the code block's own alignment (fence classes / halign= valign=) wins over the slide's
+    const fa = fenceAlign(step.section.classes, step.section.opts);
+    const hAlign = fa.h ?? (this.stage.dataset.h as Align | undefined) ?? 'start';
+    const vAlign = fa.v ?? (this.stage.dataset.v as Align | undefined) ?? 'start';
+    const baseX = ar.left + PAD_X + place(hAlign, availW, scaledW);
+    const topY = ar.top + place(vAlign, availH, codeH * scale);
     return { scale, baseX, topY, lineH };
   }
 
@@ -558,7 +544,6 @@ export class Player {
   private relayout(instant: boolean) {
     if (this.idx < 0) return;
     const step = this.steps[this.idx];
-    this.fitAnchor();
     if (!step.root) return;
     if (instant) this.codeLayer.classList.add('no-anim');
     const pl = this.placement(step);

@@ -15,7 +15,7 @@ export interface Step {
   /** how this step is entered from the previous one: morph (diff animation), fade (cross-fade), none (cut) */
   transition: 'morph' | 'fade' | 'none';
   lang?: Lang;
-  centered: boolean; // section without a fence => block centered on screen
+  textOnly: boolean; // section without a fence: a single column of text
   root?: Tree;
   layout: Placed[];
   keys: Map<number, string>; // treeId -> canonical key
@@ -35,7 +35,7 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
           slide: si, section, sectionIndex, code, focus: section.focus[fi],
           transition: parseTransition(section.transition[fi]),
           lang: section.lang,
-          centered: !section.hasFence,
+          textOnly: !section.hasFence,
           layout: [], keys: new Map(),
         });
       }

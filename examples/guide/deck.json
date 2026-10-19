@@ -130,6 +130,9 @@
   },
   "defaults": {
     "layout": "side",
-    "text-anchor": "top"
+    "justify": "true"
+  },
+  "columns": {
+    "valign": "center"
   }
 }

@@ -1,7 +1,6 @@
 ---
 layout: side
 split: 52%
-heading-align: left
 ---
 
 ## Wider text column: `split`

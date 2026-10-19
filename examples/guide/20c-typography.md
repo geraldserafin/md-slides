@@ -1,5 +1,4 @@
 ---
-heading-align: left
 heading-size: 72
 text-size: 28
 spacing: 26

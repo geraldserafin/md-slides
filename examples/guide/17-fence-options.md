@@ -2,7 +2,8 @@
 
 <!-- Options go after the language in the fence: ```ts .left size=18 -->
 
-Classes: `.left` `.center` (default, except in the side layouts) `.right` for horizontal alignment, `.middle` (default) and `.top` for vertical.
+Alignment: `halign=` and `valign=` (`start` | `center` | `end`), or the classes `.left` `.center` `.right` and `.top` `.middle` `.bottom`.
+Without them the code follows its slide: `start`, unless the slide says otherwise.
 Other options: `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
 
 ```ts .left

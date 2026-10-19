@@ -1,17 +1,17 @@
 ---
-align: justify
-heading-align: left
+justify: true
 ---
 
-## Text alignment: `align`
+## Alignment: everything starts at the top left
 
-`align: justify` stretches every line of a paragraph to the full width, like in a printed document.
-`heading-align: left` keeps the heading on the left while the body is justified. Both are plain
-front matter keys, so any slide can pick its own, and `defaults` in `deck.json` sets them for the whole deck.
+Every box starts at the **start**, both ways: text at the left edge, at the top. Say otherwise with
+`halign` and `valign`, each `start`, `center` or `end`. They work in the front matter of a slide,
+in `defaults` in `deck.json`, and on a code fence (`halign=center`, `valign=end`).
 
-Values for `align` are `left`, `center`, `right` and `justify`. `heading-align` takes the first
-three and defaults to the value of `align`. Lists, quotes and images follow `align` as well.
+`justify: true` stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start.
+This slide uses it. `defaults` in `deck.json` can switch it on for a whole deck.
 
-> A quote follows the alignment too.
+For slides that really show **two columns** (text next to code), `columns` in `deck.json` sets defaults of its own,
+for example `{"valign": "center"}`. Every other layout stays at the start unless a slide says otherwise.
 
-<!-- Justify works best with long paragraphs and a wide column; hyphenation is switched on automatically. -->
+<!-- start/center/end are also accepted as left/right/top/middle/bottom. -->

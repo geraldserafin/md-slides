@@ -102,8 +102,8 @@ languages without a grammar are shown as static code.
 
 | Option | Meaning |
 | --- | --- |
-| `.left` `.center` `.right` | horizontal alignment of the code block (default: centered, left in the side layouts) |
-| `.top` `.middle` | vertical alignment; code is centered vertically in its area by default, `.top` pins it to the top |
+| `halign=start\|center\|end` (or `.left` `.center` `.right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
+| `valign=start\|center\|end` (or `.top` `.middle` `.bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
 | `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |
@@ -131,16 +131,15 @@ An optional block at the top of a `.md` file:
 layout: side          # side | side-right | cover (default: text above code)
 theme: light          # theme for this slide only
 background: img.jpg   # an image (relative to the .md) or any CSS: "linear-gradient(...)", "#123"
-valign: center        # force vertical centering
+halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
+valign: center        # start | center | end (default start): where the content sits vertically
+justify: true         # justified paragraphs (the last line stays at the start)
 class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
 transition: slide     # text entrance: fade | slide | slide-left | zoom | none (none = a hard cut, no fade at all)
 stagger: 0.1          # seconds between consecutive text elements
-align: justify        # text alignment: left | center | right | justify (headings follow unless heading-align is set)
-heading-align: left   # left | center | right
 heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (text column in side layouts)
 accent: #ffb454       # also heading-color, text-color
-text-anchor: top      # pin the first line of the text at --text-top (default 32vh, about the middle of the slide) instead of centering the block: headings stay put between slides
 footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
 ---
@@ -156,7 +155,8 @@ Optional, placed in the deck folder:
   "theme": "ocean",
   "css": "deck.css",
   "vars": { "--font-heading": "Georgia, serif" },
-  "defaults": { "align": "left", "heading-align": "left" },
+  "defaults": { "layout": "side", "justify": "true" },
+  "columns": { "valign": "center" },
   "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
   "themes": {
     "ocean": { "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--accent": "#3ddc97", "--tok-keyword": "#ff7eb6" }
@@ -178,7 +178,8 @@ Optional, placed in the deck folder:
 | `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
-| `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `align`, `heading-size`, `layout` |
+| `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
+| `columns` | like `defaults`, but only for slides that show two columns (text next to code in a `side` layout), e.g. `{"valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |
 | `fonts` | local font files (relative to the deck folder) |

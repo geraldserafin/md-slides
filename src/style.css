@@ -48,9 +48,6 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 }
 .text-layer { flex: 0 0 auto; position: relative; }
 .code-area { flex: 1 1 0; min-height: 0; }
-.stage.centered .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.stage.centered .code-area { flex: 0; }
-.stage.centered .text { text-align: center; }
 
 .text { transition: opacity var(--fade-dur) ease; }
 .ghost { pointer-events: none; }
@@ -58,7 +55,7 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 .item { margin: var(--item-gap, 0.3em) 0; }
 .item > :first-child { margin-top: 0; }
 .item > :last-child { margin-bottom: 0; }
-.item h1, .item h2, .item h3 { font-family: var(--font-heading); color: var(--heading); text-align: center; margin: 0.2em 0; line-height: 1.2; }
+.item h1, .item h2, .item h3 { font-family: var(--font-heading); color: var(--heading); margin: 0.2em 0; line-height: 1.2; }
 .item h1 { font-size: calc(var(--heading-size) * 1.3); }
 .item h2 { font-size: var(--heading-size); }
 .item h3 { font-size: calc(var(--heading-size) * 0.75); }
@@ -122,15 +119,12 @@ body.show-help::after { opacity: 1; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
 .stage.layout-side { flex-direction: row; align-items: stretch; gap: 4vmin; }
-.stage.layout-side .text-layer { flex: 0 0 var(--split, 36%); align-self: center; }
-.stage.layout-side .text, .stage.layout-side .item h1, .stage.layout-side .item h2, .stage.layout-side .item h3 { text-align: left; }
+.stage.layout-side.text-only, .stage.layout-side-right.text-only { flex-direction: column; }
+.stage.layout-side .text-layer { flex: 0 0 var(--split, 36%); align-self: flex-start; }
 .stage.layout-side .code-area { flex: 1; }
-.stage.layout-side.centered { flex-direction: column; }
 .stage.layout-side-right { flex-direction: row-reverse; }
-.stage.layout-side-right .text-layer { flex: 0 0 var(--split, 36%); align-self: center; }
+.stage.layout-side-right .text-layer { flex: 0 0 var(--split, 36%); align-self: flex-start; }
 .stage.layout-side-right .code-area { flex: 1; }
-.stage.layout-side-right .text, .stage.layout-side-right .item h1, .stage.layout-side-right .item h2 { text-align: left; }
-.stage.layout-cover .text { text-align: center; }
 .stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }
 
 /* ---- slide drawer (overview) ---------------------------------------------------- */
@@ -174,11 +168,6 @@ body.print-mode #app { position: static; }
   .print-page:last-child { break-after: auto; page-break-after: auto; }
 }
 
-/* lists and quotes inside centered text keep their own left alignment but sit centered as a block */
-.stage.centered .item ul, .stage.centered .item ol, .stage.centered .item blockquote {
-  display: table; margin-left: auto; margin-right: auto; text-align: left;
-}
-
 /* rich text: tables, keys, highlights */
 .item table { border-collapse: collapse; margin: 0.5em auto; font-size: 0.92em; }
 .item th, .item td { padding: 0.35em 0.9em; border-bottom: 1px solid var(--code-bg); text-align: left; }
@@ -216,16 +205,6 @@ body.print-mode #app { position: static; }
 .card-body h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--heading); }
 .card-meta { margin-top: 3px; font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
 
-/* ---- text alignment (front matter: align / heading-align) ------------------- */
-.stage[data-align] .item ul, .stage[data-align] .item ol, .stage[data-align] .item blockquote { display: block; margin-left: 0; margin-right: 0; }
-.stage[data-align="left"] .item, .stage[data-align="left"] .item ul, .stage[data-align="left"] .item ol, .stage[data-align="left"] .item blockquote { text-align: left; } .stage[data-align="left"] .item-media { justify-content: flex-start; }
-.stage[data-align="center"] .item, .stage[data-align="center"] .item ul, .stage[data-align="center"] .item ol, .stage[data-align="center"] .item blockquote { text-align: center; } .stage[data-align="center"] .item-media { justify-content: center; }
-.stage[data-align="right"] .item, .stage[data-align="right"] .item ul, .stage[data-align="right"] .item ol, .stage[data-align="right"] .item blockquote { text-align: right; } .stage[data-align="right"] .item-media { justify-content: flex-end; }
-.stage[data-align="justify"] .item, .stage[data-align="justify"] .item ul, .stage[data-align="justify"] .item ol, .stage[data-align="justify"] .item blockquote { text-align: justify; hyphens: auto; } .stage[data-align="justify"] .item-media { justify-content: flex-start; }
-.stage[data-halign="left"] .item h1, .stage[data-halign="left"] .item h2, .stage[data-halign="left"] .item h3 { text-align: left; }
-.stage[data-halign="center"] .item h1, .stage[data-halign="center"] .item h2, .stage[data-halign="center"] .item h3 { text-align: center; }
-.stage[data-halign="right"] .item h1, .stage[data-halign="right"] .item h2, .stage[data-halign="right"] .item h3 { text-align: right; }
-
 /* ---- header / footer bars (deck.json) ---------------------------------------- */
 .bar {
   position: absolute; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
@@ -262,27 +241,35 @@ body.print-mode #app { position: static; }
 }
 @keyframes shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
-.stage[data-align="right"] .item ul, .stage[data-align="right"] .item ol { list-style-position: inside; padding-left: 0; }
-.stage[data-align="center"] .item ul, .stage[data-align="center"] .item ol { list-style-position: inside; padding-left: 0; }
 
 /* deck variables live on the player root, so text must take its font from them, not from <body> */
 .stage, .bar { font-family: var(--font-text); }
 .stage { font-size: var(--text-size); }
 
-/* ---- text anchor (front matter: text-anchor: top) ------------------------------------
-   By default the text block is centered vertically (in the side layouts next to the code, on text-only
-   slides on the screen), so a heading sits at a different height on every slide. `top` pins the first
-   line at --text-top and lets the text grow downwards: headings stay put from slide to slide. */
-.stage[data-anchor='top']:not(.layout-cover) { --anchor-top: var(--text-top, 32vh); }
-.stage[data-anchor='top'].layout-side:not(.centered) .text-layer,
-.stage[data-anchor='top'].layout-side-right:not(.centered) .text-layer { align-self: flex-start; margin-top: var(--anchor-top); }
-.stage[data-anchor='top'].centered:not(.layout-cover) .text-layer { justify-content: flex-start; padding-top: var(--anchor-top); }
 
-/* a text-only slide in a side layout is a column: the text block must fill the width (not be centered by the
-   row-direction `align-self: center`) so its left edge stays where it is on two-column slides */
-.stage.layout-side.centered .text-layer, .stage.layout-side-right.centered .text-layer { flex: 1; align-self: stretch; }
-/* in single-column side-layout slides lists and quotes stay on the left edge with the heading */
-.stage.layout-side.centered .item ul, .stage.layout-side.centered .item ol, .stage.layout-side.centered .item blockquote,
-.stage.layout-side-right.centered .item ul, .stage.layout-side-right.centered .item ol, .stage.layout-side-right.centered .item blockquote {
-  display: block; margin-left: 0; margin-right: 0; text-align: left;
-}
+/* ---- alignment -------------------------------------------------------------------------
+   Everything starts at the top left. The stage carries data-h / data-v (start | center | end), set from
+   the slide's halign / valign (or the deck's defaults / columns). A text-only slide is one column
+   that fills the stage; two columns (text + code in a side layout) are aligned vertically each. */
+.stage[data-h='start'] .item { text-align: start; }
+.stage[data-h='center'] .item { text-align: center; }
+.stage[data-h='end'] .item { text-align: end; }
+.stage[data-h='center'] .text { margin-inline: auto; }
+.stage[data-h='end'] .text { margin-inline: auto 0; }
+.stage[data-h='center'] .item-media { justify-content: center; }
+.stage[data-h='end'] .item-media { justify-content: flex-end; }
+.item-media { justify-content: flex-start; }
+.item-media.left { justify-content: flex-start; } .item-media.right { justify-content: flex-end; }
+/* lists and quotes are blocks; centered / end-aligned ones keep their own left-aligned text */
+.stage[data-h='center'] .item ul, .stage[data-h='center'] .item ol, .stage[data-h='center'] .item blockquote { display: table; margin-inline: auto; text-align: left; }
+.stage[data-h='end'] .item ul, .stage[data-h='end'] .item ol, .stage[data-h='end'] .item blockquote { display: table; margin-inline: auto 0; text-align: left; }
+/* justified paragraphs (front matter: justify: true) */
+.stage[data-justify] .item p { text-align: justify; text-align-last: start; hyphens: auto; }
+
+.stage.text-only .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+.stage.text-only[data-v='center'] .text-layer { justify-content: center; }
+.stage.text-only[data-v='end'] .text-layer { justify-content: flex-end; }
+.stage.text-only .code-area { flex: 0; }
+.stage.two-col[data-v='center'] .text-layer { align-self: center; }
+.stage.two-col[data-v='end'] .text-layer { align-self: flex-end; }
+
