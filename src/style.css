@@ -154,3 +154,8 @@ body.print-mode #app { position: static; }
   .print-page { margin: 0; break-after: page; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-page:last-child { break-after: auto; page-break-after: auto; }
 }
+
+/* lists and quotes inside centered text keep their own left alignment but sit centered as a block */
+.stage.centered .item ul, .stage.centered .item ol, .stage.centered .item blockquote {
+  display: table; margin-left: auto; margin-right: auto; text-align: left;
+}

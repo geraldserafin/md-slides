@@ -52,9 +52,22 @@ my-talk/
   diagram.svg        # assets are referenced relative to the .md file
 ```
 
-`slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders
-(`examples/` contains three decks). With a single deck the viewer opens it directly; with several it
-shows a chooser.
+`slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
+With a single deck the viewer opens it directly; with several it shows a chooser.
+
+## Examples
+
+`examples/` has seven decks you can read as templates:
+
+| Deck | Shows |
+| --- | --- |
+| `demo` | a tour of the viewer: layouts, themes, backgrounds, images, alignment, text transitions, a custom theme |
+| `refactoring` | TypeScript: types, naming, functional style, Extract Method |
+| `typescript-async` | callbacks → promises → `async`/`await` → `Promise.all` |
+| `python-idioms` | loops → comprehensions, `Counter`, dataclasses, `with`; light "paper" theme |
+| `rust-ownership` | moves, clones, borrows, `&mut`, iterator chains, `?` |
+| `go-errors` | wrapping with `%w`, sentinel/typed errors, `errors.Is`/`As`, `defer` |
+| `monads` | C++: error codes → exceptions → `optional` → `expected` |
 
 ## Writing slides
 
@@ -81,7 +94,7 @@ function total(items: number[]) {
 ```
 ````
 
-Pressing → plays the transition from the first block to the second. Text before a code block belongs to
+Tabs in code are expanded to four spaces. Pressing → plays the transition from the first block to the second. Text before a code block belongs to
 that block's section. A section without code is centered on screen (a title slide). Blocks in
 languages without a grammar are shown as static code.
 

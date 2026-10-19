@@ -14,7 +14,7 @@ const KEYWORDS = new Set([
 
 export function tokenClass(label: string): string {
   if (KEYWORDS.has(label)) return 'keyword';
-  if (['number', 'integer', 'float', 'number_literal', 'string', 'string_literal', 'string_fragment',
+  if (['number', 'integer', 'float', 'number_literal', 'string', 'string_literal', 'string_fragment', 'string_content',
     'true', 'false', 'null', 'undefined', 'nullptr', 'none', 'None', 'True', 'False'].includes(label)) return 'builtin';
   if (['type_identifier', 'primitive_type', 'sized_type_specifier', 'predefined_type'].includes(label)) return 'type';
   if (['property_identifier', 'field_identifier'].includes(label)) return 'property';

@@ -23,7 +23,8 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
   let sectionIndex = 0;
   deck.slides.forEach((slide, si) => {
     for (const section of slide.sections) {
-      const codes = section.codes.length ? section.codes : [''];
+      // tabs -> 4 spaces: the monospace grid has no notion of tab stops
+      const codes = section.codes.length ? section.codes.map((c) => c.replace(/\t/g, '    ')) : [''];
       for (const code of codes) {
         steps.push({
           slide: si, section, sectionIndex, code,

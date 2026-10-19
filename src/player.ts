@@ -331,10 +331,21 @@ export class Player {
     const codeH = rows * lineH;
     const size = parseFloat(step.section.opts.size ?? '');
     const fit = step.section.opts.fit !== 'none';
+    // fit to the largest frame of the section, so the font size stays constant across its frames
+    let maxCols = cols;
+    let maxRows = rows;
+    for (const s of this.steps) {
+      if (s.sectionIndex !== step.sectionIndex) continue;
+      const b = layoutBounds(s.layout);
+      maxCols = Math.max(maxCols, b.cols);
+      maxRows = Math.max(maxRows, b.rows);
+    }
+    const fitW = maxCols * this.charW;
+    const fitH = maxRows * lineH;
     const scale = size > 0
       ? size / REF_FONT
       : !fit ? 1
-      : Math.max(MIN_SCALE, Math.min(MAX_SCALE, codeW > 0 ? availW / codeW : 1, codeH > 0 ? availH / codeH : 1));
+      : Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitW > 0 ? availW / fitW : 1, fitH > 0 ? availH / fitH : 1));
     const scaledW = codeW * scale;
     const cls = step.section.classes;
     const baseX = ar.left + PAD_X +

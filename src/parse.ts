@@ -50,21 +50,49 @@ async function parserFor(lang: Lang): Promise<Parser> {
   return p;
 }
 
+/**
+ * tree-sitter nodes -> Tree, with two normalizations so every visible character is a leaf:
+ *  - whitespace-only leaves (e.g. Go's automatic-semicolon "\n") are dropped;
+ *  - non-whitespace source text that no child covers (e.g. the contents of a Rust or Go string,
+ *    which those grammars leave un-noded) becomes synthetic leaves, one per line.
+ */
 function freeze(src: string, root: Parser.SyntaxNode): Tree {
   let counter = 0;
-  const go = (node: Parser.SyntaxNode): Tree => {
-    const id = counter++;
-    const children = node.children.map(go);
-    return {
-      id,
-      label: node.type,
-      text: children.length === 0 ? src.slice(node.startIndex, node.endIndex) : '',
-      start: node.startIndex,
-      end: node.endIndex,
-      children,
-    };
+  const leaf = (label: string, start: number, end: number): Tree =>
+    ({ id: counter++, label, text: src.slice(start, end), start, end, children: [] });
+
+  /** synthetic leaves for the uncovered, non-blank text of src[from, to) */
+  const gapLeaves = (parent: Parser.SyntaxNode, from: number, to: number): Tree[] => {
+    const out: Tree[] = [];
+    const label = parent.type.includes('string') ? 'string_content' : 'text';
+    let off = from;
+    for (const line of src.slice(from, to).split('\n')) {
+      const lead = line.length - line.trimStart().length;
+      const text = line.trim();
+      if (text) out.push(leaf(label, off + lead, off + lead + text.length));
+      off += line.length + 1;
+    }
+    return out;
   };
-  return go(root);
+
+  const go = (node: Parser.SyntaxNode, isRoot = false): Tree | undefined => {
+    if (node.childCount === 0) {
+      if (!isRoot && !src.slice(node.startIndex, node.endIndex).trim()) return undefined;
+      return leaf(node.type, node.startIndex, node.endIndex);
+    }
+    const id = counter++;
+    const children: Tree[] = [];
+    let pos = node.startIndex;
+    for (const c of node.children) {
+      children.push(...gapLeaves(node, pos, c.startIndex));
+      const t = go(c);
+      if (t) children.push(t);
+      pos = Math.max(pos, c.endIndex);
+    }
+    children.push(...gapLeaves(node, pos, node.endIndex));
+    return { id, label: node.type, text: '', start: node.startIndex, end: node.endIndex, children };
+  };
+  return go(root, true)!;
 }
 
 export async function parseOne(lang: Lang, src: string): Promise<Tree> {
