@@ -134,13 +134,13 @@ background: img.jpg   # an image (relative to the .md) or any CSS: "linear-gradi
 valign: center        # force vertical centering
 class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
-transition: slide     # text entrance: fade | slide | slide-left | zoom | none
+transition: slide     # text entrance: fade | slide | slide-left | zoom | none (none = a hard cut, no fade at all)
 stagger: 0.1          # seconds between consecutive text elements
 align: justify        # text alignment: left | center | right | justify (headings follow unless heading-align is set)
 heading-align: left   # left | center | right
 heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (text column in side layouts)
 accent: #ffb454       # also heading-color, text-color
-text-anchor: top      # pin the text block at --text-top (default 20vh) instead of centering it: headings stay put between slides
+text-anchor: top      # pin the first line of the text at --text-top (default 32vh, about the middle of the slide) instead of centering the block: headings stay put between slides
 footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
 ---

@@ -141,7 +141,9 @@ export class Player {
     // a pair of neighbouring steps uses the later one's transition, so going back mirrors going forward
     const cut = !first && this.steps[Math.abs(j - prev) === 1 ? Math.max(j, prev) : j].transition === 'none';
     // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
-    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant);
+    // `transition: none` (per slide or deck-wide) means a hard cut for the text: the old text goes away at once, too
+    const textCut = (this.deck.slides[step.slide].meta.transition ?? this.textTransition) === 'none';
+    if (this.textSection !== step.sectionIndex) this.leaveText(first || instant || textCut);
     this.applySlide(step.slide, first || instant);
     this.swapText(step, first || instant);
     this.advance(step, first || instant || cut);

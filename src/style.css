@@ -273,7 +273,7 @@ body.print-mode #app { position: static; }
    By default the text block is centered vertically (in the side layouts next to the code, on text-only
    slides on the screen), so a heading sits at a different height on every slide. `top` pins the first
    line at --text-top and lets the text grow downwards: headings stay put from slide to slide. */
-.stage[data-anchor='top']:not(.layout-cover) { --anchor-top: var(--text-top, 20vh); }
+.stage[data-anchor='top']:not(.layout-cover) { --anchor-top: var(--text-top, 32vh); }
 .stage[data-anchor='top'].layout-side:not(.centered) .text-layer,
 .stage[data-anchor='top'].layout-side-right:not(.centered) .text-layer { align-self: flex-start; margin-top: var(--anchor-top); }
 .stage[data-anchor='top'].centered:not(.layout-cover) .text-layer { justify-content: flex-start; padding-top: var(--anchor-top); }
