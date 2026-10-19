@@ -106,7 +106,7 @@ export class Player {
   private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
-  private view?: { section: Section; blocks: BlockView[]; items: { el: HTMLElement; at: number }[] }; // the section on screen
+  private view?: { section: Section; blocks: BlockView[]; items: { el: HTMLElement; at: number; out?: number }[] }; // the section on screen
   private codeLayer: HTMLElement;
   private slideShown = -1;
   private ro: ResizeObserver;
@@ -461,7 +461,7 @@ export class Player {
     const sec = step.section;
     const meta = this.deck.slides[step.slide].meta;
     const views: BlockView[] = [];
-    const items: { el: HTMLElement; at: number }[] = [];
+    const items: { el: HTMLElement; at: number; out?: number }[] = [];
     // widest / tallest frame of every block, from the steps of this section (a stable box across its frames)
     const metrics = new Map<Block, { cols: number; rows: number }>();
     for (const st of this.steps) if (st.section === sec) for (const bs of st.blocks) metrics.set(bs.block, { cols: bs.cols, rows: bs.rows });
@@ -507,8 +507,9 @@ export class Player {
         for (const it of list) {
           const e = this.renderItem(it, sec, views, r, cells.length);
           e.dataset.at = String(it.at);
-          if (it.at > step.stage) e.classList.add('pending');
-          items.push({ el: e, at: it.at });
+          const out = this.applyFx(e, it);
+          if (it.at > step.stage || (out !== undefined && step.stage >= out)) e.classList.add('pending');
+          items.push({ el: e, at: it.at, out });
           cellEl.append(e);
         }
         for (const v of views.slice(first)) { v.cellH = cellH; v.cellV = cellV; }
@@ -532,12 +533,22 @@ export class Player {
     this.applyAlign(step);
   }
 
+  /** per-element animation (`{anim=zoom delay=0.2 dur=0.6 out=3}`): the CSS reads these; returns the stage it leaves at */
+  private applyFx(el: HTMLElement, it: Item): number | undefined {
+    const fx = it.fx;
+    if (!fx) return undefined;
+    if (fx.anim) el.dataset.anim = fx.anim;
+    if (fx.delay) el.style.setProperty('--anim-delay', /^[\d.]+$/.test(fx.delay) ? `${fx.delay}s` : fx.delay);
+    if (fx.dur) el.style.setProperty('--anim-dur', /^[\d.]+$/.test(fx.dur) ? `${fx.dur}s` : fx.dur);
+    return fx.out !== undefined && /^\d+$/.test(fx.out) ? parseInt(fx.out, 10) : undefined;
+  }
+
   /** Reveal: show what the current stage includes, hide what comes later (also when going back). */
   private applyStage(step: Step, instant: boolean) {
     const view = this.view;
     if (!view) return;
-    for (const { el, at } of view.items) {
-      const pending = at > step.stage;
+    for (const { el, at, out } of view.items) {
+      const pending = at > step.stage || (out !== undefined && step.stage >= out); // not yet there, or already gone
       if (el.classList.contains('pending') === pending) continue;
       // inline styles left by the entrance animation would win over the class
       el.style.opacity = '';

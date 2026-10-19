@@ -205,3 +205,14 @@ describe('math', () => {
     expect(html).toContain('costs $5 and $6');
   });
 });
+
+describe('per-element animation', () => {
+  it('a {…} line sets fx, at and out on the item before it', () => {
+    const s = parseSlide('## A\n\nOne\n\n{anim=zoom delay=0.2 at=2 out=4}\n\nTwo\n', 'http://x/d/a.md');
+    const items = sectionItems(s.sections[0]);
+    expect(items).toHaveLength(3); // the heading, One, Two
+    expect(items[1].fx).toEqual({ anim: 'zoom', delay: '0.2', at: '2', out: '4' });
+    expect(items[1].at).toBe(2);
+    expect(s.sections[0].stages).toBe(5);
+  });
+});

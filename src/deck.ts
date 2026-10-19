@@ -17,7 +17,11 @@ export type Item = (
   | { kind: 'diagram'; text: string; attrs: Attrs } // a ```mermaid fence
   | { kind: 'code'; text: string; lang: string } // static block (language without a grammar)
   | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
-) & { at: number }; // the reveal stage it appears at (0 = from the start)
+) & {
+  at: number; // the reveal stage it appears at (0 = from the start)
+  /** per-element animation, from a `{anim=zoom delay=0.2 dur=0.6 out=3}` line after it */
+  fx?: Record<string, string>;
+};
 
 /** an item before it is given its reveal stage */
 type ItemInit = Item extends infer I ? (I extends unknown ? Omit<I, 'at'> : never) : never;
@@ -312,6 +316,19 @@ export function parseSlide(markdown: string, url: string): Slide {
           cell++;
         }
         continue;
+      }
+      const fx = /^\{([^}]*=[^}]*)\}$/.exec(text);
+      if (fx) {
+        // `{anim=zoom delay=0.2 dur=0.6 at=2 out=4}` right after an item (blank line between): how it comes in, when, and when it goes
+        const last = col()[col().length - 1];
+        if (last) {
+          const o = parseAttrs(fx[1]).opts;
+          last.fx = { ...last.fx, ...o };
+          if (o.at !== undefined && /^\d+$/.test(o.at)) last.at = parseInt(o.at, 10);
+          if (o.out !== undefined && /^\d+$/.test(o.out)) maxStage = Math.max(maxStage, parseInt(o.out, 10));
+          maxStage = Math.max(maxStage, last.at);
+          continue;
+        }
       }
       if (text === '{.steps}') {
         // the list right before it appears bullet by bullet, one click each
