@@ -10,6 +10,7 @@ import type { Step } from './steps';
 import { tokenClass } from './tokens';
 
 const LEAVE_S = 0.16; // s, fade-out of the previous slide text
+const SYNC_DELAY = LEAVE_S * 0.65; // s, new text / code start this long after the old one began to leave
 const REF_FONT = 22; // px, base token size (scaled with a transform)
 const LINE_RATIO = 1.5;
 
@@ -97,7 +98,8 @@ export class Player {
   private gridEl?: HTMLElement; // the grid (rows of cells) of the section on screen
   private headEl?: HTMLElement; // the slide's head (a level 1 heading above its sections)
   private headSlide = -1;
-  private curKind = 'fade'; // the text transition of the slide on screen (how its content leaves)
+  private curSlideKind = 'fade'; // the `transition` of the slide on screen (how it leaves when the slide changes)
+  private enterKind = 'fade'; // how the text of the step being shown comes in
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
@@ -110,6 +112,7 @@ export class Player {
   private textTransition: string;
   private textStagger: number;
   private textDrift: number;
+  private sectionTransition?: string;
   private bgEl?: HTMLElement;
   private moveDelay: number;
   private fadeInDelay: number;
@@ -127,6 +130,7 @@ export class Player {
     this.textTransition = a.textTransition ?? 'fade';
     this.textStagger = a.textStagger ?? 0.06;
     this.textDrift = a.textDrift ?? 8;
+    this.sectionTransition = a.sectionTransition;
     const rs = root.style;
     rs.setProperty("--move-dur", `${move}s`);
     rs.setProperty("--fade-dur", `${fade}s`);
@@ -183,16 +187,24 @@ export class Player {
     const cut = !first && this.steps[Math.abs(j - prev) === 1 ? Math.max(j, prev) : j].transition === 'none';
     // the old text must be frozen BEFORE the stage switches layout/theme, or it jumps while fading
     // `transition: none` (per slide or deck-wide) means a hard cut for the text: the old text goes away at once, too
-    const enterKind = this.deck.slides[step.slide].meta.transition ?? this.textTransition;
+    // Transitions are granular: `transition` is for the slide as a whole (when the slide changes), `section-transition`
+    // for the swaps between its ## sections (default: the same as the slide's). The head of a slide takes no part in the latter.
+    const meta = this.deck.slides[step.slide].meta;
+    const slideKind = meta.transition ?? this.textTransition;
+    const sameSlide = step.slide === this.headSlide;
+    const sectionKind = meta['section-transition'] ?? this.sectionTransition ?? slideKind;
+    const enterKind = sameSlide ? sectionKind : slideKind;
+    const exitKind = sameSlide ? sectionKind : this.curSlideKind;
     const textCut = enterKind === 'none';
     const sectionChanged = this.textSection !== step.sectionIndex;
     // content that travels (slide-right / slide-left): the old one leaves in that direction, the new one comes in from the other side
-    const exitDir = sectionChanged && !first && !instant ? slideDir(this.curKind) : 0;
+    const exitDir = sectionChanged && !first && !instant ? slideDir(exitKind) : 0;
     const enterDir = sectionChanged && !first && !instant ? slideDir(enterKind) : 0;
-    if (sectionChanged) this.leaveText(first || instant || textCut, step.slide !== this.headSlide, exitDir);
+    if (sectionChanged) this.leaveText(first || instant || textCut, !sameSlide, exitDir);
     this.applySlide(step.slide, first || instant);
+    this.enterKind = enterKind;
     this.swapText(step, first || instant);
-    this.curKind = enterKind;
+    this.curSlideKind = slideKind;
     this.applyStage(step, first || instant);
     this.advance(step, first || instant || cut, -enterDir * SLIDE_PX, exitDir * SLIDE_PX);
     this.updateHud();
@@ -492,7 +504,7 @@ export class Player {
     grid.addEventListener('loadedmetadata', () => this.relayout(false), true);
     this.gridEl = grid;
     // the new text waits until the old one is (almost) gone, so two headings never overlap
-    if (!instant) this.enterText([...headItems, ...items.filter((i) => i.at <= step.stage)].map((i) => i.el), meta, this.leaving ? LEAVE_S * 0.65 : 0);
+    if (!instant) this.enterText([...headItems, ...items.filter((i) => i.at <= step.stage)].map((i) => i.el), this.enterKind, meta, this.leaving ? SYNC_DELAY : 0);
     for (const v of views) {
       const m = metrics.get(v.block);
       v.cols = m?.cols ?? 1;
@@ -541,9 +553,9 @@ export class Player {
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
-  private enterText(els: HTMLElement[], meta: Record<string, string>, baseDelay = 0) {
-    const kind = meta.transition ?? this.textTransition;
-    const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
+  private enterText(els: HTMLElement[], kind: string, meta: Record<string, string>, baseDelay = 0) {
+    // content that travels moves as one piece (text and code in step), so no stagger
+    const stagger = slideDir(kind) ? 0 : (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
     if (kind === 'none') return;
     const from: Record<string, string> = {
       fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-right': `translateX(${-SLIDE_PX}px)`, 'slide-left': `translateX(${SLIDE_PX}px)`, zoom: 'scale(0.94)',
@@ -675,7 +687,7 @@ export class Player {
         this.tokens.set(key, tk);
         void el.offsetWidth;
         el.style.transition = '';
-        el.style.setProperty('--d', instant ? '0s' : `${this.fadeInDelay}s`);
+        el.style.setProperty('--d', instant ? '0s' : `${enterDx ? SYNC_DELAY : this.fadeInDelay}s`);
         if (enterDx) this.setTransform(el, x, y, scale);
         el.style.opacity = opacity;
       }
@@ -688,8 +700,10 @@ export class Player {
       const br = v.box.getBoundingClientRect();
       const cs = getComputedStyle(v.box);
       const padL = parseFloat(cs.paddingLeft) || 0;
-      const x0 = (br.left - sr.left) / k;
-      const y0 = (br.top - sr.top) / k;
+      // the box sits in an item that may be mid-entrance (translated): measure where it will rest, not where it is now
+      const sh = this.translation(v.box);
+      const x0 = (br.left - sr.left) / k - sh.dx;
+      const y0 = (br.top - sr.top) / k - sh.dy;
       const innerW = v.box.clientWidth - padL;
       const boxH = v.box.clientHeight;
       // the block's own alignment (fence classes / halign= valign=) wins over the slide's
@@ -720,7 +734,7 @@ export class Player {
       tk.el.style.opacity = '0';
       if (exitDx && tk.pos && !instant) {
         // leaving with a sliding section: drift out to the side while fading
-        tk.el.style.transition = 'opacity calc(var(--fade-dur) * 0.55) ease-out, transform calc(var(--move-dur) * 0.7) var(--ease)';
+        tk.el.style.transition = `opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`; // as fast as the text leaves
         this.setTransform(tk.el, tk.pos.x + exitDx, tk.pos.y, tk.pos.s);
       }
       tk.timer = window.setTimeout(() => {
@@ -732,6 +746,20 @@ export class Player {
       void this.codeLayer.offsetWidth; // apply the styles without transitions before re-enabling them
       this.codeLayer.classList.remove('no-anim');
     }
+  }
+
+  /** the translation (CSS px) applied to `el` by itself and its ancestors up to the stage (entrance animations) */
+  private translation(el: HTMLElement): { dx: number; dy: number } {
+    let dx = 0;
+    let dy = 0;
+    for (let e: HTMLElement | null = el; e && e !== this.stage; e = e.parentElement) {
+      const t = getComputedStyle(e).transform;
+      if (!t || t === 'none') continue;
+      const m = new DOMMatrixReadOnly(t);
+      dx += m.m41;
+      dy += m.m42;
+    }
+    return { dx, dy };
   }
 
   /** Re-layout after a window resize / image load. */

@@ -76,6 +76,7 @@ export interface AnimationOpts {
   slideFade?: number; // s, background/text change
   textTransition?: 'fade' | 'slide' | 'slide-right' | 'slide-left' | 'zoom' | 'none'; // section text entrance
   textStagger?: number; // s, delay between consecutive text elements (default 0.06: heading first, then the body)
+  sectionTransition?: 'fade' | 'slide' | 'slide-right' | 'slide-left' | 'zoom' | 'none'; // swaps between the ## sections of a slide (default: the slide's own transition)
   textDrift?: number; // px, how far text drifts while it fades (new text rises into place, old text lifts away); 0 = none (default 8)
 }
 

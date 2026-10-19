@@ -17,8 +17,7 @@
 .stage.spotlight .item h2 { color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
 .stage.spotlight .item p { color: var(--fg); font-size: 1.1em; }
 
-/* room under headings (each markdown block is its own .item) */
-.item-h1, .item-h2, .item-h3 { margin-bottom: 0.9em; }
+/* room under headings: scaled with the heading in the engine's stylesheet */
 .item p { margin: 0.55em 0; }
 
 /* the short rule under a cover title follows the title's alignment */

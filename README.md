@@ -232,7 +232,8 @@ valign: center        # start | center | end (default start): where the content 
 justify: true         # justified paragraphs (the last line stays at the start)
 class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
-transition: slide     # text entrance: fade | slide | slide-right | slide-left | zoom | none (none = a hard cut, no fade at all)
+transition: slide     # how the slide's content comes in: fade | slide | slide-right | slide-left | zoom | none (none = a hard cut)
+section-transition: slide-right   # the same, for the swaps between the ## sections of the slide (default: transition)
 stagger: 0.1          # seconds between consecutive text elements
 heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (width of the left cell, default equal), cols, rows (grid track sizes)
 accent: #ffb454       # also heading-color, text-color
