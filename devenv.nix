@@ -11,6 +11,8 @@
   # przez bindingsy 'sdl2'/'sdl2-ttf'.
   packages = with pkgs; [
     ghcid
+    nodejs
+    chromium
     pkg-config
     SDL2
     SDL2_ttf
