@@ -277,3 +277,7 @@ body.print-mode #app { position: static; }
 .stage[data-anchor='top'].layout-side:not(.centered) .text-layer,
 .stage[data-anchor='top'].layout-side-right:not(.centered) .text-layer { align-self: flex-start; margin-top: var(--anchor-top); }
 .stage[data-anchor='top'].centered:not(.layout-cover) .text-layer { justify-content: flex-start; padding-top: var(--anchor-top); }
+
+/* a text-only slide in a side layout is a column: the text block must fill the width (not be centered by the
+   row-direction `align-self: center`) so its left edge stays where it is on two-column slides */
+.stage.layout-side.centered .text-layer, .stage.layout-side-right.centered .text-layer { flex: 1; align-self: stretch; }

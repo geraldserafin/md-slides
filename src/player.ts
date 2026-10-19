@@ -337,15 +337,26 @@ export class Player {
     // Fractional pixels (getBoundingClientRect, undone for a scaled parent), not the rounded offset*: even a
     // sub-pixel difference makes the old text hop when the ghost takes over.
     // As an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it.
-    const m = old.firstElementChild ? parseFloat(getComputedStyle(old.firstElementChild).marginTop) || 0 : 0;
+    const first = old.firstElementChild;
+    const m = first ? parseFloat(getComputedStyle(first).marginTop) || 0 : 0;
     const sr = this.stage.getBoundingClientRect();
     const k = sr.width / (this.stage.offsetWidth || 1) || 1;
     const or = old.getBoundingClientRect();
+    const fBefore = first?.getBoundingClientRect();
     const box = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k - m}px;width:${or.width / k}px`;
     old.classList.add('leaving');
     old.style.cssText = `${box};opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
     ghost.append(old);
     this.stage.after(ghost);
+    // Whether that first-item margin collapsed out of the box depends on the layout (block child vs flex item),
+    // so do not assume: compare where the first item is now with where it was and correct the difference.
+    if (first && fBefore) {
+      const fAfter = first.getBoundingClientRect();
+      const dy = (fBefore.top - fAfter.top) / k;
+      const dx = (fBefore.left - fAfter.left) / k;
+      if (Math.abs(dy) > 0.01) old.style.top = `${parseFloat(old.style.top) + dy}px`;
+      if (Math.abs(dx) > 0.01) old.style.left = `${parseFloat(old.style.left) + dx}px`;
+    }
     void old.offsetWidth;
     old.style.opacity = '0';
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
