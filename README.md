@@ -57,6 +57,36 @@ With a single deck the viewer opens it directly; with several it shows a **galle
 live thumbnail of its first slide, the title and a line with author, date and the number of slides. The gallery follows the OS light/dark mode and has a toggle (every animation step counts as a slide, as it does for the audience).
 Make the first slide a `layout: cover` slide with a background and the card looks good.
 
+### Customizing the chooser (`hub.json`)
+
+Put a `hub.json` in the folder that holds the deck folders (or point at one with `--hub <file|folder>`). Files next to it
+that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `hub.json` are relative to that folder.
+
+```json
+{
+  "title": "Acme talks",
+  "subtitle": "Engineering all-hands",
+  "logo": "logo.svg",
+  "footer": "Acme Corp · internal",
+  "theme": "dark",
+  "align": "center",
+  "order": ["roadmap", "postmortem"]
+}
+```
+
+| Key | Purpose |
+| --- | --- |
+| `title`, `subtitle` | the heading of the page (also the browser tab title); default `slides` and a tagline |
+| `logo` | an image above the title |
+| `footer` | a line of small text at the bottom |
+| `theme` | start theme: `dark`, `light`, `paper` or one of your own `themes` (a visitor's saved choice wins) |
+| `themes`, `fonts`, `googleFonts`, `css` | like in `deck.json`: your own colors, fonts and an extra stylesheet for the page |
+| `align` | `start` (default) or `center` for the header and footer |
+| `cardWidth` | minimum card width in px (default 340) |
+| `show` | what the line under a card title lists, from `author`, `date`, `slides` (default all three) |
+| `order` | deck folder names, first to last; the others follow in their usual order |
+| `colorToggle` | `false` hides the light/dark button |
+
 ## Examples
 
 `examples/` has four decks you can read as templates (two are `hidden` from the gallery for now). Start with **`guide`**, a ~60-slide manual (about 150 steps) that is

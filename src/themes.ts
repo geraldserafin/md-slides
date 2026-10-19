@@ -60,7 +60,7 @@ export function loadDeckCss(href: string) {
  *   "googleFonts": ["Inter:wght@400;700", "Fira Code"]
  * New themes join the `t` key cycle.
  */
-export function registerDeckStyle(meta: DeckMeta, baseUrl: string) {
+export function registerDeckStyle(meta: Pick<DeckMeta, 'themes' | 'fonts' | 'googleFonts'>, baseUrl: string) {
   const css: string[] = [];
   for (const [name, vars] of Object.entries(meta.themes ?? {})) {
     if (!themeList.includes(name)) themeList = [...themeList, name];

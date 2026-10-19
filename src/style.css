@@ -201,7 +201,12 @@ body.print-mode #app { position: static; }
 .scheme-toggle:hover { background: color-mix(in srgb, var(--fg) 10%, transparent); color: var(--fg); }
 .gallery > header h1 { margin: 0; font-size: clamp(28px, 4vmin, 44px); font-weight: 650; letter-spacing: -0.02em; color: var(--heading); }
 .gallery > header p { margin: 6px 0 0; color: var(--muted); font-size: clamp(14px, 1.8vmin, 18px); }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 40px 32px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-w, 340px), 1fr)); gap: 40px 32px; }
+.gallery .logo { display: block; height: clamp(28px, 5vmin, 52px); margin: 0 0 14px; }
+.gallery.align-center > header .titles { flex: 1; text-align: center; padding-inline: 38px; } /* balances the 38px light/dark button on the right */
+.gallery.align-center > header .logo { margin-inline: auto; }
+.gallery > footer { margin-top: 56px; color: var(--muted); font-size: 0.85rem; }
+.gallery.align-center > footer { text-align: center; }
 .card { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--fg); outline: none; }
 .card-thumb {
   position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: var(--code-bg);

@@ -3,7 +3,22 @@
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
-export function stageDecks(dirs, publicDir) {
+/** the gallery's own config + assets: hub.json and everything next to it that is not a deck, copied to decks/_hub/ */
+function stageHub(hubDir, deckDirs, out) {
+  const file = join(hubDir, 'hub.json');
+  if (!existsSync(file)) throw new Error(`no hub.json in: ${hubDir}`);
+  const dest = join(out, '_hub');
+  mkdirSync(dest, { recursive: true });
+  const decks = new Set(deckDirs.map((d) => resolve(d)));
+  for (const e of readdirSync(hubDir, { withFileTypes: true })) {
+    const src = join(hubDir, e.name);
+    if (decks.has(resolve(src)) || /^(node_modules|\.git)$/.test(e.name)) continue;
+    cpSync(src, join(dest, e.name), { recursive: true });
+  }
+  return JSON.parse(readFileSync(file, 'utf8'));
+}
+
+export function stageDecks(dirs, publicDir, hubDir) {
   const out = join(publicDir, 'decks');
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -21,6 +36,7 @@ export function stageDecks(dirs, publicDir) {
     decks.push({ name, title: meta.title ?? name, description: meta.description, author: meta.author, date: meta.date, hidden: meta.hidden, thumbnail: meta.thumbnail, order: meta.order ?? 100 });
   }
   decks.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
-  writeFileSync(join(out, 'index.json'), JSON.stringify({ decks }, null, 2));
+  const hub = hubDir ? stageHub(resolve(hubDir), dirs, out) : undefined;
+  writeFileSync(join(out, 'index.json'), JSON.stringify({ decks, hub }, null, 2));
   return decks;
 }

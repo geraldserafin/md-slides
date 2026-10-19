@@ -1,0 +1,6 @@
+{
+  "title": "slides",
+  "subtitle": "Markdown presentations whose code transitions are animated by an AST diff",
+  "footer": "Press → in any deck to start · o for the slide drawer",
+  "order": ["guide", "refactoring"]
+}

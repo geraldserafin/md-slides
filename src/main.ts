@@ -52,9 +52,9 @@ setTimeout(() => {
 }, 12000);
 
 async function chooser() {
-  const decks = await loadIndex();
+  const { decks, hub } = await loadIndex();
   if (decks.length === 1) return decks[0].name;
-  showGallery(app, decks.filter((d) => !d.hidden));
+  showGallery(app, decks.filter((d) => !d.hidden), hub);
   return undefined;
 }
 
