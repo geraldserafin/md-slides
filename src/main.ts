@@ -91,13 +91,6 @@ async function main() {
   };
 
   let overview: Overview | undefined;
-  const fitDrawer = () => {
-    const k = Math.max(0.3, (innerWidth - 316) / innerWidth);
-    document.documentElement.style.setProperty('--ds', String(k));
-    document.documentElement.style.setProperty('--dy', `${(innerHeight * (1 - k)) / 2}px`);
-  };
-  addEventListener('resize', fitDrawer);
-  fitDrawer();
   const toggleDrawer = () => {
     if (overview && !overview.closed) { overview.close(); return; }
     overview = openOverview(deck, steps, player.state().slide, (i) => player.go(i));
