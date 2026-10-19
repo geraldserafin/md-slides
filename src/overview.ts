@@ -12,7 +12,7 @@ export interface Overview {
   readonly closed: boolean;
 }
 
-const THUMB_W = 268;
+const THUMB_W = 280;
 
 export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
   const el = document.createElement('aside');
@@ -51,7 +51,7 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
     cell.onclick = (e) => { e.stopPropagation(); pick(first); };
     list.append(cell);
     cells.push(cell);
-    io.observe(cell);
+    setTimeout(() => !closed && io.observe(cell), 420); // build the thumbnails after the slide-in, not during it
   });
 
   let sel = -1;
