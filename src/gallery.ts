@@ -17,6 +17,10 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
+/** to the audience every animation step looks like a slide of its own, so that is what we count */
+const countSteps = (deck: Deck) =>
+  deck.slides.reduce((n, slide) => n + slide.sections.reduce((m, s) => m + Math.max(1, s.codes.length), 0), 0);
+
 export function showGallery(app: HTMLElement, entries: DeckEntry[]) {
   app.innerHTML = `
     <div class="gallery">
@@ -45,7 +49,7 @@ export function showGallery(app: HTMLElement, entries: DeckEntry[]) {
 
 async function fillCard(card: HTMLElement, entry: DeckEntry) {
   const deck = await loadDeck(entry.name);
-  const meta = [entry.author, entry.date, plural(deck.slides.length, 'slide')].filter(Boolean).join(' · ');
+  const meta = [entry.author, entry.date, plural(countSteps(deck), 'slide')].filter(Boolean).join(' · ');
   card.querySelector('.card-meta')!.textContent = meta;
 
   // thumbnail: a real Player showing the first slide, scaled down

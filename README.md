@@ -54,7 +54,7 @@ my-talk/
 
 `slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
 With a single deck the viewer opens it directly; with several it shows a **gallery**: a card per deck with a
-live thumbnail of its first slide, the title and a line with author, date and the number of slides.
+live thumbnail of its first slide, the title and a line with author, date and the number of slides (every animation step counts as a slide, as it does for the audience).
 Make the first slide a `layout: cover` slide with a background and the card looks good.
 
 ## Examples
