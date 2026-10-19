@@ -1,5 +1,5 @@
 /* A quiet, book-like look: Computer Modern, generous margins, theme-aware accents. */
-.stage .text { max-width: 44em; }
+.stage .text { max-width: 56em; }
 .item h1, .item h2, .item h3 { letter-spacing: -0.005em; font-weight: 700; }
 .item p { color: color-mix(in srgb, var(--fg) 90%, transparent); line-height: 1.5; }
 .item ul, .item ol { color: color-mix(in srgb, var(--fg) 90%, transparent); }

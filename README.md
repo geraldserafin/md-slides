@@ -95,8 +95,27 @@ function total(items: number[]) {
 ````
 
 Tabs in code are expanded to four spaces. Pressing → plays the transition from the first block to the second. Text before a code block belongs to
-that block's section. A section without code is centered on screen (a title slide). Blocks in
-languages without a grammar are shown as static code.
+that block's section. A section without code is just text. Blocks in languages without a grammar are shown
+as static code.
+
+**Columns.** A slide is one column by default (title, text, code, from the top left). A line with three dashes
+splits it into two columns, 50 / 50 (`split: 40%` in the front matter changes the width of the left one). Either
+side can hold text, images, or code, and code on either side is animated:
+
+````markdown
+## Code that moves
+
+The text goes in the left column.
+
+---
+
+```ts
+let a = 1;
+```
+````
+
+Put a blank line before `---`, otherwise Markdown reads the line above it as a heading. For code on the left, put the
+fence first and the text after the `---`. Alignment inside the columns is `valign` / `halign` (see below).
 
 **Fence options** go after the language: ` ```cpp .left size=18 fit=none `
 
@@ -128,7 +147,7 @@ An optional block at the top of a `.md` file:
 
 ```yaml
 ---
-layout: side          # side | side-right | cover (default: text above code)
+layout: cover         # a title slide (the old side / side-right still work: text left + code right, or the reverse)
 theme: light          # theme for this slide only
 background: img.jpg   # an image (relative to the .md) or any CSS: "linear-gradient(...)", "#123"
 halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
@@ -138,7 +157,7 @@ class: my-class       # extra CSS class on the stage
 title: Custom title   # title shown in the presenter view
 transition: slide     # text entrance: fade | slide | slide-left | zoom | none (none = a hard cut, no fade at all)
 stagger: 0.1          # seconds between consecutive text elements
-heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (text column in side layouts)
+heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (width of the left column, default 50%)
 accent: #ffb454       # also heading-color, text-color
 footer: off           # hide the deck's footer / header on this slide (header: off)
 --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
@@ -155,7 +174,7 @@ Optional, placed in the deck folder:
   "theme": "ocean",
   "css": "deck.css",
   "vars": { "--font-heading": "Georgia, serif" },
-  "defaults": { "layout": "side", "justify": "true" },
+  "defaults": { "justify": "true", "padding": "9vmin 12vmin" },
   "columns": { "valign": "center" },
   "textOnly": { "halign": "center", "valign": "center" },
   "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
@@ -180,7 +199,7 @@ Optional, placed in the deck folder:
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
 | `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
-| `columns` | like `defaults`, but only for slides that show two columns (text next to code in a `side` layout), e.g. `{"valign": "center"}` |
+| `columns` | like `defaults`, but only for slides that have two columns (a `---` line), e.g. `{"valign": "center"}` |
 | `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |

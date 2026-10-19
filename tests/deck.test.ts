@@ -67,3 +67,49 @@ describe('chrome (header/footer)', () => {
     expect(barVisible(undefined, {}, 'footer')).toBe(false);
   });
 });
+
+describe('columns (a --- line)', () => {
+  const parse = (md: string) => parseSlide(md, 'http://x/s.md');
+  const texts = (items: { kind: string; html?: string }[]) => items.map((i) => (i.html ?? '').replace(/<[^>]+>|\n/g, ''));
+
+  it('text left, code right', () => {
+    const s = parse('## T\n\nleft\n\n---\n\n```ts\na;\n```\n');
+    expect(s.sections).toHaveLength(1);
+    expect(texts(s.sections[0].items)).toEqual(['T', 'left']);
+    expect(s.sections[0].right).toEqual([]);
+    expect(s.sections[0].codeCol).toBe(1);
+  });
+
+  it('code left, text right', () => {
+    const s = parse('```ts\na;\n```\n\n---\n\n## Right\n\nmore\n');
+    expect(s.sections).toHaveLength(1);
+    expect(s.sections[0].codeCol).toBe(0);
+    expect(texts(s.sections[0].right ?? [])).toEqual(['Right', 'more']);
+  });
+
+  it('text in both columns, no code', () => {
+    const s = parse('left\n\n---\n\nright\n');
+    expect(s.sections).toHaveLength(1);
+    expect(texts(s.sections[0].items)).toEqual(['left']);
+    expect(texts(s.sections[0].right ?? [])).toEqual(['right']);
+    expect(s.sections[0].hasFence).toBe(false);
+  });
+
+  it('frames keep merging on the code side', () => {
+    const s = parse('text\n\n---\n\n```ts\na;\n```\n\n```ts\nb;\n```\n');
+    expect(s.sections).toHaveLength(1);
+    expect(s.sections[0].codes).toEqual(['a;', 'b;']);
+  });
+
+  it('no --- means one column', () => {
+    const s = parse('text\n\n```ts\na;\n```\n');
+    expect(s.sections[0].right).toBeUndefined();
+    expect(s.sections[0].codeCol).toBe(0);
+  });
+
+  it('the old layout: side still gives text left, code right', () => {
+    const s = parse('---\nlayout: side\n---\n\ntext\n\n```ts\na;\n```\n');
+    expect(s.sections[0].right).toEqual([]);
+    expect(s.sections[0].codeCol).toBe(1);
+  });
+});

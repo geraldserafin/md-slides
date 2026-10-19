@@ -1,6 +1,8 @@
 ## A longer story: growing a class
 
-<!-- Eight frames, one idea each. Walk through them slowly: this is how a real refactoring talk reads. -->
+Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads.
+
+---
 
 ```python
 class Stack:

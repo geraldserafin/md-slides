@@ -1,12 +1,13 @@
 ---
-layout: side
-split: 52%
+split: 34%
 ---
 
-## Wider text column: `split`
+## Column widths: `split`
 
-In the `side` and `side-right` layouts the text takes 36% of the width by default.
-`split: 52%` gives it more room, here for a longer explanation next to a short snippet.
+In a two-column slide the left column takes 50% of the width by default.
+`split: 34%` makes it narrower, here for a short note next to wider code.
+
+---
 
 ```ts
 const columns = { text: "52%", code: "the rest" };

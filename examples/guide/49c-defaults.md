@@ -4,8 +4,8 @@
 
 ````jsonc
 "defaults": {
-  "layout": "side",
   "justify": "true",
+  "padding": "9vmin 12vmin",
   "heading-size": "56"
 },
 "columns": {

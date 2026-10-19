@@ -44,10 +44,19 @@ body { font-family: var(--font-text); font-size: var(--text-size); }
 
 .stage {
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
-  display: flex; flex-direction: column; padding: var(--stage-padding, 3vmin 40px 4vmin);
+  display: flex; flex-direction: row; gap: var(--col-gap, 5vmin); padding: var(--stage-padding, 3vmin 40px 4vmin);
 }
+/* columns: one by default; a `---` line in the markdown makes two, split 50 / 50 (front matter: split: 40%) */
+.col { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; min-height: 0; }
+.col-1 { display: none; }
+.stage.two-col .col-1 { display: flex; }
+.stage.two-col .col-0 { flex: 0 0 calc(var(--split, 50%) - var(--col-gap, 5vmin) / 2); }
 .text-layer { flex: 0 0 auto; position: relative; }
 .code-area { flex: 1 1 0; min-height: 0; }
+.col.no-code .code-area { display: none; }
+.col.no-text .text-layer { display: none; }
+/* a column without code is all text: it fills the column so that valign has room to work */
+.col.no-code .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
 
 .text { transition: opacity var(--fade-dur) ease; }
 .ghost { pointer-events: none; }
@@ -118,13 +127,6 @@ body.show-help::after { opacity: 1; }
 .bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity var(--fade-dur) ease; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
-.stage.layout-side { flex-direction: row; align-items: stretch; gap: 4vmin; }
-.stage.layout-side.text-only, .stage.layout-side-right.text-only { flex-direction: column; }
-.stage.layout-side .text-layer { flex: 0 0 var(--split, 36%); align-self: flex-start; }
-.stage.layout-side .code-area { flex: 1; }
-.stage.layout-side-right { flex-direction: row-reverse; }
-.stage.layout-side-right .text-layer { flex: 0 0 var(--split, 36%); align-self: flex-start; }
-.stage.layout-side-right .code-area { flex: 1; }
 .stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }
 
 /* ---- slide drawer (overview) ---------------------------------------------------- */
@@ -250,7 +252,7 @@ body.print-mode #app { position: static; }
 /* ---- alignment -------------------------------------------------------------------------
    Everything starts at the top left. The stage carries data-h / data-v (start | center | end), set from
    the slide's halign / valign (or the deck's defaults / columns). A text-only slide is one column
-   that fills the stage; two columns (text + code in a side layout) are aligned vertically each. */
+   that fills the stage; the two columns of a `---` slide are aligned vertically each. */
 .stage[data-h='start'] .item { text-align: start; }
 .stage[data-h='center'] .item { text-align: center; }
 .stage[data-h='end'] .item { text-align: end; }
@@ -266,10 +268,6 @@ body.print-mode #app { position: static; }
 /* justified paragraphs (front matter: justify: true) */
 .stage[data-justify] .item p { text-align: justify; text-align-last: start; hyphens: auto; }
 
-.stage.text-only .text-layer { flex: 1; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-start; } /* the full width of the stage, even in the side layouts */
-.stage.text-only[data-v='center'] .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
-.stage.text-only[data-v='end'] .text-layer { justify-content: safe flex-end; }
-.stage.text-only .code-area { flex: 0; }
-.stage.two-col[data-v='center'] .text-layer { align-self: center; }
-.stage.two-col[data-v='end'] .text-layer { align-self: flex-end; }
+.stage[data-v='center'] .col.no-code .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
+.stage[data-v='end'] .col.no-code .text-layer { justify-content: safe flex-end; }
 

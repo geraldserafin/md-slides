@@ -51,14 +51,14 @@ export interface PlayerState {
 export class Player {
   private idx = -1;
   private tokens = new Map<string, Token>();
-  private textEl?: HTMLElement;
+  private textEls: (HTMLElement | undefined)[] = [undefined, undefined]; // per column
   private textSection = -1;
   private counterTimer?: number;
   private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
-  private textLayer: HTMLElement;
-  private codeArea: HTMLElement;
+  private cols: { el: HTMLElement; text: HTMLElement; code: HTMLElement }[];
+  private codeArea: HTMLElement; // the code area of the column the current section's code sits in
   private codeLayer: HTMLElement;
   private slideShown = -1;
   private ro: ResizeObserver;
@@ -91,22 +91,26 @@ export class Player {
     root.innerHTML = `
       ${bar('header')}
       <div class="stage">
-        <div class="text-layer"></div>
-        <div class="code-area"></div>
+        <div class="col col-0"><div class="text-layer"></div><div class="code-area"></div></div>
+        <div class="col col-1"><div class="text-layer"></div><div class="code-area"></div></div>
         <div class="code-layer"></div>
       </div>
       ${bar('footer')}
       <div class="hud"><div class="progress"><i></i></div><span class="counter"></span></div>`;
     this.stage = root.querySelector('.stage')!;
-    this.textLayer = root.querySelector('.text-layer')!;
-    this.codeArea = root.querySelector('.code-area')!;
+    this.cols = [...root.querySelectorAll<HTMLElement>('.col')].map((el) => ({
+      el, text: el.querySelector<HTMLElement>('.text-layer')!, code: el.querySelector<HTMLElement>('.code-area')!,
+    }));
+    this.codeArea = this.cols[0].code;
     this.codeLayer = root.querySelector('.code-layer')!;
 
     this.ro = new ResizeObserver(() => this.relayout(true));
     this.ro.observe(this.stage);
     // images/videos change the text height once loaded
-    this.textLayer.addEventListener('load', () => this.relayout(false), true);
-    this.textLayer.addEventListener('loadedmetadata', () => this.relayout(false), true);
+    for (const c of this.cols) {
+      c.text.addEventListener('load', () => this.relayout(false), true);
+      c.text.addEventListener('loadedmetadata', () => this.relayout(false), true);
+    }
   }
 
   get index() { return this.idx; }
@@ -314,44 +318,49 @@ export class Player {
    * keeps the old look no matter how the stage changes for the next slide.
    */
   private leaveText(instant: boolean) {
-    const old = this.textEl;
-    if (!old) return;
-    this.textEl = undefined;
-    if (instant) { old.remove(); return; }
+    const olds = this.textEls.filter((e): e is HTMLElement => !!e);
+    this.textEls = [undefined, undefined];
+    if (!olds.length) return;
+    if (instant) { olds.forEach((o) => o.remove()); return; }
     const ghost = document.createElement('div');
     ghost.className = `${this.stage.className} ghost`;
     // pin the ghost to the stage's current box, so a header/footer change on the next slide cannot move it
     ghost.style.cssText = `${this.stage.style.cssText};top:${this.stage.offsetTop}px;bottom:${this.root.clientHeight - this.stage.offsetTop - this.stage.offsetHeight}px`;
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
     for (const k of ['h', 'v', 'justify']) if (this.stage.dataset[k] !== undefined) ghost.dataset[k] = this.stage.dataset[k];
-    // keep the current opacity (the text may still be fading in when the user navigates again)
-    const opacity = getComputedStyle(old).opacity;
-    // measure BEFORE `.leaving` (position: absolute shrinks the box to its content).
-    // Fractional pixels (getBoundingClientRect, undone for a scaled parent), not the rounded offset*: even a
-    // sub-pixel difference makes the old text hop when the ghost takes over.
-    // As an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it.
-    const first = old.firstElementChild;
-    const m = first ? parseFloat(getComputedStyle(first).marginTop) || 0 : 0;
     const sr = this.stage.getBoundingClientRect();
     const k = sr.width / (this.stage.offsetWidth || 1) || 1;
-    const or = old.getBoundingClientRect();
-    const fBefore = first?.getBoundingClientRect();
-    const box = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k - m}px;width:${or.width / k}px`;
-    old.classList.add('leaving');
-    old.style.cssText = `${box};opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
-    ghost.append(old);
-    this.stage.after(ghost);
-    // Whether that first-item margin collapsed out of the box depends on the layout (block child vs flex item),
-    // so do not assume: compare where the first item is now with where it was and correct the difference.
-    if (first && fBefore) {
-      const fAfter = first.getBoundingClientRect();
-      const dy = (fBefore.top - fAfter.top) / k;
-      const dx = (fBefore.left - fAfter.left) / k;
-      if (Math.abs(dy) > 0.01) old.style.top = `${parseFloat(old.style.top) + dy}px`;
-      if (Math.abs(dx) > 0.01) old.style.left = `${parseFloat(old.style.left) + dx}px`;
+    // measure everything BEFORE moving anything (`.leaving` is position: absolute and shrinks the box to its content).
+    // Fractional pixels (getBoundingClientRect, undone for a scaled parent), not the rounded offset*: even a
+    // sub-pixel difference makes the old text hop when the ghost takes over.
+    const infos = olds.map((old) => {
+      const first = old.firstElementChild;
+      // keep the current opacity (the text may still be fading in when the user navigates again)
+      const opacity = getComputedStyle(old).opacity;
+      // as an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it
+      const m = first ? parseFloat(getComputedStyle(first).marginTop) || 0 : 0;
+      const or = old.getBoundingClientRect();
+      return { old, first, opacity, fBefore: first?.getBoundingClientRect(), box: `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k - m}px;width:${or.width / k}px` };
+    });
+    for (const i of infos) {
+      i.old.classList.add('leaving');
+      i.old.style.cssText = `${i.box};opacity:${i.opacity};transition:opacity ${LEAVE_S}s ease`;
+      ghost.append(i.old);
     }
-    void old.offsetWidth;
-    old.style.opacity = '0';
+    this.stage.after(ghost);
+    for (const i of infos) {
+      // whether that first-item margin collapsed out of the box depends on the layout (block child vs flex item),
+      // so do not assume: compare where the first item is now with where it was and correct the difference
+      if (i.first && i.fBefore) {
+        const fAfter = i.first.getBoundingClientRect();
+        const dy = (i.fBefore.top - fAfter.top) / k;
+        const dx = (i.fBefore.left - fAfter.left) / k;
+        if (Math.abs(dy) > 0.01) i.old.style.top = `${parseFloat(i.old.style.top) + dy}px`;
+        if (Math.abs(dx) > 0.01) i.old.style.left = `${parseFloat(i.old.style.left) + dx}px`;
+      }
+    }
+    void ghost.offsetWidth;
+    infos.forEach((i) => (i.old.style.opacity = '0'));
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
     this.leaving = true;
   }
@@ -359,14 +368,27 @@ export class Player {
   private swapText(step: Step, instant: boolean) {
     if (this.textSection === step.sectionIndex) return;
     this.textSection = step.sectionIndex;
-    const el = document.createElement('div');
-    el.className = 'text';
-    for (const it of step.section.items) el.append(this.renderItem(it));
-    this.textLayer.replaceChildren(el);
-    // the new text waits until the old one is (almost) gone, so two headings never overlap
-    if (!instant) this.enterText(el, this.deck.slides[step.slide].meta, this.leaving ? LEAVE_S * 0.8 : 0);
+    const sec = step.section;
+    const meta = this.deck.slides[step.slide].meta;
+    const columns: Item[][] = [sec.items, sec.right ?? []];
+    this.codeArea = this.cols[sec.codeCol].code;
+    columns.forEach((items, c) => {
+      const col = this.cols[c];
+      col.el.classList.toggle('no-text', items.length === 0);
+      col.el.classList.toggle('no-code', !(sec.hasFence && sec.codeCol === c));
+      if (!items.length) {
+        col.text.replaceChildren();
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'text';
+      for (const it of items) el.append(this.renderItem(it));
+      col.text.replaceChildren(el);
+      // the new text waits until the old one is (almost) gone, so two headings never overlap
+      if (!instant) this.enterText(el, meta, this.leaving ? LEAVE_S * 0.8 : 0);
+      this.textEls[c] = el;
+    });
     this.leaving = false;
-    this.textEl = el;
     this.applyAlign(step);
   }
 
@@ -376,8 +398,7 @@ export class Player {
    */
   private applyAlign(step: Step) {
     const slide = this.deck.slides[step.slide];
-    const layout = slide.meta.layout;
-    const twoCol = (layout === 'side' || layout === 'side-right') && !step.textOnly;
+    const twoCol = step.section.right !== undefined;
     const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns, textOnly: this.deck.meta.textOnly };
     const ctx = { twoColumns: twoCol, textOnly: step.textOnly };
     const st = this.stage;
@@ -388,6 +409,7 @@ export class Player {
     else delete st.dataset.justify;
     st.classList.toggle('text-only', step.textOnly);
     st.classList.toggle('two-col', twoCol);
+    st.classList.toggle('code-right', twoCol && step.section.codeCol === 1);
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */

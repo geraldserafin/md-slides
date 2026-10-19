@@ -129,14 +129,10 @@
     "--heading-size": "clamp(26px, 4.1vmin, 52px)"
   },
   "defaults": {
-    "layout": "side",
-    "justify": "true"
+    "justify": "true",
+    "padding": "9vmin 12vmin"
   },
   "columns": {
-    "valign": "center"
-  },
-  "textOnly": {
-    "halign": "center",
     "valign": "center"
   }
 }

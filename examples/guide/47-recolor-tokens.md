@@ -5,7 +5,6 @@
 --tok-builtin: #ff9f1c
 --tok-punct: #8d99ae
 --accent: #4ecdc4
-layout: side
 ---
 
 ## Recolor syntax per slide
@@ -13,7 +12,9 @@ layout: side
 The front matter of this slide sets `--tok-keyword`, `--tok-ident`, `--tok-type`,
 `--tok-builtin` and `--tok-punct`. No theme needed.
 
-```ts .left
+---
+
+```ts
 interface Point { x: number; y: number }
 
 function norm(p: Point): number {
@@ -21,7 +22,7 @@ function norm(p: Point): number {
 }
 ```
 
-```ts .left
+```ts
 interface Point { x: number; y: number }
 
 function norm({ x, y }: Point): number {

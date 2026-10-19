@@ -19,7 +19,11 @@ export interface Attrs {
 }
 
 export interface Section {
-  items: Item[];
+  items: Item[]; // the text of the (left) column
+  /** the right column, when the markdown has a `---` line; undefined = a single column */
+  right?: Item[];
+  /** which column the animated code sits in: 0 = left (or the only column), 1 = right */
+  codeCol: 0 | 1;
   classes: string[]; // fence classes (e.g. "left")
   opts: Record<string, string>; // fence key=value (e.g. size=18)
   lang?: Lang; // grammar of the animated code
@@ -149,11 +153,28 @@ export function parseSlide(markdown: string, url: string): Slide {
 
   const notes: string[] = [];
   const sections: Section[] = [];
-  let pending: Item[] = [];
+  let pending: Item[] = []; // text of the left / only column, waiting for its section
+  let pendingR: Item[] | undefined; // right column, after a `---`
+  let inRight = false;
+  let target: Section | undefined; // a section whose right column is being filled (code on the left, `---`, text on the right)
   let title = '';
+
+  const add = (item: Item) => {
+    if (target) target.right!.push(item);
+    else if (inRight) pendingR!.push(item);
+    else pending.push(item);
+  };
+
+  const reset = () => {
+    pending = [];
+    pendingR = undefined;
+    inRight = false;
+  };
 
   const newSection = (extra: Partial<Section>): Section => ({
     items: pending,
+    right: pendingR,
+    codeCol: inRight ? 1 : 0,
     classes: [],
     opts: {},
     codes: [],
@@ -163,15 +184,24 @@ export function parseSlide(markdown: string, url: string): Slide {
     ...extra,
   });
 
-  const flushTextOnly = () => {
-    if (pending.length) sections.push(newSection({}));
-    pending = [];
-  };
-
   for (const tok of tokens as Token[]) {
     if (tok.type === 'space') continue;
     if (tok.type === 'html' && tok.raw.trim().startsWith('<!--')) {
       notes.push(stripComment(tok.raw));
+      continue;
+    }
+    if (tok.type === 'hr') {
+      // a thematic break splits the slide into a left and a right column (once per section)
+      if (inRight || target) continue;
+      const last = sections[sections.length - 1];
+      if (pending.length === 0 && last?.hasFence && last.right === undefined) {
+        last.right = []; // code on the left: what follows is the right column of that section
+        last.codeCol = 0;
+        target = last;
+      } else {
+        inRight = true;
+        pendingR = [];
+      }
       continue;
     }
     if (tok.type === 'code') {
@@ -180,7 +210,7 @@ export function parseSlide(markdown: string, url: string): Slide {
       const last = sections[sections.length - 1];
       // same language/classes in a row, no text in between => next frame
       if (
-        f.lang && last && last.lang === f.lang && pending.length === 0 &&
+        f.lang && last && last.lang === f.lang && pending.length === 0 && !inRight && !target &&
         last.classes.join(' ') === f.attrs.classes.join(' ')
       ) {
         last.codes.push(code.text);
@@ -188,30 +218,55 @@ export function parseSlide(markdown: string, url: string): Slide {
         last.transition.push(f.attrs.opts.transition);
         continue;
       }
+      target = undefined;
       if (f.lang) {
         sections.push(newSection({ classes: f.attrs.classes, opts: f.attrs.opts, lang: f.lang, codes: [code.text], focus: [f.attrs.opts.focus], transition: [f.attrs.opts.transition], hasFence: true }));
-        pending = [];
+        reset();
       } else {
-        // language without a grammar: show as a static block in the section text
-        pending.push({ kind: 'code', text: code.text, lang: f.tag });
+        // language without a grammar: show as a static block in the column text
+        add({ kind: 'code', text: code.text, lang: f.tag });
       }
       continue;
     }
+    // a heading after the right column already has content starts something new
+    if (tok.type === 'heading' && target && target.right!.length > 0 && (tok as Tokens.Heading).depth <= 3) target = undefined;
     if (tok.type === 'paragraph') {
       const m = SOLO_MEDIA.exec(tok.raw.trim());
       if (m) {
         const src = resolve(m[2], url);
         const attrs = parseAttrs(m[3]);
-        pending.push(VIDEO_EXT.test(src) ? { kind: 'video', src, attrs } : { kind: 'image', src, alt: m[1], attrs });
+        add(VIDEO_EXT.test(src) ? { kind: 'video', src, attrs } : { kind: 'image', src, alt: m[1], attrs });
         continue;
       }
     }
     if (tok.type === 'heading' && !title) title = (tok as Tokens.Heading).text;
     const html = marked.parser([tok] as Token[]);
-    pending.push({ kind: 'html', html, tag: tok.type === 'heading' ? `h${(tok as Tokens.Heading).depth}` : tok.type });
+    add({ kind: 'html', html, tag: tok.type === 'heading' ? `h${(tok as Tokens.Heading).depth}` : tok.type });
   }
-  flushTextOnly();
-  return { meta, own: meta, sections, notes, title: meta.title || title || '(untitled)', url };
+  if (pending.length || pendingR?.length) sections.push(newSection({ codeCol: 0 }));
+  const slide: Slide = { meta, own: meta, sections, notes, title: meta.title || title || '(untitled)', url };
+  applyLegacyLayout(slide);
+  return slide;
+}
+
+/**
+ * `layout: side` / `side-right` (the old way of getting two columns) turn every section with code into two columns:
+ * text left, code right (side), or code left, text right (side-right). Columns written with `---` are left alone.
+ */
+export function applyLegacyLayout(slide: Slide) {
+  const layout = slide.meta.layout;
+  if (layout !== 'side' && layout !== 'side-right') return;
+  for (const s of slide.sections) {
+    if (!s.hasFence || s.right !== undefined) continue;
+    if (layout === 'side') {
+      s.right = [];
+      s.codeCol = 1;
+    } else {
+      s.right = s.items;
+      s.items = [];
+      s.codeCol = 0;
+    }
+  }
 }
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
@@ -223,6 +278,7 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
       const text = await (await fetch(fileUrl(url))).text();
       const slide = parseSlide(text, url);
       slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
+      applyLegacyLayout(slide);
       return slide;
     }),
   );
