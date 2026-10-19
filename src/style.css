@@ -266,7 +266,7 @@ body.print-mode #app { position: static; }
 /* justified paragraphs (front matter: justify: true) */
 .stage[data-justify] .item p { text-align: justify; text-align-last: start; hyphens: auto; }
 
-.stage.text-only .text-layer { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+.stage.text-only .text-layer { flex: 1; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-start; } /* the full width of the stage, even in the side layouts */
 .stage.text-only[data-v='center'] .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
 .stage.text-only[data-v='end'] .text-layer { justify-content: safe flex-end; }
 .stage.text-only .code-area { flex: 0; }
