@@ -57,10 +57,12 @@ With a single deck the viewer opens it directly; with several it shows a chooser
 
 ## Examples
 
-`examples/` has seven decks you can read as templates:
+`examples/` has eight decks you can read as templates. Start with **`guide`**, a 33-slide manual that is
+itself a deck and uses every feature it describes.
 
 | Deck | Shows |
 | --- | --- |
+| `guide` | the complete guide: slides/sections/frames, what the diff does, languages, fence options, text, images, video, layouts, front matter, themes, `deck.json`, animation, controls, export, build targets, deployment |
 | `demo` | a tour of the viewer: layouts, themes, backgrounds, images, alignment, text transitions, a custom theme |
 | `refactoring` | TypeScript: types, naming, functional style, Extract Method |
 | `typescript-async` | callbacks → promises → `async`/`await` → `Promise.all` |
@@ -212,7 +214,7 @@ Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<
    [`tree-sitter-wasms`](https://www.npmjs.com/package/tree-sitter-wasms) package).
 3. Optionally map node types to token classes in `src/tokens.ts`.
 
-Built in: TypeScript, TSX, JavaScript, C, C++, Python, Rust, Go, Java, Bash, JSON, HTML, CSS, Lua, YAML.
+Built in: TypeScript, TSX, JavaScript, C, C++, Python, Rust, Go, Java, Bash, JSON, HTML, CSS, Lua. (YAML is excluded: the grammar in `tree-sitter-wasms` crashes with this runtime.)
 
 ## How the diff works
 

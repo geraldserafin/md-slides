@@ -13,7 +13,7 @@ import runtimeWasm from 'web-tree-sitter/tree-sitter.wasm?url';
 // Grammars are loaded lazily (each is a separate .wasm file) -- only those the deck actually uses.
 const GRAMMAR_URLS = import.meta.glob(
   [
-    '../node_modules/tree-sitter-wasms/out/tree-sitter-{typescript,tsx,javascript,cpp,c,python,rust,go,java,bash,json,html,css,lua,yaml}.wasm',
+    '../node_modules/tree-sitter-wasms/out/tree-sitter-{typescript,tsx,javascript,cpp,c,python,rust,go,java,bash,json,html,css,lua}.wasm',
   ],
   { query: '?url', import: 'default', eager: true },
 ) as Record<string, string>;
@@ -31,10 +31,12 @@ const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
 
 async function chooser() {
-  const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as { decks: { name: string; title: string }[] };
+  const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as {
+    decks: { name: string; title: string; description?: string }[];
+  };
   if (idx.decks.length === 1) return idx.decks[0].name;
   app.innerHTML = `<div class="chooser"><h1>slides</h1>${idx.decks
-    .map((d) => `<a href="?deck=${encodeURIComponent(d.name)}">${d.title}</a>`)
+    .map((d) => `<a href="?deck=${encodeURIComponent(d.name)}">${d.title}${d.description ? `<small>${d.description}</small>` : ''}</a>`)
     .join('')}</div>`;
   return undefined;
 }

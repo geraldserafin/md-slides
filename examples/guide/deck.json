@@ -1,0 +1,8 @@
+{
+  "title": "slides: the guide",
+  "description": "Everything the tool can do, made with the tool itself",
+  "order": 0,
+  "theme": "dark",
+  "css": "deck.css",
+  "animation": { "move": 0.5, "fade": 0.3, "textTransition": "fade" }
+}

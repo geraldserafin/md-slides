@@ -1,1 +1,6 @@
-{ "title": "Go: error handling that scales", "theme": "light" }
+{
+  "title": "Go: error handling that scales",
+  "description": "Wrapping and checking errors",
+  "order": 6,
+  "theme": "light"
+}

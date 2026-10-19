@@ -1,0 +1,13 @@
+---
+transition: slide
+stagger: 0.18
+---
+
+## Text transitions
+
+`transition:` sets how a slide's text enters: `fade` (default), `slide`, `slide-left`, `zoom`, `none`.
+`stagger:` delays each block after the previous one.
+
+This slide: `slide` with a stagger of `0.18`.
+
+<!-- Defaults for the whole deck: "animation": { "textTransition": ..., "textStagger": ... } in deck.json. -->

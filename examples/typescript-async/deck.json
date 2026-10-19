@@ -1,1 +1,6 @@
-{ "title": "From callbacks to async/await", "theme": "dark" }
+{
+  "title": "From callbacks to async/await",
+  "description": "Callbacks to async/await",
+  "order": 3,
+  "theme": "dark"
+}

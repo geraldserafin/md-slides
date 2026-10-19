@@ -1,1 +1,5 @@
-{ "title": "Refactoring: a cart total" }
+{
+  "title": "Refactoring: a cart total",
+  "description": "TypeScript refactoring: types, naming, functional style",
+  "order": 2
+}

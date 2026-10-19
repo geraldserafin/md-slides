@@ -1,0 +1,32 @@
+## Fence options: alignment
+
+<!-- Options go after the language in the fence: ```ts .left size=18 -->
+
+Classes: `.left` `.center` (default) `.right` for horizontal alignment, `.top` `.middle` for vertical.
+
+```ts .left
+const where = "left";
+```
+
+```ts .left
+const where = "still left, now longer";
+```
+
+## Fence options: size
+
+`size=14` fixes the font size in pixels. Without it the code is scaled to fit,
+using the largest frame of the section, so the size never jumps between frames.
+
+```ts size=14
+const small = "size=14";
+```
+
+```ts size=14
+const small = "size=14, and the same font size in every frame";
+```
+
+## Fence options: `.right`, `.top`
+
+```ts .right .top
+const corner = "top right";
+```

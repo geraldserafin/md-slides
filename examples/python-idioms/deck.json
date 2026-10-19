@@ -1,1 +1,10 @@
-{ "title": "Pythonic refactorings", "theme": "paper", "animation": { "move": 0.55, "textTransition": "slide" } }
+{
+  "title": "Pythonic refactorings",
+  "description": "Loops to comprehensions, dataclasses, with",
+  "order": 4,
+  "theme": "paper",
+  "animation": {
+    "move": 0.55,
+    "textTransition": "slide"
+  }
+}

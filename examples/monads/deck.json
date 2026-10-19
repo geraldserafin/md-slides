@@ -1,1 +1,5 @@
-{ "title": "Monads for error handling" }
+{
+  "title": "Monads for error handling",
+  "description": "C++ error handling with optional and expected",
+  "order": 7
+}

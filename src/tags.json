@@ -8,5 +8,5 @@
   "go": "go", "golang": "go",
   "java": "java",
   "sh": "bash", "bash": "bash", "shell": "bash",
-  "json": "json", "html": "html", "css": "css", "lua": "lua", "yaml": "yaml", "yml": "yaml"
+  "json": "json", "html": "html", "css": "css", "lua": "lua"
 }

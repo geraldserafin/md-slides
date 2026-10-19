@@ -1,0 +1,3 @@
+/* Loaded through "css" in deck.json. Slides opt in with `class: spotlight` in their front matter. */
+.stage.spotlight .item h2 { color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+.stage.spotlight .item p { color: var(--fg); font-size: 1.15em; }
