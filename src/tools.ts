@@ -133,3 +133,15 @@ export function startAutoplay(next: () => boolean, seconds: () => number): () =>
   timer = window.setTimeout(tick, seconds() * 1000);
   return () => { alive = false; clearTimeout(timer); };
 }
+
+/** the black screen (b): hides the slide until you press the key again */
+export function toggleBlack(): boolean {
+  const el = document.querySelector('.black-screen');
+  if (el) { el.remove(); return false; }
+  const d = document.createElement('div');
+  d.className = 'black-screen';
+  d.onclick = () => d.remove();
+  document.body.append(d);
+  return true;
+}
+export const blackScreen = () => !!document.querySelector('.black-screen');

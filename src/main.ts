@@ -9,7 +9,7 @@ import { startPresenterView, CHANNEL } from './presenter';
 import { buildSteps } from './steps';
 import { createOverview, type Overview } from './overview';
 import { startPrintView } from './print';
-import { clearDrawing, drawing, startAutoplay, toggleDraw, toggleLaser, toggleZoom } from './tools';
+import { blackScreen, clearDrawing, drawing, startAutoplay, toggleBlack, toggleDraw, toggleLaser, toggleZoom } from './tools';
 import { initialTheme, loadDeckCss, nextTheme, preloadDeckFonts, registerDeckStyle } from './themes';
 import runtimeWasm from 'web-tree-sitter/tree-sitter.wasm?url';
 
@@ -32,6 +32,18 @@ configureGrammars({
 
 const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
+
+// ?embed=1 (a preview in the presenter window): listen from the start, the parent may speak before the deck is loaded
+type GoMsg = { step: number; instant: boolean };
+let embedGo: ((m: GoMsg) => void) | undefined;
+let embedPending: GoMsg | undefined;
+if (params.has('embed')) {
+  addEventListener('message', (e) => {
+    if (e.data?.type !== 'go') return;
+    if (embedGo) embedGo(e.data);
+    else embedPending = e.data;
+  });
+}
 
 /** the loading spinner (index.html paints the same one before the bundle arrives) */
 let loaderLabel = '';
@@ -85,7 +97,8 @@ async function main() {
     document.body.classList.add('embed');
     const at = parseInt(location.hash.slice(1), 10);
     await player.start(Number.isFinite(at) ? at - 1 : 0);
-    addEventListener('message', (e) => { if (e.data?.type === 'go') player.go(e.data.step, !!e.data.instant); });
+    embedGo = (m) => player.go(m.step, m.instant);
+    if (embedPending) embedGo({ ...embedPending, instant: true }); // the parent was quicker than we were
     return;
   }
 
@@ -97,9 +110,19 @@ async function main() {
     clearDrawing(); // the ink stays on the slide it was drawn on
     publish();
   };
+  const publishOutline = () => ch.postMessage({
+    type: 'outline',
+    slides: deck.slides.map((s, i) => ({ title: s.title || `Slide ${i + 1}`, step: steps.findIndex((st) => st.slide === i) })).filter((o) => o.step >= 0),
+  });
+  // the presenter window: it moves us, runs the tools here (they draw on the audience's screen) and ends the show
   ch.onmessage = (e) => {
-    if (e.data?.type === 'cmd') player.go(e.data.step);
-    if (e.data?.type === 'hello') publish();
+    const m = e.data;
+    if (m?.type === 'cmd') player.go(m.step);
+    else if (m?.type === 'hello') { publish(); publishOutline(); }
+    else if (m?.type === 'tool') {
+      ({ draw: toggleDraw, laser: toggleLaser, zoom: () => toggleZoom(app), black: toggleBlack } as Record<string, () => unknown>)[m.name]?.();
+      refreshTools();
+    } else if (m?.type === 'end') { if (document.fullscreenElement) void document.exitFullscreen(); location.href = location.pathname; }
   };
 
   let overview: Overview | undefined;
@@ -157,6 +180,7 @@ async function main() {
     { title: 'Laser pointer (l)', icon: svg('<circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8"/>'), run: toggleLaser, on: () => document.body.classList.contains('laser') },
     { title: 'Draw (d, c clears, Esc stops)', icon: svg('<path d="M4 20l1-4L16 5l3 3L8 19z"/>'), run: toggleDraw, on: drawing },
     { title: 'Magnifier (z)', icon: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>'), run: () => toggleZoom(app), on: () => document.body.classList.contains('zoomed') },
+    { title: 'Black screen (b)', icon: svg('<rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor"/>'), run: toggleBlack, on: blackScreen },
     { title: 'Autoplay (a)', icon: svg('<path d="M7 5l12 7-12 7z" fill="currentColor"/>'), run: () => (autoplay ? stopAuto() : playAuto()), on: () => autoplay },
     { title: 'Help (h)', icon: svg('<path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h.01"/>'), run: toggleHelp, on: () => document.body.classList.contains('show-help') },
   ];
@@ -201,6 +225,7 @@ async function main() {
       case 'd': toggleDraw(); break;
       case 'c': clearDrawing(); break;
       case 'z': toggleZoom(app); break;
+      case 'b': case '.': toggleBlack(); break;
       case 'a': autoplay ? stopAuto() : playAuto(); break;
       case 'Escape': if (toolBar.classList.contains('open')) toolBar.classList.remove('open'); else if (drawing()) toggleDraw(); break;
       case 'h': case '?': toggleHelp(); break;

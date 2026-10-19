@@ -369,7 +369,8 @@ page whenever a file in the deck folder changes.
 | `Home` / `End` | first / last step |
 | `o` | slide drawer: thumbnails of all slides on the left, current one highlighted, click to jump (also the ☰ button on mouse move); `Esc` closes |
 | `t` | cycle themes (remembered per browser) |
-| `p` | presenter window: live current slide and next step, notes in a big size (`+`/`-`), clock and stopwatch; either window can drive |
+| `p` | presenter window, laid out like PowerPoint's: timer, slide counter, clock and *End show* on top; the current slide big on the left with pen / laser / magnifier / black screen / all-slides buttons and ← → under it; the next slide and the notes (A− A+, or `+`/`-`) on the right. The previews are live and either window can drive |
+| `b` or `.` | black screen (press again to bring the slide back) |
 | `f` | fullscreen |
 | `l` | laser pointer: a glowing dot with a short tail follows the mouse |
 | `d` | draw on the slide (`c` clears, `Esc` stops; the ink goes away when the slide changes) |
