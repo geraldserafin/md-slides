@@ -245,7 +245,7 @@ The font size is fitted to the largest frame of a section and stays constant acr
 ![](clip.mp4){autoplay loop muted}
 ```
 
-Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`, `webm`, `ogv`, `mov`, `m4v`).
+Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`, `webm`, `ogv`, `mov`, `m4v`), audio too (`mp3`, `ogg`, `wav`, `m4a`, `aac`, `flac`, `opus`): `![](talk.mp3){autoplay loop}` shows a player bar and stops when the slide changes.
 
 **Animating one element.** A line `{anim=zoom delay=0.2}` right after an item (blank line between) sets how it comes in: `anim` is `fade`, `rise` (default), `zoom`, `left`, `right`, `down`, `blur`, `pop` or `none`; `delay` and `dur` are seconds; `at=2` puts it on click 2 (instead of a `+++`) and `out=4` makes it leave again on click 4. It works on text, images, tables, code blocks and diagrams.
 
@@ -277,7 +277,7 @@ An optional block at the top of a `.md` file:
 ---
 layout: cover         # a title slide (the old side / side-right still work: text left + code right, or the reverse)
 theme: light          # theme for this slide only
-background: img.jpg   # an image (relative to the .md) or any CSS: "linear-gradient(...)", "#123"
+background: img.jpg   # an image or a looping muted video (clip.mp4) relative to the .md, or any CSS: "linear-gradient(...)", "#123"
 halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
 valign: center        # start | center | end (default start): where the content sits vertically
 justify: true         # justified paragraphs (the last line stays at the start)

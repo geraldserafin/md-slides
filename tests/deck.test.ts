@@ -216,3 +216,11 @@ describe('per-element animation', () => {
     expect(s.sections[0].stages).toBe(5);
   });
 });
+
+describe('audio', () => {
+  it('an audio file becomes an audio item', () => {
+    const s = parseSlide('## A\n\n![](talk.mp3){autoplay loop}\n', 'http://x/d/a.md');
+    const it = sectionItems(s.sections[0]).find((i) => i.kind === 'audio');
+    expect(it?.kind).toBe('audio');
+  });
+});

@@ -15,6 +15,7 @@ export type Item = (
   | { kind: 'html'; html: string; tag: string } // heading/paragraph/list/quote...
   | { kind: 'image'; src: string; alt: string; attrs: Attrs }
   | { kind: 'video'; src: string; attrs: Attrs }
+  | { kind: 'audio'; src: string; attrs: Attrs }
   | { kind: 'diagram'; text: string; attrs: Attrs } // a ```mermaid fence
   | { kind: 'code'; text: string; lang: string } // static block (language without a grammar)
   | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
@@ -164,6 +165,7 @@ marked.use({
 export const isHidden = (s: Slide) => /^(true|yes|on|1)$/i.test(s.meta.hidden ?? '');
 
 const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i;
+const AUDIO_EXT = /\.(mp3|ogg|oga|wav|m4a|aac|flac|opus)(\?.*)?$/i;
 
 /** "{.left width=60% muted}" -> classes + options */
 export function parseAttrs(s: string | undefined): Attrs {
@@ -399,7 +401,7 @@ export function parseSlide(markdown: string, url: string): Slide {
       if (m) {
         const src = resolve(m[2], url);
         const attrs = parseAttrs(m[3]);
-        add(VIDEO_EXT.test(src) ? { kind: 'video', src, attrs } : { kind: 'image', src, alt: m[1], attrs });
+        add(VIDEO_EXT.test(src) ? { kind: 'video', src, attrs } : AUDIO_EXT.test(src) ? { kind: 'audio', src, attrs } : { kind: 'image', src, alt: m[1], attrs });
         continue;
       }
     }

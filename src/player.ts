@@ -324,7 +324,16 @@ export class Player {
     const el = document.createElement("div");
     el.className = "bg";
     const isImage = /\.(png|jpe?g|gif|svg|webp|avif)(\?.*)?$|^(https?:|data:)/i.test(bg);
-    if (isImage) {
+    if (/\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i.test(bg)) {
+      // a looping, muted video behind the slide
+      const v = document.createElement('video');
+      v.src = fileUrl(new URL(bg, base).href);
+      v.autoplay = true;
+      v.muted = true;
+      v.loop = true;
+      v.playsInline = true;
+      el.append(v);
+    } else if (isImage) {
       const src = new URL(bg, base).href;
       el.style.backgroundImage = `url("${src}")`;
     } else el.style.background = bg;
@@ -392,6 +401,19 @@ export class Player {
         this.styleMedia(el, img, it.attrs.classes, it.attrs.opts);
         el.dataset.morph = `img:${it.src}`; // the same picture in the next section glides there (`{morph=none}` turns it off)
         el.append(img);
+        break;
+      }
+      case 'audio': {
+        // `![](talk.mp3){autoplay loop}`: a player bar; it stops when the slide changes
+        el.classList.add('item-media', 'item-audio');
+        const a = document.createElement('audio');
+        a.src = fileUrl(it.src);
+        const o = it.attrs.opts;
+        a.controls = o.controls !== 'false' && !it.attrs.classes.includes('hidden');
+        a.loop = o.loop === 'true' || it.attrs.classes.includes('loop');
+        a.autoplay = o.autoplay === 'true' || it.attrs.classes.includes('autoplay');
+        this.styleMedia(el, a, it.attrs.classes, o);
+        el.append(a);
         break;
       }
       case 'video': {
