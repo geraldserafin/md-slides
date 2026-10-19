@@ -89,5 +89,8 @@
     ],
     "right": "{slide} / {slides}",
     "height": 48
+  },
+  "defaults": {
+    "layout": "side"
   }
 }

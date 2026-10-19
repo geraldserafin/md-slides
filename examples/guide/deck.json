@@ -127,5 +127,8 @@
     "--font-heading": "\"Libertinus Serif\", Georgia, serif",
     "--text-size": "clamp(18px, 2.55vmin, 33px)",
     "--heading-size": "clamp(26px, 4.1vmin, 52px)"
+  },
+  "defaults": {
+    "layout": "side"
   }
 }

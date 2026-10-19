@@ -2,7 +2,7 @@
 
 <!-- Options go after the language in the fence: ```ts .left size=18 -->
 
-Classes: `.left` `.center` (default) `.right` for horizontal alignment, `.middle` (default) and `.top` for vertical.
+Classes: `.left` `.center` (default, except in the side layouts) `.right` for horizontal alignment, `.middle` (default) and `.top` for vertical.
 Other options: `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
 
 ```ts .left

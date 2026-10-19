@@ -412,8 +412,11 @@ export class Player {
       : Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitW > 0 ? availW / fitW : 1, fitH > 0 ? availH / fitH : 1));
     const scaledW = codeW * scale;
     const cls = step.section.classes;
+    // horizontal alignment: centered by default, left in the side layouts (no jitter between frames of different width)
+    const side = this.stage.classList.contains('layout-side') || this.stage.classList.contains('layout-side-right');
+    const hAlign = cls.includes('left') ? 'left' : cls.includes('right') ? 'right' : cls.includes('center') ? 'center' : side ? 'left' : 'center';
     const baseX = ar.left + PAD_X +
-      (cls.includes('left') ? 0 : cls.includes('right') ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
+      (hAlign === 'left' ? 0 : hAlign === 'right' ? Math.max(0, availW - scaledW) : Math.max(0, availW - scaledW) / 2);
     
     const middle = !cls.includes("top"); // code is vertically centered in its area unless pinned with .top
     const topY = ar.top + (middle ? Math.max(0, availH - codeH * scale) / 2 : 0);

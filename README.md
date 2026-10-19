@@ -102,7 +102,7 @@ languages without a grammar are shown as static code.
 
 | Option | Meaning |
 | --- | --- |
-| `.left` `.center` `.right` | horizontal alignment of the code block |
+| `.left` `.center` `.right` | horizontal alignment of the code block (default: centered, left in the side layouts) |
 | `.top` `.middle` | vertical alignment; code is centered vertically in its area by default, `.top` pins it to the top |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
