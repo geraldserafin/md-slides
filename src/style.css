@@ -144,13 +144,13 @@ body.show-help::after { opacity: 1; }
 .drawer {
   position: fixed; top: 0; left: 0; bottom: 0; width: 332px; z-index: 50; display: flex; flex-direction: column;
   background: color-mix(in srgb, var(--code-bg) 92%, transparent); backdrop-filter: blur(12px);
-  box-shadow: 6px 0 28px #0006; transform: translateX(-104%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateX(-104%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   color: var(--fg); font-size: 13px;
 }
 .drawer.open { transform: none; }
-.drawer-list { flex: 1; overflow: auto; padding: 22px 18px 28px 10px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
+.drawer-list { flex: 1; overflow: auto; padding: 22px 18px 28px 0; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
 .drawer .dcell { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
-.drawer .num { width: 1.9em; text-align: right; color: var(--muted); font-size: 12px; padding-top: 3px; font-variant-numeric: tabular-nums; flex: none; }
+.drawer .num { width: 1.7em; text-align: right; color: var(--muted); font-size: 12px; padding-top: 3px; font-variant-numeric: tabular-nums; flex: none; }
 .drawer .thumb { position: relative; display: block; overflow: hidden; border-radius: 5px; background: var(--bg); box-shadow: 0 0 0 1px #ffffff1a; flex: none; transition: box-shadow 0.15s; }
 .drawer .dcell:hover .thumb { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
 .drawer .dcell.sel .thumb { box-shadow: 0 0 0 3px var(--accent); }

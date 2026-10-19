@@ -55,11 +55,13 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
   });
 
   let sel = -1;
+  let first = true; // jump straight to the current slide on open, animate only afterwards
   const setCurrent = (i: number) => {
     if (i === sel) return;
     sel = i;
     cells.forEach((c, k) => c.classList.toggle('sel', k === sel));
-    cells[sel]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    cells[sel]?.scrollIntoView({ block: 'nearest', behavior: first ? 'instant' : 'smooth' });
+    first = false;
   };
   setCurrent(currentSlide);
 
