@@ -1,91 +1,128 @@
 // Slide drawer (`o` key or the corner button): a side panel with a live thumbnail of every slide, like
-// PowerPoint's slide sorter pane. It stays open while you present: the current slide is highlighted
-// and clicking a thumbnail jumps there. Each thumbnail is a real Player in a full-size frame,
-// scaled with a transform and created lazily when it scrolls into view.
+// PowerPoint's slide sorter pane. It pushes the slide aside and stays open while you present: the current
+// slide is highlighted and clicking a thumbnail jumps there. Each thumbnail is a real Player in a full-size
+// frame, scaled with a transform. The drawer is built once in the background (one thumbnail at a time while
+// the browser is idle) and only slides in and out afterwards, so opening it never waits for anything.
 import type { Deck } from './deck';
 import { Player } from './player';
 import type { Step } from './steps';
 
 export interface Overview {
+  open(): void;
   close(): void;
+  toggle(): void;
   setCurrent(slide: number): void;
-  readonly closed: boolean;
+  destroy(): void;
+  readonly isOpen: boolean;
 }
 
 const THUMB_W = 280;
 
-export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
+export function createOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
   const el = document.createElement('aside');
   el.className = 'drawer';
-  el.innerHTML = `<div class="drawer-list"></div>`;
-  const list = el.querySelector<HTMLElement>('.drawer-list')!;
+  const list = document.createElement('div');
+  list.className = 'drawer-list';
+  el.append(list);
   document.body.append(el);
 
-  const scale = THUMB_W / innerWidth;
-  const players = new Map<number, Player>();
+  const players: Player[] = [];
   const cells: HTMLElement[] = [];
+  let timer: number | undefined;
+  let dead = false;
+  let sel = -1;
+  let isOpen = false;
 
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      const si = cells.indexOf(e.target as HTMLElement);
-      if (si < 0 || players.has(si)) continue;
-      const own = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si);
-      const last = own[own.length - 1].i; // everything revealed
-      const frame = e.target.querySelector<HTMLElement>('.frame')!;
+  const build = () => {
+    list.replaceChildren();
+    cells.length = 0;
+    players.splice(0).forEach((p) => p.destroy());
+    const scale = THUMB_W / innerWidth;
+    deck.slides.forEach((slide, si) => {
+      const cell = document.createElement('button');
+      cell.className = 'dcell';
+      cell.title = slide.title;
+      cell.innerHTML = `<span class="num">${si + 1}</span>
+        <span class="thumb" style="width:${THUMB_W}px;height:${innerHeight * scale}px">
+          <span class="frame" style="width:${innerWidth}px;height:${innerHeight}px;transform:scale(${scale})"></span>
+        </span>`;
+      cell.onclick = (e) => { e.stopPropagation(); pick(steps.findIndex((s) => s.slide === si)); };
+      list.append(cell);
+      cells.push(cell);
+    });
+    cells[sel]?.classList.add('sel');
+    schedule();
+  };
+
+  // thumbnails are rendered one per idle slice, the current slide's neighbourhood first
+  const order = () => {
+    const n = deck.slides.length;
+    return [...Array(n).keys()].sort((a, b) => Math.abs(a - sel) - Math.abs(b - sel));
+  };
+  let queue: number[] = [];
+  const schedule = () => {
+    queue = order();
+    clearTimeout(timer);
+    timer = window.setTimeout(step, 300);
+  };
+  const step = () => {
+    if (dead) return;
+    const si = queue.shift();
+    if (si === undefined) return;
+    const frame = cells[si]?.querySelector<HTMLElement>('.frame');
+    if (frame && !frame.hasChildNodes()) {
+      const last = steps.map((s, i) => ({ s, i })).filter((x) => x.s.slide === si).pop()!.i; // everything revealed
       const p = new Player(frame, deck, steps);
-      players.set(si, p);
+      players.push(p);
       void p.start(last);
     }
-  }, { root: list, rootMargin: '200px' });
+    timer = window.setTimeout(step, 60);
+  };
 
-  deck.slides.forEach((slide, si) => {
-    const cell = document.createElement('button');
-    cell.className = 'dcell';
-    cell.title = slide.title;
-    cell.innerHTML = `<span class="num">${si + 1}</span>
-      <span class="thumb" style="width:${THUMB_W}px;height:${innerHeight * scale}px">
-        <span class="frame" style="width:${innerWidth}px;height:${innerHeight}px;transform:scale(${scale})"></span>
-      </span>`;
-    const first = steps.findIndex((s) => s.slide === si);
-    cell.onclick = (e) => { e.stopPropagation(); pick(first); };
-    list.append(cell);
-    cells.push(cell);
-    setTimeout(() => !closed && io.observe(cell), 420); // build the thumbnails after the slide-in, not during it
-  });
-
-  let sel = -1;
-  let first = true; // jump straight to the current slide on open, animate only afterwards
   const setCurrent = (i: number) => {
     if (i === sel) return;
+    cells[sel]?.classList.remove('sel');
+    const first = sel < 0;
     sel = i;
-    cells.forEach((c, k) => c.classList.toggle('sel', k === sel));
-    cells[sel]?.scrollIntoView({ block: first ? 'center' : 'nearest', behavior: first ? 'instant' : 'smooth' });
-    first = false;
+    cells[sel]?.classList.add('sel');
+    cells[sel]?.scrollIntoView({ block: first || !isOpen ? 'center' : 'nearest', behavior: first || !isOpen ? 'instant' : 'smooth' });
   };
-  setCurrent(currentSlide);
 
-  let closed = false;
   const onKey = (e: KeyboardEvent) => {
-    if (e.key !== 'Escape') return;
+    if (e.key !== 'Escape' || !isOpen) return;
     e.preventDefault();
     e.stopPropagation();
     close();
   };
   addEventListener('keydown', onKey, true);
   el.addEventListener('click', (e) => e.stopPropagation());
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
+  let rt: number | undefined;
+  const onResize = () => { clearTimeout(rt); rt = window.setTimeout(build, 400); };
+  addEventListener('resize', onResize);
 
-  function close() {
-    if (closed) return;
-    closed = true;
-    removeEventListener('keydown', onKey, true);
-    io.disconnect();
-    el.classList.remove('open');
-    setTimeout(() => {
-      players.forEach((p) => p.destroy());
-      el.remove();
-    }, 300);
+  function open() {
+    if (isOpen) return;
+    isOpen = true;
+    cells[sel]?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    el.classList.add('open');
+    document.body.classList.add('drawer-open');
   }
-  return { close, setCurrent, get closed() { return closed; } };
+  function close() {
+    if (!isOpen) return;
+    isOpen = false;
+    el.classList.remove('open');
+    document.body.classList.remove('drawer-open');
+  }
+  function destroy() {
+    dead = true;
+    clearTimeout(timer);
+    removeEventListener('keydown', onKey, true);
+    removeEventListener('resize', onResize);
+    players.forEach((p) => p.destroy());
+    el.remove();
+  }
+
+  sel = currentSlide;
+  build();
+  return { open, close, toggle: () => (isOpen ? close() : open()), setCurrent, destroy, get isOpen() { return isOpen; } };
 }

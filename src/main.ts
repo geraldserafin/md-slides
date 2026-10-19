@@ -6,7 +6,7 @@ import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
 import { buildSteps } from './steps';
-import { openOverview, type Overview } from './overview';
+import { createOverview, type Overview } from './overview';
 import { startPrintView } from './print';
 import { initialTheme, loadDeckCss, nextTheme, preloadDeckFonts, registerDeckStyle } from './themes';
 import runtimeWasm from 'web-tree-sitter/tree-sitter.wasm?url';
@@ -82,7 +82,7 @@ async function main() {
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
   player.onChange = (s) => {
     history.replaceState(null, '', `#${s.step + 1}`);
-    if (overview && !overview.closed) overview.setCurrent(s.slide);
+    overview?.setCurrent(s.slide);
     publish();
   };
   ch.onmessage = (e) => {
@@ -91,14 +91,7 @@ async function main() {
   };
 
   let overview: Overview | undefined;
-  const toggleDrawer = () => {
-    if (overview && !overview.closed) { overview.close(); return; }
-    overview = openOverview(deck, steps, player.state().slide, (i) => player.go(i));
-    document.body.classList.add('drawer-open');
-    const probe = setInterval(() => {
-      if (overview?.closed) { document.body.classList.remove('drawer-open'); clearInterval(probe); }
-    }, 120);
-  };
+  const toggleDrawer = () => overview?.toggle();
   const btn = document.createElement('button');
   btn.className = 'drawer-btn';
   btn.title = 'Slides (o)';
@@ -113,6 +106,7 @@ async function main() {
   });
   const fromHash = parseInt(location.hash.slice(1), 10);
   await player.start(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+  overview = createOverview(deck, steps, player.state().slide, (i) => player.go(i)); // built in the background
   addEventListener('hashchange', () => {
     const n = parseInt(location.hash.slice(1), 10);
     if (Number.isFinite(n) && n - 1 !== player.index) player.go(n - 1);
@@ -136,7 +130,7 @@ async function main() {
   // click: left quarter = back, the rest = forward; swipe on touch
   addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('a,video,button,input,.drawer')) return;
-    if (overview && !overview.closed) { overview.close(); return; } // a click on the slide just closes the drawer
+    if (overview?.isOpen) { overview.close(); return; } // a click on the slide just closes the drawer
     if (e.clientX < innerWidth * 0.25) player.prev();
     else player.next();
   });
