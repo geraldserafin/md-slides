@@ -62,7 +62,7 @@ itself a deck: every feature has a live demonstration on the slide that describe
 
 | Deck | Shows |
 | --- | --- |
-| `guide` | the complete guide: sections and frames, every kind of edit, a live transition in each language, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
+| `guide` | the complete guide: sections and frames, every kind of edit, the supported languages, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
 | `demo` | a tour of the viewer: layouts, themes, backgrounds, images, alignment, text transitions, a custom theme |
 | `refactoring` | TypeScript: types, naming, functional style, Extract Method |
 | `typescript-async` | callbacks → promises → `async`/`await` → `Promise.all` |

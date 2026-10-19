@@ -2,7 +2,7 @@
 
 1. **The model** — slides, sections, frames
 2. **The diff** — rename, insert, delete, move, wrap, extract, a longer story
-3. **Languages** — a live transition in each of them
+3. **Languages** — what is supported
 4. **Code options** — alignment, size, fit, **focus lines**
 5. **Text and media** — rich text, images, video
 6. **Layouts** — default, side, side-right, cover
