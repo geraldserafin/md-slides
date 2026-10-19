@@ -7,6 +7,7 @@ import { layoutBounds } from './layout';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
 
+const LEAVE_S = 0.18; // s, fade-out of the previous slide text
 const REF_FONT = 22; // px, base token size (scaled with a transform)
 const LINE_RATIO = 1.5;
 const MIN_SCALE = 0.5;
@@ -37,6 +38,7 @@ export class Player {
   private tokens = new Map<string, Token>();
   private textEl?: HTMLElement;
   private textSection = -1;
+  private leaving = false; // the previous text is fading out
   private charW = 12;
   readonly stage: HTMLElement;
   private textLayer: HTMLElement;
@@ -253,12 +255,17 @@ export class Player {
     ghost.className = `${this.stage.className} ghost`;
     ghost.style.cssText = this.stage.style.cssText;
     ghost.dataset.theme = this.root.dataset.theme ?? document.documentElement.dataset.theme ?? 'dark';
+    // keep the current opacity (the text may still be fading in when the user navigates again)
+    const opacity = getComputedStyle(old).opacity;
     old.classList.add('leaving');
-    old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth + 1}px`; // +1: offsetWidth rounds down, which can re-wrap the text
+    // +1 on the width: offsetWidth rounds down, which can re-wrap the text
+    old.style.cssText = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop}px;width:${old.offsetWidth + 1}px;opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
     ghost.append(old);
     this.stage.after(ghost);
-    requestAnimationFrame(() => (old.style.opacity = '0'));
-    setTimeout(() => ghost.remove(), 500);
+    void old.offsetWidth;
+    old.style.opacity = '0';
+    setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
+    this.leaving = true;
   }
 
   private swapText(step: Step, instant: boolean) {
@@ -268,14 +275,16 @@ export class Player {
     el.className = 'text';
     for (const it of step.section.items) el.append(this.renderItem(it));
     this.textLayer.replaceChildren(el);
-    if (!instant) this.enterText(el, this.deck.slides[step.slide].meta);
+    // the new text waits until the old one is (almost) gone, so two headings never overlap
+    if (!instant) this.enterText(el, this.deck.slides[step.slide].meta, this.leaving ? LEAVE_S * 0.8 : 0);
+    this.leaving = false;
     this.textEl = el;
     const valign = this.deck.slides[step.slide].meta.valign;
     this.stage.classList.toggle("centered", valign ? valign === "center" || valign === "middle" : step.centered);
   }
 
   /** Text entrance: fade | slide | slide-left | zoom | none, optionally staggered per element. */
-  private enterText(el: HTMLElement, meta: Record<string, string>) {
+  private enterText(el: HTMLElement, meta: Record<string, string>, baseDelay = 0) {
     const kind = meta.transition ?? this.textTransition;
     const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
     if (kind === 'none') return;
@@ -289,7 +298,7 @@ export class Player {
       t.style.opacity = '0';
       t.style.transform = tf;
       void t.offsetWidth;
-      const d = i * stagger;
+      const d = baseDelay + i * stagger;
       t.style.transition = `opacity var(--fade-dur) ease ${d}s, transform var(--move-dur) var(--ease) ${d}s`;
       t.style.opacity = '1';
       t.style.transform = 'none';
