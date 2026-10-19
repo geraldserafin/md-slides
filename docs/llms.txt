@@ -1,0 +1,113 @@
+# slides
+
+> Markdown presentations whose code transitions are animated by an AST diff (GumTree). A deck is a folder of
+> Markdown files (one file = one slide) plus an optional deck.json. It compiles to a static website, a single
+> HTML file, a PDF or a standalone executable. Everything you need to write a deck is below; the full manual is
+> in llms-full.txt (same site) and in the README: https://github.com/geraldserafin/md-slides
+
+## How to produce a deck (for an LLM)
+
+1. Make a folder `my-talk/`. Put one slide per `.md` file; slides play in file-name order, so number them:
+   `01-cover.md`, `02-problem.md`, `03-demo.md` ...
+2. Optionally add `deck.json` (title, theme, author, footer ...), images and videos next to the slides.
+3. Run `npx slides dev my-talk/` (live reload) or `npx slides build my-talk/ -o dist` (static site),
+   `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
+4. Write for the audience: one idea per slide, short text, code that changes in small steps.
+
+## A slide
+
+```markdown
+---
+layout: cover          # optional front matter; keys below
+---
+
+# Title (level-1 heading)
+
+Text, **bold**, `code`, lists, tables, images ![alt](pic.png){.left width=40%}, $x^2$ math, <!-- presenter notes -->
+```
+
+- Level 1-2 headings (`#`, `##`) after content start a new SECTION of the same slide; → plays the sections one by one.
+  A level-1 heading followed by `##` sections is a head that stays while the sections change.
+- `+++` on a line: everything after it appears on the next click (`+++ 3` = on click 3).
+- `{.steps}` on the line after a list: the list appears bullet by bullet.
+- `---` on a line starts a new ROW; a paragraph `|||` starts a new CELL in the row (`||| span=2 valign=center` gives
+  the cell options). Rows/cells make columns and grids; front matter `rows: auto 1fr`, `cols: 1fr 2fr`, `split: 40%`,
+  `grid: 3` (wrap into N columns).
+- HTML comments `<!-- ... -->` are presenter notes (press `p`).
+
+## Animated code (the point of the tool)
+
+A fenced block with a language is animated code. Blocks with the SAME `#id` are frames of one animation: the code
+morphs between them (tokens glide, new ones fade in, removed ones fade out) when you press →.
+
+````markdown
+```ts #cart
+const total = items.reduce((s, i) => s + i.price, 0);
+```
+
+```ts #cart
+const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+```
+````
+
+Blocks without a shared `#id` are independent (no morph). Fence options after the language:
+`#id`, `@N` (appears on click N), `focus=2-4,7` (dim the other lines), `transition=morph|fade|none` (how this frame
+is entered), `size=18`, `.lines` (line numbers), `start=10`, `title=cart.ts`, `.panel`/`.nopanel`, `bg=#16213e`,
+`radius=12`, `pad="1em"` (`.nolines`, `.nopanel` turn the deck defaults off).
+Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
+Between two different languages the code cross-fades. A language without a grammar is a plain static block.
+
+## Other content
+
+- Images / video / audio: `![alt](file.png){.left .small width=300px height=70px}`, `![](clip.webm){autoplay loop muted}`,
+  `![](talk.mp3){autoplay}`. Paths are relative to the .md file.
+- Math: `$a^2+b^2=c^2$` inline, `$$ ... $$` block (KaTeX).
+- Diagrams: a ```mermaid fence (Mermaid syntax), e.g. `flowchart LR; A-->B`. Options: `width=70%`.
+- Charts: a ```chart fence with CSV: first row names the series; `type=bar|line|pie`, `title="..."`, `width=60%`.
+- Per-element animation: a line `{anim=zoom delay=0.2 dur=0.6 at=2 out=4}` after an item (blank line between):
+  anim = fade|rise|zoom|left|right|down|blur|pop|none; at = click it appears; out = click it disappears.
+- Morph any element: `{morph=logo}` after items in two sections/slides: same id glides between them.
+  Same-file images do it automatically.
+
+## Slide front matter (between `---` lines at the top of a file)
+
+`layout: cover|side|...`, `theme: light|dark|paper|<yours>`, `background: img.jpg | #123 | linear-gradient(...) | clip.mp4`,
+`halign`/`valign: start|center|end` (default start/start), `justify: true`, `transition: fade|slide|slide-right|slide-left|zoom|none`,
+`section-transition: ...` (between ## sections), `heading-size`, `text-size`, `spacing`, `padding`, `class`,
+`footer: off`, `hidden: true` (skip the slide), `autoplay: 5`, any CSS variable `--accent: #f00`.
+
+## deck.json
+
+```json
+{
+  "title": "My talk", "author": "Me", "date": "2026-01-01",
+  "theme": "dark",
+  "schemes": { "light": "ink", "dark": "midnight" },
+  "themes": { "ink": { "--bg": "#fbfaf6", "--fg": "#2b2e36", "--heading": "#11131a", "--accent": "#3a5ba0", "--code-bg": "#f1eee6" } },
+  "fonts": [{ "family": "Source Sans 3", "src": "fonts/ss3.woff2", "weight": "400" }],
+  "defaults": { "halign": "start", "justify": "true" },
+  "header": { "left": "logo.svg", "right": "{title}" },
+  "footer": { "left": "My talk", "right": "{slide} / {slides}", "height": 48 },
+  "animation": { "move": 0.45, "fade": 0.3, "textTransition": "fade" },
+  "code": { "bg": "panel", "lines": false, "radius": 10, "pad": "0.9em 1.1em" },
+  "autoplay": 5, "loop": true, "hidden": false
+}
+```
+
+Theme variables: `--bg --fg --heading --muted --accent --code-bg` and token colors `--tok-keyword --tok-ident
+--tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain`.
+
+## Chooser page (a folder of decks)
+
+`hub.json` next to the deck folders: `title`, `subtitle`, `logo`, `footer`, `links`, `theme`, `schemes`, `themes`,
+`fonts`, `vars`, `css`, `align`, `cardWidth`, `show`, `order`, `colorToggle`.
+
+## Keys while presenting
+
+→ Space next · ← back · o slide drawer · p presenter window (notes, timer, next slide) · f fullscreen · t theme ·
+l laser · d draw · z magnifier · b black screen · a autoplay · h help.
+
+## Links
+
+- Full manual for models: llms-full.txt (README + the guide deck's slides)
+- Source and README: https://github.com/geraldserafin/md-slides

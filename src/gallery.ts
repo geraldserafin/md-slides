@@ -14,6 +14,10 @@ export interface HubMeta {
   logo?: string;
   /** a line of small text at the bottom of the page */
   footer?: string;
+  /** links in the footer, after the text */
+  links?: { text: string; href: string }[];
+  /** CSS variables for the page, e.g. { "--font-heading": "'Libertinus Serif', serif" } */
+  vars?: Record<string, string>;
   /** start theme: dark, light, paper or one of `themes` (a visitor's own choice wins) */
   theme?: string;
   /** themes for light and dark mode (the toggle switches between them) */
@@ -76,14 +80,14 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
   const entries = [...listed].sort((a, b) => rank(a) - rank(b)); // stable: the rest keeps its order
   const subtitle = hub.subtitle ?? (hub.title ? '' : 'Markdown presentations with code transitions animated by an AST diff');
   app.innerHTML = `
-    <div class="gallery align-${hub.align ?? 'start'}"${hub.cardWidth ? ` style="--card-w:${hub.cardWidth}px"` : ''}>
+    <div class="gallery align-${hub.align ?? 'start'}" style="${esc([hub.cardWidth ? `--card-w:${hub.cardWidth}px` : '', ...Object.entries(hub.vars ?? {}).map(([k, v]) => `${k}:${v}`)].filter(Boolean).join(';'))}">
+      ${hub.colorToggle === false ? '' : '<button class="hub-toggle" title="Light / dark" aria-label="Toggle light and dark mode"></button>'}
       <header>
         <div class="titles">
           ${hub.logo ? `<img class="logo" src="${esc(fileUrl(HUB_BASE + hub.logo))}" alt="">` : ''}
           <h1>${esc(title)}</h1>
           ${subtitle ? `<p>${esc(subtitle)}</p>` : ''}
         </div>
-        ${hub.colorToggle === false ? '' : '<button class="scheme-toggle" title="Light / dark" aria-label="Toggle light and dark mode"></button>'}
       </header>
       <div class="cards">${entries.map((d) => `
         <a class="card" href="?deck=${encodeURIComponent(d.name)}" data-deck="${esc(d.name)}">
@@ -96,10 +100,10 @@ export function showGallery(app: HTMLElement, listed: DeckEntry[], hub: HubMeta 
           </div>
         </a>`).join('')}
       </div>
-      ${hub.footer ? `<footer>${esc(hub.footer)}</footer>` : ''}
+      ${hub.footer || hub.links?.length ? `<footer>${[hub.footer ? esc(hub.footer) : '', ...(hub.links ?? []).map((l) => `<a href="${esc(l.href)}">${esc(l.text)}</a>`)].filter(Boolean).join(' · ')}</footer>` : ''}
     </div>`;
 
-  const toggle = app.querySelector<HTMLElement>('.scheme-toggle');
+  const toggle = app.querySelector<HTMLElement>('.hub-toggle');
   if (toggle) {
     const paint = () => { toggle.innerHTML = colorScheme() === 'light' ? MOON : SUN; };
     paint();

@@ -23,6 +23,7 @@
     "dev": "node cli/slides.mjs dev examples",
     "build": "tsc --noEmit && node cli/slides.mjs build examples -o dist",
     "typecheck": "tsc --noEmit",
+    "llms": "node scripts/llms.mjs dist",
     "test": "vitest run"
   },
   "dependencies": {

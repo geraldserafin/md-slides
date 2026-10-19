@@ -344,6 +344,14 @@ Themes are plain CSS variables (`--bg`, `--fg`, `--heading`, `--muted`, `--accen
 for token colors, `--font-text`, `--font-heading`, `--font-code`, ...). See `src/style.css` for the full list.
 Two complete custom themes (`sunset`, `terminal`) live in `examples/guide/deck.json`.
 
+## Writing decks with an LLM
+
+The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the guide deck). Give a model the URL, describe your talk, and ask for a deck folder: one `.md` per slide plus a `deck.json`. For example:
+
+> Read https://geraldserafin.github.io/md-slides/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
+
+`npm run llms` writes both files into `dist/` (the Pages workflow does it on every push).
+
 ## Build targets
 
 `slides build <deck...> [-o out] [-t static|single|pdf|exe] [--steps] [--base /path/]`

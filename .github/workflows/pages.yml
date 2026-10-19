@@ -21,6 +21,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: node scripts/llms.mjs dist   # llms.txt and llms-full.txt, for people to hand to their LLMs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

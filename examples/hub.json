@@ -4,5 +4,36 @@
   "order": [
     "guide",
     "refactoring"
+  ],
+  "fonts": [
+    {
+      "family": "Libertinus Serif",
+      "src": "../guide/fonts/libertinus-serif-latin-700-normal.woff2",
+      "weight": "700"
+    },
+    {
+      "family": "Source Sans 3",
+      "src": "../guide/fonts/source-sans-3-latin-400-normal.woff2",
+      "weight": "400"
+    },
+    {
+      "family": "Source Sans 3",
+      "src": "../guide/fonts/source-sans-3-latin-700-normal.woff2",
+      "weight": "700"
+    }
+  ],
+  "vars": {
+    "--font-heading": "'Libertinus Serif', Georgia, serif",
+    "--font-text": "'Source Sans 3', system-ui, sans-serif"
+  },
+  "links": [
+    {
+      "text": "GitHub",
+      "href": "https://github.com/geraldserafin/md-slides"
+    },
+    {
+      "text": "llms.txt",
+      "href": "llms.txt"
+    }
   ]
 }
