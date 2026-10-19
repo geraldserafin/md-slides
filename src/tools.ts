@@ -11,30 +11,54 @@ export function toggleLaser(): boolean {
 let laser: { stop(): void } | undefined;
 
 function startLaser() {
-  const dots = Array.from({ length: 7 }, (_, i) => {
-    const d = document.createElement('div');
-    d.className = 'laser-dot';
-    d.style.opacity = String(1 - i * 0.13);
-    d.style.scale = String(1 - i * 0.1);
-    document.body.append(d);
-    return { el: d, x: -100, y: -100 };
-  });
-  let tx = -100;
-  let ty = -100;
+  const cv = document.createElement('canvas');
+  cv.className = 'laser-layer';
+  const dot = document.createElement('div');
+  dot.className = 'laser-dot';
+  document.body.append(cv, dot);
+  const ctx = cv.getContext('2d')!;
+  const fit = () => { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; };
+  fit();
+  const TAIL_MS = 380;
+  let pts: { x: number; y: number; t: number }[] = [];
   let raf = 0;
-  const move = (e: PointerEvent) => { tx = e.clientX; ty = e.clientY; };
-  const tick = () => {
-    dots.forEach((d, i) => {
-      const [px, py] = i === 0 ? [tx, ty] : [dots[i - 1].x, dots[i - 1].y];
-      d.x += (px - d.x) * (i === 0 ? 0.6 : 0.4);
-      d.y += (py - d.y) * (i === 0 ? 0.6 : 0.4);
-      d.el.style.transform = `translate(${d.x}px, ${d.y}px) translate(-50%, -50%)`;
-    });
+  const move = (e: PointerEvent) => {
+    pts.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+    dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+    dot.style.opacity = '1';
+  };
+  const leave = () => { dot.style.opacity = '0'; };
+  const tick = (now: number) => {
+    pts = pts.filter((p) => now - p.t < TAIL_MS);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#ff3b30';
+    ctx.shadowBlur = 10 * devicePixelRatio;
+    for (let i = 1; i < pts.length; i++) {
+      const life = 1 - (now - pts[i].t) / TAIL_MS;
+      ctx.strokeStyle = `rgba(255, 59, 48, ${0.75 * life})`;
+      ctx.lineWidth = 9 * life * devicePixelRatio;
+      ctx.beginPath();
+      ctx.moveTo(pts[i - 1].x * devicePixelRatio, pts[i - 1].y * devicePixelRatio);
+      ctx.lineTo(pts[i].x * devicePixelRatio, pts[i].y * devicePixelRatio);
+      ctx.stroke();
+    }
     raf = requestAnimationFrame(tick);
   };
   addEventListener('pointermove', move);
-  tick();
-  return { stop() { cancelAnimationFrame(raf); removeEventListener('pointermove', move); dots.forEach((d) => d.el.remove()); } };
+  addEventListener('resize', fit);
+  document.documentElement.addEventListener('pointerleave', leave);
+  raf = requestAnimationFrame(tick);
+  return {
+    stop() {
+      cancelAnimationFrame(raf);
+      removeEventListener('pointermove', move);
+      removeEventListener('resize', fit);
+      document.documentElement.removeEventListener('pointerleave', leave);
+      cv.remove();
+      dot.remove();
+    },
+  };
 }
 
 /** freehand drawing over the slide; returns the controller (null while off) */

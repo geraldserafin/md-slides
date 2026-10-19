@@ -369,7 +369,7 @@ page whenever a file in the deck folder changes.
 | `Home` / `End` | first / last step |
 | `o` | slide drawer: thumbnails of all slides on the left, current one highlighted, click to jump (also the ☰ button on mouse move); `Esc` closes |
 | `t` | cycle themes (remembered per browser) |
-| `p` | presenter window: notes, timer, next slide |
+| `p` | presenter window: live current slide and next step, notes in a big size (`+`/`-`), clock and stopwatch; either window can drive |
 | `f` | fullscreen |
 | `l` | laser pointer: a glowing dot with a short tail follows the mouse |
 | `d` | draw on the slide (`c` clears, `Esc` stops; the ink goes away when the slide changes) |
@@ -377,7 +377,7 @@ page whenever a file in the deck folder changes.
 | `a` | autoplay: step every few seconds until you press a key or click |
 | `h` or `?` | help |
 
-The mouse reveals two sets of buttons: ☰ in the top left (slide drawer) and a column in the top right with the presenter window, fullscreen, theme, laser, draw, magnifier, autoplay and help (the active ones are highlighted).
+Moving the mouse reveals two buttons: ☰ in the top left (the slide drawer) and a toolbox in the top right. The toolbox is one button that unfolds the presenter window, fullscreen, theme, laser, draw, magnifier, autoplay and help (the active tools are highlighted; `Esc` or a click on the slide folds it).
 
 Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<step>` in the URL (deep link),
 `?theme=light|dark|paper|<yours>`, `?deck=<name>`.

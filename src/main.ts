@@ -62,7 +62,7 @@ async function chooser() {
 
 async function main() {
   initialTheme();
-  if (params.has('presenter')) return startPresenterView(app);
+  if (params.has('presenter')) return startPresenterView(app, params.get('deck') ?? '');
 
   const name = params.get('deck') ?? (await chooser());
   if (!name) return;
@@ -79,6 +79,15 @@ async function main() {
   const steps = await buildSteps(deck);
   if (params.has("print")) return startPrintView(app, deck, steps, params.get("print") || "slides");
   const player = new Player(app, deck, steps);
+
+  // ?embed=1: the bare slide, driven by the presenter window's previews (no chrome, no sync channel, no input)
+  if (params.has('embed')) {
+    document.body.classList.add('embed');
+    const at = parseInt(location.hash.slice(1), 10);
+    await player.start(Number.isFinite(at) ? at - 1 : 0);
+    addEventListener('message', (e) => { if (e.data?.type === 'go') player.go(e.data.step, !!e.data.instant); });
+    return;
+  }
 
   const ch = new BroadcastChannel(CHANNEL);
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
@@ -151,18 +160,29 @@ async function main() {
     { title: 'Autoplay (a)', icon: svg('<path d="M7 5l12 7-12 7z" fill="currentColor"/>'), run: () => (autoplay ? stopAuto() : playAuto()), on: () => autoplay },
     { title: 'Help (h)', icon: svg('<path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h.01"/>'), run: toggleHelp, on: () => document.body.classList.contains('show-help') },
   ];
+  // one button; it unfolds the others (a toolbox)
   const toolBar = document.createElement('div');
   toolBar.className = 'tool-bar';
-  const toolButtons = tools.map((t) => {
+  const main = document.createElement('button');
+  main.className = 'tool-btn tool-main';
+  main.title = 'Tools';
+  main.innerHTML = svg('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3.5 17.5l3 3 5.8-5.8a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>');
+  main.onclick = (e) => { e.stopPropagation(); toolBar.classList.toggle('open'); refreshTools(); };
+  toolBar.append(main);
+  const toolButtons = tools.map((t, i) => {
     const b = document.createElement('button');
     b.className = 'tool-btn';
     b.title = t.title;
+    b.style.setProperty('--i', String(i));
     b.innerHTML = t.icon;
     b.onclick = (e) => { e.stopPropagation(); t.run(); refreshTools(); };
     toolBar.append(b);
     return { b, t };
   });
-  const refreshTools = () => toolButtons.forEach(({ b, t }) => b.classList.toggle('on', !!t.on?.()));
+  const refreshTools = () => {
+    toolButtons.forEach(({ b, t }) => b.classList.toggle('on', !!t.on?.()));
+    toolBar.classList.toggle('active', toolButtons.some(({ t }) => t.on?.()));
+  };
   document.body.append(toolBar);
 
   addEventListener('keydown', (e) => {
@@ -182,7 +202,7 @@ async function main() {
       case 'c': clearDrawing(); break;
       case 'z': toggleZoom(app); break;
       case 'a': autoplay ? stopAuto() : playAuto(); break;
-      case 'Escape': if (drawing()) toggleDraw(); break;
+      case 'Escape': if (toolBar.classList.contains('open')) toolBar.classList.remove('open'); else if (drawing()) toggleDraw(); break;
       case 'h': case '?': toggleHelp(); break;
     }
     refreshTools();
@@ -193,6 +213,7 @@ async function main() {
   addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('a,video,button,input,.drawer,.draw-layer')) return;
     if (autoplay) stopAuto();
+    if (toolBar.classList.contains('open')) { toolBar.classList.remove('open'); return; } // a click on the slide only folds the toolbox
     if (overview?.isOpen) { overview.close(); return; } // a click on the slide just closes the drawer
     if (e.clientX < innerWidth * 0.25) player.prev();
     else player.next();
