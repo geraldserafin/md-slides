@@ -8,10 +8,10 @@
 
 /* ---- themes: CSS variables (override them in your own deck css) -------- */
 :root, [data-theme='dark'] {
-  --bg: #1e1e2e; --fg: #abb2bf; --heading: #ffffff; --muted: #9aa3b2; --accent: #61afef;
-  --tok-keyword: #c678dd; --tok-ident: #e5e9f0; --tok-property: #61afef; --tok-type: #e5c07b;
-  --tok-builtin: #d19a66; --tok-comment: #5c6370; --tok-punct: #6b7385; --tok-plain: #abb2bf;
-  --code-bg: #181825;
+  --bg: #0a0a0a; --fg: #d4d4d4; --heading: #fafafa; --muted: #a1a1a1; --accent: #e5e5e5;
+  --tok-keyword: #c4a7e7; --tok-ident: #e5e5e5; --tok-property: #7fb4e8; --tok-type: #e5c07b;
+  --tok-builtin: #d19a66; --tok-comment: #6b6b6b; --tok-punct: #7a7a7a; --tok-plain: #d4d4d4;
+  --code-bg: #171717;
 }
 [data-theme='light'] {
   --bg: #fafafa; --fg: #383a42; --heading: #14151a; --muted: #6b6f7a; --accent: #4078f2;
@@ -40,7 +40,8 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
 body { font-family: var(--font-text); font-size: var(--text-size); }
-#app { position: fixed; inset: 0; }
+#app { position: fixed; inset: 0; transition: left 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+body.drawer-open #app { left: 332px; }
 
 .stage {
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
@@ -147,15 +148,13 @@ body.show-help::after { opacity: 1; }
   color: var(--fg); font-size: 13px;
 }
 .drawer.open { transform: none; }
-.drawer-close { all: unset; cursor: pointer; position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); z-index: 2; font-size: 13px; }
-.drawer-close:hover { background: #ffffff14; color: var(--fg); }
 .drawer-list { flex: 1; overflow: auto; padding: 22px 18px 28px 10px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
-.drawer .cell { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
+.drawer .dcell { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
 .drawer .num { width: 1.9em; text-align: right; color: var(--muted); font-size: 12px; padding-top: 3px; font-variant-numeric: tabular-nums; flex: none; }
 .drawer .thumb { position: relative; display: block; overflow: hidden; border-radius: 5px; background: var(--bg); box-shadow: 0 0 0 1px #ffffff1a; flex: none; transition: box-shadow 0.15s; }
-.drawer .cell:hover .thumb { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
-.drawer .cell.sel .thumb { box-shadow: 0 0 0 3px var(--accent); }
-.drawer .cell.sel .num { color: var(--accent); font-weight: 700; }
+.drawer .dcell:hover .thumb { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.drawer .dcell.sel .thumb { box-shadow: 0 0 0 3px var(--accent); }
+.drawer .dcell.sel .num { color: var(--accent); font-weight: 700; }
 .drawer .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: none; display: block; }
 .frame .hud, .print-page .hud { display: none; }
 .drawer-btn {
@@ -220,7 +219,7 @@ body.print-mode #app { position: static; }
 /* ---- header / footer bars (deck.json) ---------------------------------------- */
 .bar {
   position: absolute; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
-  padding: 0 clamp(24px, 5vw, 72px); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--muted); pointer-events: none;
+  padding: 0 clamp(16px, 2.2vw, 36px); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--muted); pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
 .bar { transition: opacity 0.3s ease; }

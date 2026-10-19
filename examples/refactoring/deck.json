@@ -22,20 +22,20 @@
       "--code-bg": "#f1eee6"
     },
     "midnight": {
-      "--bg": "#12141b",
-      "--fg": "#c5c9d4",
-      "--heading": "#f3efe6",
-      "--muted": "#7b8294",
+      "--bg": "#0a0a0a",
+      "--fg": "#d4d4d4",
+      "--heading": "#fafafa",
+      "--muted": "#8a8a8a",
       "--accent": "#e3b06a",
       "--tok-keyword": "#e3a76f",
-      "--tok-ident": "#e9e6dd",
+      "--tok-ident": "#e5e5e5",
       "--tok-property": "#86b4dc",
       "--tok-type": "#d6c28a",
       "--tok-builtin": "#c58fa8",
-      "--tok-comment": "#5f677a",
-      "--tok-punct": "#6d7587",
-      "--tok-plain": "#b7bbc7",
-      "--code-bg": "#0c0e13"
+      "--tok-comment": "#6b6b6b",
+      "--tok-punct": "#7a7a7a",
+      "--tok-plain": "#c4c4c4",
+      "--code-bg": "#171717"
     }
   },
   "fonts": [
@@ -83,10 +83,7 @@
     "--heading-size": "clamp(26px, 4.1vmin, 52px)"
   },
   "footer": {
-    "left": [
-      "logo.svg",
-      "Refactoring: a cart total"
-    ],
+    "left": "Refactoring: a cart total",
     "right": "{slide} / {slides}",
     "height": 48
   },

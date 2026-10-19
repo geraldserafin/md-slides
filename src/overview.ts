@@ -17,7 +17,7 @@ const THUMB_W = 268;
 export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
   const el = document.createElement('aside');
   el.className = 'drawer';
-  el.innerHTML = `<button class="drawer-close" title="Close (o)">✕</button><div class="drawer-list"></div>`;
+  el.innerHTML = `<div class="drawer-list"></div>`;
   const list = el.querySelector<HTMLElement>('.drawer-list')!;
   document.body.append(el);
 
@@ -41,7 +41,7 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
 
   deck.slides.forEach((slide, si) => {
     const cell = document.createElement('button');
-    cell.className = 'cell';
+    cell.className = 'dcell';
     cell.title = slide.title;
     cell.innerHTML = `<span class="num">${si + 1}</span>
       <span class="thumb" style="width:${THUMB_W}px;height:${innerHeight * scale}px">
@@ -72,7 +72,6 @@ export function openOverview(deck: Deck, steps: Step[], currentSlide: number, pi
   };
   addEventListener('keydown', onKey, true);
   el.addEventListener('click', (e) => e.stopPropagation());
-  el.querySelector<HTMLElement>('.drawer-close')!.onclick = () => close();
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
 
   function close() {

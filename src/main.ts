@@ -136,6 +136,7 @@ async function main() {
   // click: left quarter = back, the rest = forward; swipe on touch
   addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('a,video,button,input,.drawer')) return;
+    if (overview && !overview.closed) { overview.close(); return; } // a click on the slide just closes the drawer
     if (e.clientX < innerWidth * 0.25) player.prev();
     else player.next();
   });
