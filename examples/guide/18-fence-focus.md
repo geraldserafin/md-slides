@@ -3,8 +3,6 @@
 `focus=2-4` keeps those lines bright and dims the rest. Set it **per frame** — here the code
 never changes, only the focus does, so the lines fade smoothly.
 
----
-
 <!-- Syntax: ```ts focus=2-4,7  (1-based, ranges and comma lists). Great for "now look at this part". -->
 
 ```ts focus=1

@@ -11,8 +11,6 @@ for the languages a deck uses. Every language animates the same way; here is Rus
 - **Web & data:** `html` `css` `json`
 - anything else (`text`, `toml`, `yaml`, `markdown`, …) is a **static code block**; tabs become four spaces
 
----
-
 <!-- Matching works across languages because it only sees a generic tree. New language: tags.json + main.ts. -->
 
 ```rust

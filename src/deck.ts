@@ -52,7 +52,8 @@ export interface AnimationOpts {
   ease?: string; // CSS timing function
   slideFade?: number; // s, background/text change
   textTransition?: 'fade' | 'slide' | 'slide-left' | 'zoom' | 'none'; // section text entrance
-  textStagger?: number; // s, delay between consecutive text elements
+  textStagger?: number; // s, delay between consecutive text elements (default 0.06: heading first, then the body)
+  textDrift?: number; // px, how far text drifts while it fades (new text rises into place, old text lifts away); 0 = none (default 8)
 }
 
 export interface DeckMeta {

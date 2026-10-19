@@ -186,7 +186,7 @@ Optional, placed in the deck folder:
   "animation": {
     "move": 0.5, "fade": 0.3, "moveDelay": 0.05, "fadeInDelay": 0.1,
     "ease": "ease-in-out", "slideFade": 0.4,
-    "textTransition": "slide", "textStagger": 0.12
+    "textTransition": "slide", "textStagger": 0.12, "textDrift": 8
   }
 }
 ```

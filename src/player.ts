@@ -10,7 +10,7 @@ import { layoutBounds } from './layout';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
 
-const LEAVE_S = 0.18; // s, fade-out of the previous slide text
+const LEAVE_S = 0.16; // s, fade-out of the previous slide text
 const REF_FONT = 22; // px, base token size (scaled with a transform)
 const LINE_RATIO = 1.5;
 
@@ -64,6 +64,7 @@ export class Player {
   private ro: ResizeObserver;
   private textTransition: string;
   private textStagger: number;
+  private textDrift: number;
   private bgEl?: HTMLElement;
   private moveDelay: number;
   private fadeInDelay: number;
@@ -74,12 +75,13 @@ export class Player {
   constructor(private root: HTMLElement, private deck: Deck, private steps: Step[], private opts: { theme?: string } = {}) {
     const a = deck.meta.animation ?? {};
     this.moveDelay = a.moveDelay ?? 0.04;
-    this.fadeInDelay = a.fadeInDelay ?? 0.08;
+    this.fadeInDelay = a.fadeInDelay ?? 0.12;
     const move = a.move ?? 0.45;
     const fade = a.fade ?? 0.3;
     this.slideFadeMs = (a.slideFade ?? 0.3) * 1000;
     this.textTransition = a.textTransition ?? 'fade';
-    this.textStagger = a.textStagger ?? 0;
+    this.textStagger = a.textStagger ?? 0.06;
+    this.textDrift = a.textDrift ?? 8;
     const rs = root.style;
     rs.setProperty("--move-dur", `${move}s`);
     rs.setProperty("--fade-dur", `${fade}s`);
@@ -344,7 +346,7 @@ export class Player {
     });
     for (const i of infos) {
       i.old.classList.add('leaving');
-      i.old.style.cssText = `${i.box};opacity:${i.opacity};transition:opacity ${LEAVE_S}s ease`;
+      i.old.style.cssText = `${i.box};opacity:${i.opacity};transition:opacity ${LEAVE_S}s ease-out, transform ${LEAVE_S}s ease-out`;
       ghost.append(i.old);
     }
     this.stage.after(ghost);
@@ -360,7 +362,8 @@ export class Player {
       }
     }
     void ghost.offsetWidth;
-    infos.forEach((i) => (i.old.style.opacity = '0'));
+    // the old text fades out while lifting away a little; the new text rises into place (see enterText)
+    infos.forEach((i) => { i.old.style.opacity = '0'; i.old.style.transform = `translateY(${-this.textDrift * 0.6}px)`; });
     setTimeout(() => ghost.remove(), LEAVE_S * 1000 + 50);
     this.leaving = true;
   }
@@ -385,7 +388,8 @@ export class Player {
       for (const it of items) el.append(this.renderItem(it));
       col.text.replaceChildren(el);
       // the new text waits until the old one is (almost) gone, so two headings never overlap
-      if (!instant) this.enterText(el, meta, this.leaving ? LEAVE_S * 0.8 : 0);
+      // the new text starts as the old one is nearly gone: no gap (blink), and no two headings on top of each other
+      if (!instant) this.enterText(el, meta, this.leaving ? LEAVE_S * 0.65 : 0);
       this.textEls[c] = el;
     });
     this.leaving = false;
@@ -418,7 +422,7 @@ export class Player {
     const stagger = (meta.stagger ? parseFloat(meta.stagger) : this.textStagger) || 0;
     if (kind === 'none') return;
     const from: Record<string, string> = {
-      fade: '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
+      fade: this.textDrift ? `translateY(${this.textDrift}px)` : '', slide: 'translateY(28px)', 'slide-left': 'translateX(-40px)', zoom: 'scale(0.94)',
     };
     const tf = from[kind] ?? '';
     const targets = stagger > 0 ? [...el.children] as HTMLElement[] : [el];
@@ -428,7 +432,7 @@ export class Player {
       t.style.transform = tf;
       void t.offsetWidth;
       const d = baseDelay + i * stagger;
-      t.style.transition = `opacity var(--fade-dur) ease ${d}s, transform var(--move-dur) var(--ease) ${d}s`;
+      t.style.transition = `opacity calc(var(--fade-dur) * 1.3) ease-out ${d}s, transform var(--move-dur) var(--ease) ${d}s`;
       t.style.opacity = '1';
       t.style.transform = 'none';
     });
@@ -550,6 +554,7 @@ export class Player {
     for (const [key, tk] of this.tokens) {
       if (seen.has(key) || tk.dying) continue;
       tk.dying = true;
+      tk.el.classList.add('dying'); // fades out faster than new code fades in: old and new code hardly overlap
       tk.el.style.setProperty('--d', '0s');
       tk.el.style.opacity = '0';
       tk.timer = window.setTimeout(() => {

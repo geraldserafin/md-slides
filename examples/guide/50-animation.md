@@ -8,6 +8,7 @@ Under `animation` in `deck.json` (seconds):
 - `fadeInDelay` — new tokens wait for the move to finish
 - `ease` — any CSS timing function
 - `slideFade` — background and text crossfade between slides
+- `textDrift` — pixels the text drifts while it fades (default 8; `0` for a pure fade); `textStagger` — delay between a slide's blocks (default 0.06)
 
 Users who prefer reduced motion get instant transitions automatically.
 

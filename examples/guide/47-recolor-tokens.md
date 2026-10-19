@@ -12,8 +12,6 @@
 The front matter of this slide sets `--tok-keyword`, `--tok-ident`, `--tok-type`,
 `--tok-builtin` and `--tok-punct`. No theme needed.
 
----
-
 ```ts
 interface Point { x: number; y: number }
 

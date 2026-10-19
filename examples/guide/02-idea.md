@@ -4,8 +4,6 @@ Write the *before* and the *after* as two code blocks.
 `slides` parses both, matches the syntax trees and animates the difference:
 unchanged tokens stay, moved tokens glide, new ones fade in.
 
----
-
 <!-- Press the right arrow slowly and watch `total`, `items` and `return` keep their identity. -->
 
 ```ts

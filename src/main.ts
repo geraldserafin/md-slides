@@ -32,9 +32,24 @@ const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
 
 /** the loading spinner (index.html paints the same one before the bundle arrives) */
+let loaderLabel = '';
 const showLoader = (label = '') => {
+  loaderLabel = label;
   app.innerHTML = `<div class="boot"><div class="spinner"></div>${label ? `<div class="label">${label}</div>` : ''}</div>`;
 };
+
+/** replace the spinner with the error, so a failure never looks like an endless load */
+const showError = (e: unknown) => {
+  if (!app.querySelector('.boot')) return;
+  app.innerHTML = `<pre class="error">${String((e as Error)?.stack ?? e).replace(/</g, '&lt;')}</pre>`;
+};
+addEventListener('unhandledrejection', (e) => showError(e.reason));
+addEventListener('error', (e) => showError(e.error ?? e.message));
+// a spinner that is still there after a while: say what it is waiting for
+setTimeout(() => {
+  const boot = app.querySelector('.boot');
+  if (boot) boot.insertAdjacentHTML('beforeend', `<div class="label" style="opacity:1">Still working${loaderLabel ? ` (${loaderLabel})` : ''}. If this stays, open the browser console (F12) and reload.</div>`);
+}, 12000);
 
 async function chooser() {
   const decks = await loadIndex();

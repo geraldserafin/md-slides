@@ -271,3 +271,4 @@ body.print-mode #app { position: static; }
 .stage[data-v='center'] .col.no-code .text-layer { justify-content: safe center; } /* safe: a text taller than the slide starts at the top instead of being cut off */
 .stage[data-v='end'] .col.no-code .text-layer { justify-content: safe flex-end; }
 
+.tok.dying { transition: opacity calc(var(--fade-dur) * 0.55) ease-out 0s, color var(--fade-dur) ease; }
