@@ -3,22 +3,12 @@
 // tree-sitter-<name>.wasm z pakietu tree-sitter-wasms) i tagi w TAGS.
 import Parser from 'web-tree-sitter';
 import type { Tree } from './gumtree';
+import tags from './tags.json';
 
 export type Lang = string; // nazwa gramatyki, np. "cpp", "typescript"
 
 /** tag z fence'a markdowna -> nazwa gramatyki */
-const TAGS: Record<string, Lang> = {
-  ts: 'typescript', typescript: 'typescript', tsx: 'tsx',
-  js: 'javascript', javascript: 'javascript', jsx: 'javascript',
-  cpp: 'cpp', 'c++': 'cpp', cxx: 'cpp', cc: 'cpp', hpp: 'cpp',
-  c: 'c', h: 'c',
-  py: 'python', python: 'python',
-  rs: 'rust', rust: 'rust',
-  go: 'go', golang: 'go',
-  java: 'java',
-  sh: 'bash', bash: 'bash', shell: 'bash',
-  json: 'json', html: 'html', css: 'css', lua: 'lua', yaml: 'yaml', yml: 'yaml',
-};
+const TAGS: Record<string, Lang> = tags;
 
 export const langFromTag = (tag: string): Lang | undefined => TAGS[tag.toLowerCase()];
 

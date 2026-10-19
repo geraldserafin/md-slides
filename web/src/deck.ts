@@ -3,6 +3,7 @@
 // Kolejne code-bloki o tych samych klasach pod rząd = kolejne klatki animacji
 // w obrębie jednej sekcji. Komentarze HTML => notatki prezentera.
 import { marked, type Token, type Tokens } from 'marked';
+import { fileUrl } from './files';
 import { langFromTag, type Lang } from './parse';
 
 export type Item =
@@ -92,7 +93,7 @@ function parseFence(info: string): { lang?: Lang; tag: string; attrs: Attrs } {
 
 const resolve = (src: string, base: string) => {
   try {
-    return new URL(src, base).href;
+    return fileUrl(new URL(src, base).href);
   } catch {
     return src;
   }
@@ -193,11 +194,11 @@ export function parseSlide(markdown: string, url: string): Slide {
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
   const root = new URL(`${base}/${name}/`, document.baseURI).href;
-  const meta = (await (await fetch(root + 'manifest.json')).json()) as DeckMeta;
+  const meta = (await (await fetch(fileUrl(root + 'manifest.json'))).json()) as DeckMeta;
   const slides = await Promise.all(
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
-      const text = await (await fetch(url)).text();
+      const text = await (await fetch(fileUrl(url))).text();
       return parseSlide(text, url);
     }),
   );

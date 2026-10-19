@@ -1,4 +1,5 @@
 import type { DeckMeta } from './deck';
+import { fileUrl } from './files';
 
 export const BUILTIN_THEMES = ['dark', 'light', 'paper'];
 let themeList = [...BUILTIN_THEMES];
@@ -30,7 +31,7 @@ export function initialTheme(deckTheme?: string): string {
 export function loadDeckCss(href: string) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = href;
+  link.href = fileUrl(href);
   document.head.append(link);
 }
 
@@ -49,7 +50,7 @@ export function registerDeckStyle(meta: DeckMeta, baseUrl: string) {
     css.push(`[data-theme='${CSS.escape(name)}']{${body}}`);
   }
   for (const f of meta.fonts ?? []) {
-    const src = new URL(f.src, baseUrl).href;
+    const src = fileUrl(new URL(f.src, baseUrl).href);
     css.push(`@font-face{font-family:'${f.family}';src:url('${src}');font-weight:${f.weight ?? 'normal'};font-style:${f.style ?? 'normal'};font-display:block}`);
   }
   if (css.length) {

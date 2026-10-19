@@ -4,12 +4,27 @@ Przeglądarkowy viewer z animacją przejść kodu opartą o GumTree (diff AST).
 Działa lokalnie i na GitHub Pages (`base: './'`). Dekki to foldery `.md` (jeden plik = jeden slajd).
 
 ```sh
-cd web
-npm install
-npm run dev        # kopiuje ../slides i ../slides-monads do public/decks i startuje vite
-npm run build      # statyczny build w dist/ (np. GitHub Pages; workflow w .github/workflows)
-npm test           # fixture'y regresyjne (te same co test/ w Haskellu) + parity z Haskellem, jeśli jest /tmp/states
-node scripts/prepare-decks.mjs ../moj-deck   # własne dekki zamiast domyślnych
+cd web && npm install
+
+node cli/slides.mjs dev ../slides                      # serwer deweloperski, live reload po zmianie .md
+node cli/slides.mjs build ../slides -o dist            # strona statyczna (GitHub Pages)
+node cli/slides.mjs build ../slides -t single -o a.html  # jeden plik .html, offline, działa z file://
+node cli/slides.mjs build ../slides -t pdf -o a.pdf     # PDF (--steps: strona na krok animacji)
+node cli/slides.mjs build ../slides -t exe -o slides-app # plik wykonywalny (Node SEA)
+```
+
+`slides` to kompilator: wejście = folder(y) z `.md` (+ `deck.json`, obrazki, wideo), wyjście = wybrany target.
+Po `npm link` / `npx` dostępny jako `slides build ...`. `--base /repo/` ustawia prefiks ścieżek dla targetu static.
+
+- **static** – folder do wrzucenia na dowolny hosting.
+- **single** – wszystko inline (JS, CSS, fonty, obrazki, wideo, tylko użyte gramatyki jako data: URI). Duże wideo puchnie base64.
+- **pdf** – wymaga Chromium/Chrome (`CHROMIUM=/ścieżka`, inaczej szukane w PATH).
+- **exe** – binarka Node (~90 MB) z osadzonym serwerem i deckiem; po uruchomieniu otwiera przeglądarkę (`--port N`, `--no-open`).
+  Powstaje dla bieżącej platformy; inne buduj na nich (np. CI matrix). Na macOS binarkę trzeba podpisać (`codesign --sign - app`).
+
+Skrypty npm: `dev`/`build` (domyślne dekki ../slides, ../slides-monads, ./demo), `test`.
+```sh
+npm test           # fixture'y regresyjne + parity z Haskellem (jeśli jest /tmp/states)
 ```
 
 URL: `?deck=<nazwa>`, `#<krok>` (deep link), `?theme=dark|light|paper`. Klawisze: strzałki/spacja,
@@ -67,5 +82,4 @@ Przykład: `web/demo/`.
 - Wejście tekstu: `animation.textTransition` (`fade` | `slide` | `slide-left` | `zoom` | `none`) i `animation.textStagger` (s między elementami);
   per slajd: `transition:` i `stagger:` w front matter.
 - `o` — przegląd slajdów (strzałki + Enter, Esc zamyka).
-- PDF: `?print=slides` (strona na slajd) albo `?print=steps` (strona na krok animacji) i „Drukuj”; z linii poleceń
-  `npm run build && CHROMIUM=$(which chromium) npm run pdf -- <deck> out.pdf [--steps]`.
+- PDF: `?print=slides` (strona na slajd) albo `?print=steps` (strona na krok animacji) i „Drukuj”; z linii poleceń `slides build <deck> -t pdf [--steps]`.

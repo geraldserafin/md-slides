@@ -1,5 +1,6 @@
 import './style.css';
 import { loadDeck } from './deck';
+import { fileUrl } from './files';
 import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
@@ -18,11 +19,11 @@ const GRAMMAR_URLS = import.meta.glob(
 ) as Record<string, string>;
 
 configureGrammars({
-  runtime: runtimeWasm,
+  runtime: fileUrl(runtimeWasm),
   grammar: (lang) => {
     const key = Object.keys(GRAMMAR_URLS).find((k) => k.endsWith(`tree-sitter-${lang}.wasm`));
     if (!key) throw new Error(`brak gramatyki: ${lang}`);
-    return GRAMMAR_URLS[key];
+    return fileUrl(GRAMMAR_URLS[key]);
   },
 });
 
@@ -30,7 +31,7 @@ const app = document.getElementById('app')!;
 const params = new URLSearchParams(location.search);
 
 async function chooser() {
-  const idx = (await (await fetch('decks/index.json')).json()) as { decks: { name: string; title: string }[] };
+  const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as { decks: { name: string; title: string }[] };
   if (idx.decks.length === 1) return idx.decks[0].name;
   app.innerHTML = `<div class="chooser"><h1>slides</h1>${idx.decks
     .map((d) => `<a href="?deck=${encodeURIComponent(d.name)}">${d.title}</a>`)
