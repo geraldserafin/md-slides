@@ -331,11 +331,15 @@ export class Player {
     if (this.stage.dataset.anchor) ghost.dataset.anchor = this.stage.dataset.anchor;
     // keep the current opacity (the text may still be fading in when the user navigates again)
     const opacity = getComputedStyle(old).opacity;
-    // measure BEFORE `.leaving` (position: absolute shrinks the box to its content)
-    // +1 on the width: offsetWidth rounds down, which can re-wrap the text
-    // as an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it
+    // measure BEFORE `.leaving` (position: absolute shrinks the box to its content).
+    // Fractional pixels (getBoundingClientRect, undone for a scaled parent), not the rounded offset*: even a
+    // sub-pixel difference makes the old text hop when the ghost takes over.
+    // As an absolute box the first item's top margin no longer collapses out of it, so pull the box up by it.
     const m = old.firstElementChild ? parseFloat(getComputedStyle(old.firstElementChild).marginTop) || 0 : 0;
-    const box = `left:${this.textLayer.offsetLeft + old.offsetLeft}px;top:${this.textLayer.offsetTop + old.offsetTop - m}px;width:${old.offsetWidth + 1}px`;
+    const sr = this.stage.getBoundingClientRect();
+    const k = sr.width / (this.stage.offsetWidth || 1) || 1;
+    const or = old.getBoundingClientRect();
+    const box = `left:${(or.left - sr.left) / k}px;top:${(or.top - sr.top) / k - m}px;width:${or.width / k}px`;
     old.classList.add('leaving');
     old.style.cssText = `${box};opacity:${opacity};transition:opacity ${LEAVE_S}s ease`;
     ghost.append(old);
