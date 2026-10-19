@@ -59,18 +59,14 @@ Make the first slide a `layout: cover` slide with a background and the card look
 
 ## Examples
 
-`examples/` has eight decks you can read as templates. Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
+`examples/` has four decks you can read as templates. Start with **`guide`**, a ~60-slide manual (about 150 steps) that is
 itself a deck: every feature has a live demonstration on the slide that describes it.
 
 | Deck | Shows |
 | --- | --- |
 | `guide` | the complete guide: sections and frames, every kind of edit, the supported languages, `focus=`, fit/size, rich text, images, video, layouts, per-slide themes/backgrounds/colors, slow-motion and bouncy animation, `deck.json`, controls, export, build targets, deployment |
-| `demo` | a tour of the viewer: layouts, themes, backgrounds, images, alignment, text transitions, a custom theme |
 | `refactoring` | TypeScript: types, naming, functional style, Extract Method |
-| `typescript-async` | callbacks → promises → `async`/`await` → `Promise.all` |
 | `python-idioms` | loops → comprehensions, `Counter`, dataclasses, `with`; light "paper" theme |
-| `rust-ownership` | moves, clones, borrows, `&mut`, iterator chains, `?` |
-| `go-errors` | wrapping with `%w`, sentinel/typed errors, `errors.Is`/`As`, `defer` |
 | `monads` | C++: error codes → exceptions → `optional` → `expected` |
 
 ## Writing slides
@@ -180,7 +176,7 @@ Optional, placed in the deck folder:
 
 Themes are plain CSS variables (`--bg`, `--fg`, `--heading`, `--muted`, `--accent`, `--code-bg`, `--tok-*`
 for token colors, `--font-text`, `--font-heading`, `--font-code`, ...). See `src/style.css` for the full list.
-A complete example lives in `examples/demo/`.
+Two complete custom themes (`sunset`, `terminal`) live in `examples/guide/deck.json`.
 
 ## Build targets
 

@@ -13,4 +13,4 @@ Your own theme is a set of CSS variables in `deck.json` and joins the cycle:
 }
 ````
 
-<!-- Token colors: --tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain. See examples/demo for a full "ocean" theme. -->
+<!-- Token colors: --tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain. See this deck's own deck.json for two full themes (sunset, terminal). -->
