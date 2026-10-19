@@ -380,6 +380,8 @@ page whenever a file in the deck folder changes.
 
 Moving the mouse reveals two buttons: ☰ in the top left (the slide drawer) and a toolbox in the top right. The toolbox is one button that unfolds the presenter window, fullscreen, theme, laser, draw, magnifier, autoplay and help (the active tools are highlighted; `Esc` or a click on the slide folds it).
 
+**Phones and tablets.** The viewer works with touch: tap the right three quarters of the screen for the next step and the left quarter for the previous one, or swipe; a touch reveals the ☰ and toolbox buttons (bigger on touch screens), and the slide drawer covers the slide instead of squeezing it on a narrow screen. Text and code are sized to the screen (in portrait the slide is a tall column; landscape looks like a small desktop), notches are respected, and the chooser and the presenter view (stacked: slide, arrows, next slide, notes) adapt to narrow screens.
+
 Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<step>` in the URL (deep link),
 `?theme=light|dark|paper|<yours>`, `?deck=<name>`.
 

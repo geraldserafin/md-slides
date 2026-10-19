@@ -127,6 +127,13 @@ async function main() {
   btn.onclick = (e) => { e.stopPropagation(); toggleDrawer(); };
   document.body.append(btn);
   let hideTimer: number | undefined;
+  // touch screens have no mouse to move: a touch reveals the buttons, too
+  const showButtons = () => {
+    document.body.classList.add('pointer-active');
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => document.body.classList.remove('pointer-active'), 3500);
+  };
+  addEventListener('touchstart', showButtons, { passive: true });
   addEventListener('mousemove', () => {
     document.body.classList.add('pointer-active');
     clearTimeout(hideTimer);

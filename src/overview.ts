@@ -16,7 +16,8 @@ export interface Overview {
   readonly isOpen: boolean;
 }
 
-const THUMB_W = 280;
+/** thumbnail width: 280px, less on a narrow phone (the drawer is 84vw wide there) */
+const thumbWidth = () => Math.max(120, Math.min(280, Math.round(innerWidth * 0.84) - 36));
 
 export function createOverview(deck: Deck, steps: Step[], currentSlide: number, pick: (step: number) => void): Overview {
   const el = document.createElement('aside');
@@ -37,6 +38,7 @@ export function createOverview(deck: Deck, steps: Step[], currentSlide: number, 
     list.replaceChildren();
     cells.length = 0;
     players.splice(0).forEach((p) => p.destroy());
+    const THUMB_W = thumbWidth();
     const scale = THUMB_W / innerWidth;
     deck.slides.forEach((slide, si) => {
       const cell = document.createElement('button');
