@@ -1,16 +1,22 @@
 name: Publish extension
-# Tag vscode-v0.1.0 (matching editors/vscode/package.json) to publish to the Visual Studio Marketplace (VS Code) and to
-# Open VSX (VSCodium, Cursor and other VS Code forks). Secrets: VSCE_PAT, OVSX_PAT.
+# Tag vscode-v0.1.0 (matching editors/vscode/package.json): attaches the .vsix to a GitHub release and publishes it to
+# Open VSX (VSCodium, Cursor and other VS Code forks; secret OVSX_PAT). It also publishes to the Visual Studio Marketplace
+# when the secret VSCE_PAT is set; without it, upload the .vsix by hand at marketplace.visualstudio.com/manage.
 on:
   push:
     tags: ['vscode-v*']
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   publish:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: editors/vscode
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,12 +25,17 @@ jobs:
       - run: npm ci || npm install
       - run: npm run grammar
       - run: npx vsce package -o slideit.vsix
-      - run: npx vsce publish --packagePath slideit.vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-      - run: npx ovsx publish slideit.vsix
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      - name: GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: editors/vscode/slideit.vsix
+      - name: Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx ovsx publish slideit.vsix
+      - name: Visual Studio Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx vsce publish --packagePath slideit.vsix
       - uses: actions/upload-artifact@v4
         with:
           name: slideit.vsix
