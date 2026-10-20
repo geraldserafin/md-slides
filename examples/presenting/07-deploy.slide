@@ -1,23 +1,27 @@
 <h2>Publish on GitHub Pages</h2>
 
+<p>The slideit action checks the deck, builds the site (and a PDF) and uploads it for Pages:</p>
+
 <code lang=yaml>
-  name: Pages
-  on:
-    push:
-      branches: [main]
   jobs:
     build:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
-        - uses: actions/setup-node@v4
-          with: { node-version: 24 }
-        - run: npm ci
-        - run: npx slides build my-talk -o dist
-        - uses: actions/upload-pages-artifact@v3
-          with: { path: dist }
+        - uses: geraldserafin/md-slides@action-v1
+          with:
+            deck: talk
+            pdf: 'true'
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      environment: github-pages
+      steps:
+        - uses: actions/deploy-pages@v4
 </code>
 
+<p>Or press <b>Use this template</b> on <c>geraldserafin/slideit-template</c>: a deck and this workflow, ready to push.</p>
+
 <notes>
-  Deploy step omitted for space: actions/deploy-pages@v4. The repo's own pages.yml is a complete example.
+  Settings, Pages, Source: GitHub Actions, once. The action's inputs: deck, output, pdf, check, pages, hub, version.
 </notes>

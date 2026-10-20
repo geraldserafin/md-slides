@@ -415,6 +415,42 @@ page whenever a file in the deck folder changes.
 
 `slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes and values. `editors/vscode` is a VS Code extension (highlighting with the code inside `<code lang=…>` highlighted as that language, the language client, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor). `editors/vim` has the filetype, syntax and the Neovim LSP setup. See the README in each folder.
 
+## GitHub Action and template
+
+`geraldserafin/md-slides@action-v1` checks a deck, builds the site (and a PDF) and uploads it for GitHub Pages:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: geraldserafin/md-slides@action-v1
+        with:
+          deck: talk        # a folder of .slide files, or a folder of decks
+          pdf: 'true'       # also writes <deck>.pdf into the site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: github-pages
+    steps:
+      - uses: actions/deploy-pages@v4
+```
+
+| Input | Default | |
+| --- | --- | --- |
+| `deck` | `.` | a folder of `.slide` files, or a folder of such folders |
+| `output` | `_site` | where the site is written (also the action's `path` output) |
+| `pdf` | `false` | export a PDF per deck into the site (Chrome is on the GitHub runners) |
+| `check` | `true` | fail on mistakes in the `.slide` files |
+| `pages` | `true` | upload the site as the Pages artifact; `false` to deploy it some other way |
+| `hub` | | a `hub.json` for the chooser page of several decks |
+| `version` | `latest` | the version of `@geraldserafin/slideit` |
+
+**One click:** [geraldserafin/slideit-template](https://github.com/geraldserafin/slideit-template) is a GitHub template with a starter
+deck and this workflow. *Use this template*, then *Settings → Pages → Source: GitHub Actions*; a live example is at
+<https://geraldserafin.github.io/slideit-template/>.
+
 ## Viewer controls
 
 | Key | Action |
