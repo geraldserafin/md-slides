@@ -1,11 +1,11 @@
 <h2>Build targets</h2>
 
 <code lang=bash>
-  slides dev   my-talk/                       # dev server, live reload
-  slides build my-talk/ -o dist               # static website
-  slides build my-talk/ -t single -o talk.html  # one file, works offline
-  slides build my-talk/ -t pdf  -o talk.pdf   # PDF (Chromium needed)
-  slides build my-talk/ -t exe  -o talk       # standalone executable
+  slideit dev   my-talk/                       # dev server, live reload
+  slideit build my-talk/ -o dist               # static website
+  slideit build my-talk/ -t single -o talk.html  # one file, works offline
+  slideit build my-talk/ -t pdf  -o talk.pdf   # PDF (Chromium needed)
+  slideit build my-talk/ -t exe  -o talk       # standalone executable
 </code>
 
 <notes>

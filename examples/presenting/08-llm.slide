@@ -10,7 +10,7 @@
   then write me a deck about how Git branches work.
 </code>
 
-<p>Review it with <c>slides dev</c>, adjust, and ship it.</p>
+<p>Review it with <c>slideit dev</c>, adjust, and ship it.</p>
 
 <notes>
   One .slide file per slide plus a deck.json: easy for a model to produce and easy to diff when you edit its draft.

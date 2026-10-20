@@ -1,4 +1,4 @@
-// `slides new <dir>`: a starter deck (cover, bullets on clicks, animated code next to text, an ending) to edit.
+// `slideit new <dir>`: a starter deck (cover, bullets on clicks, animated code next to text, an ending) to edit.
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 

@@ -29,14 +29,14 @@ jobs:
       - run: npm test
       - name: Build the showcase deck as an executable
         shell: bash
-        run: node cli/slides.mjs build examples/showcase -t exe -o slides-showcase-${{ matrix.name }}
+        run: node cli/slideit.mjs build examples/showcase -t exe -o slideit-showcase-${{ matrix.name }}
       - name: Sign (macOS ad-hoc)
         if: runner.os == 'macOS'
-        run: codesign --sign - slides-showcase-${{ matrix.name }}
+        run: codesign --sign - slideit-showcase-${{ matrix.name }}
       - uses: actions/upload-artifact@v4
         with:
-          name: slides-showcase-${{ matrix.name }}
-          path: slides-showcase-${{ matrix.name }}*
+          name: slideit-showcase-${{ matrix.name }}
+          path: slideit-showcase-${{ matrix.name }}*
   release:
     if: startsWith(github.ref, 'refs/tags/')
     needs: exe

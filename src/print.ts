@@ -1,5 +1,5 @@
 // Print / PDF export mode (?print=slides|steps): one 1280x720 page per slide
-// (final state) or per step. Print from the browser or use `slides build -t pdf`.
+// (final state) or per step. Print from the browser or use `slideit build -t pdf`.
 import type { Deck } from './deck';
 import { Player } from './player';
 import type { Step } from './steps';

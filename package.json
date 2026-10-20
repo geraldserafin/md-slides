@@ -1,12 +1,12 @@
 {
-  "name": "slides",
+  "name": "slideit",
   "version": "0.1.0",
   "description": "Markdown presentations with code transitions animated by an AST diff (GumTree).",
   "license": "BSD-3-Clause",
   "type": "module",
   "private": true,
   "bin": {
-    "slides": "cli/slides.mjs"
+    "slideit": "cli/slideit.mjs"
   },
   "files": [
     "cli",
@@ -19,9 +19,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "slides": "node cli/slides.mjs",
-    "dev": "node cli/slides.mjs dev examples",
-    "build": "tsc --noEmit && node cli/slides.mjs build examples -o dist",
+    "slideit": "node cli/slideit.mjs",
+    "dev": "node cli/slideit.mjs dev examples",
+    "build": "tsc --noEmit && node cli/slideit.mjs build examples -o dist",
     "typecheck": "tsc --noEmit",
     "llms": "node scripts/llms.mjs dist",
     "test": "vitest run"

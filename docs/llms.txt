@@ -1,4 +1,4 @@
-# slides
+# slideit
 
 > Presentations whose code transitions are animated by an AST diff (GumTree). A deck is a folder of `.slide` files
 > (one file = one slide, written in tags) plus an optional deck.json. It compiles to a static
@@ -10,7 +10,7 @@
 1. Make a folder `my-talk/`. Put one slide per `.slide` file; slides play in file-name order, so number them:
    `01-cover.slide`, `02-problem.slide`, `03-demo.slide` ...
 2. Optionally add `deck.json` (title, theme, author, footer ...), images and videos next to the slides.
-3. Run `npx slides dev my-talk/` (live reload) or `npx slides build my-talk/ -o dist` (static site),
+3. Run `npx slideit dev my-talk/` (live reload) or `npx slideit build my-talk/ -o dist` (static site),
    `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
 4. Write for the audience: one idea per slide, short text, code that changes in small steps.
 
