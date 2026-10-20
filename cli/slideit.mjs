@@ -3,6 +3,7 @@
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
 //   slides new   <folder> [--title "My talk"]
+//   slides check <deck...>     slides schema
 // A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -18,6 +19,8 @@ const TARGETS = ['static', 'single', 'pdf', 'exe'];
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
 slides dev   <deck...> [--port N] [--open]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
+slides check <deck...>                          find mistakes in the .slide files (file:line: message)
+slides schema                                   the markup as JSON (tags, attributes), for editor tooling
 
   <deck> is a folder of .slide files, or a folder of such folders (each one becomes a deck).
   A folder of decks may hold a hub.json that customizes the deck chooser (title, subtitle, logo, theme...);
@@ -183,6 +186,25 @@ async function cmdDev(o) {
       });
 }
 
+async function cmdCheck(o) {
+  if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
+  const { check } = await import('../src/check.ts');
+  let n = 0;
+  let files = 0;
+  for (const d of expandDecks(o.decks))
+    for (const f of readdirSync(d).filter((f) => f.endsWith('.slide')).sort()) {
+      files++;
+      for (const p of check(readFileSync(join(d, f), 'utf8'))) { console.log(`${join(d, f)}:${p.line}: ${p.message}`); n++; }
+    }
+  console.log(n ? `${n} problem${n === 1 ? '' : 's'} in ${files} files` : `ok: ${files} files`);
+  if (n) process.exit(1);
+}
+
+async function cmdSchema() {
+  const { TAGS } = await import('../src/schema.ts');
+  console.log(JSON.stringify(TAGS, null, 2));
+}
+
 async function cmdNew(o) {
   if (o.decks.length !== 1) throw new Error(`give the folder to create\n${USAGE}`);
   const { newDeck } = await import('./new.mjs');
@@ -195,6 +217,8 @@ try {
   if (cmd === 'build') await cmdBuild(parseArgs(rest));
   else if (cmd === 'dev') await cmdDev(parseArgs(rest));
   else if (cmd === 'new') await cmdNew(parseArgs(rest));
+  else if (cmd === 'check') await cmdCheck(parseArgs(rest));
+  else if (cmd === 'schema') await cmdSchema();
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }
 } catch (e) {
   console.error(`slides: ${e.message ?? e}`);

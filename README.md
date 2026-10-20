@@ -402,6 +402,8 @@ PDF export is also available from any browser: open `?print=slides` or `?print=s
 `slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
+`slides check <deck...>` validates every `.slide` file against the markup schema (unknown tags and attributes, tags in the wrong place, bad values, stray text) and prints `file:line: message`; it exits with 1 when something is wrong, so it fits CI. `slides schema` prints the schema (`src/schema.ts`: every tag, its attributes and what may sit inside it) as JSON, the same data the editor tooling uses.
+
 ## Viewer controls
 
 | Key | Action |

@@ -3,6 +3,8 @@
 // `<` and `&` need no escaping there. `\</code>` writes a closing tag as text inside a raw tag.
 // Anything outside a tag is returned as a string.
 
+import { RAW_TAGS } from './schema.ts';
+
 export interface El {
   tag: string;
   attrs: Record<string, string>;
@@ -11,12 +13,14 @@ export interface El {
 }
 
 export class MarkupError extends Error {
-  constructor(message: string, readonly line: number) {
+  line: number;
+  constructor(message: string, line: number) {
     super(`line ${line}: ${message}`);
+    this.line = line;
   }
 }
 
-export const RAW = new Set(['slide', 'code', 'chart', 'diagram', 'notes', 'tex', 'c']);
+export const RAW = new Set(RAW_TAGS);
 
 const OPEN = /^<([a-z][a-z0-9-]*)(?=[\s/>])/;
 const CLOSE = /^<\/([a-z][a-z0-9-]*)\s*>/;
