@@ -50,18 +50,19 @@ it('reads a zip file', () => {
   expect([...files.keys()]).toContain('ppt/theme/theme1.xml');
 });
 
-it('slides import turns a template into a deck: backgrounds, theme colors, fonts, slides', async () => {
+it('slides import turns a template into a deck: backgrounds, theme colors, fonts, one example slide', async () => {
   process.env.CHROMIUM = '/nonexistent'; // no image analysis: the structure alone
   const dir = join(mkdtempSync(join(tmpdir(), 'slideit-import-')), 'out');
   const r = await importPptx(writeTmp(pptx), dir, { title: 'Uni' });
   expect(r.slides).toBe(2);
   const deck = JSON.parse(readFileSync(join(dir, 'deck.json'), 'utf8'));
   expect(deck.title).toBe('Uni');
-  expect(deck.defaults.background).toBe('assets/bg1.png');
+  expect(deck.defaults.background).toBe('assets/content.png');
   expect(deck.vars).toMatchObject({ '--fg': '#112233', '--accent': '#cc3344', '--heading': '#334455', '--font-heading': "'Lora', system-ui, sans-serif" });
   expect(readFileSync(join(dir, 'assets/cover.png'), 'utf8')).toBe('COVERPNG');
-  expect(readFileSync(join(dir, '01-cover.slide'), 'utf8')).toContain('background: assets/cover.png');
-  expect(existsSync(join(dir, '02-content.slide'))).toBe(true);
+  expect(readFileSync(join(dir, 'assets/content.png'), 'utf8')).toBe('CONTENTPNG');
+  expect(existsSync(join(dir, '01-hello.slide'))).toBe(true);
+  expect(existsSync(join(dir, '01-cover.slide'))).toBe(false);
   expect(r.notes.join(' ')).toMatch(/Chrome|Chromium/);
 });
 

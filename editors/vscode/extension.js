@@ -6,6 +6,17 @@ const path = require('node:path');
 const fs = require('node:fs');
 const http = require('node:http');
 const { spawn, spawnSync } = require('node:child_process');
+
+/** stop a process and what it started (`npx` starts node, a shell script starts more): the whole group */
+function killTree(proc) {
+  if (!proc?.pid) return;
+  try {
+    if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(proc.pid), '/T', '/F']);
+    else process.kill(-proc.pid, 'SIGTERM');
+  } catch {
+    proc.kill();
+  }
+}
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 
 let client;
@@ -42,8 +53,10 @@ function startClient(context) {
 /** `slides dev <folder>`, and the URL it prints */
 function startServer(folder) {
   return new Promise((resolve, reject) => {
-    const s = cli('dev', folder);
-    const proc = spawn(s.command, s.args, { shell: process.platform === 'win32' });
+    // --stop-with-parent: the server ends when this editor does, even if the editor is killed and cannot clean up;
+    // detached: it leads a process group of its own, so killTree can end npx and everything under it
+    const s = cli('dev', folder, '--stop-with-parent');
+    const proc = spawn(s.command, s.args, { shell: process.platform === 'win32', detached: process.platform !== 'win32' });
     let out = '';
     output.appendLine(`$ ${[s.command, ...s.args].join(' ')}`);
     const onData = (d) => {
@@ -86,7 +99,7 @@ async function openPreview() {
 }
 
 function stopPreview() {
-  preview?.proc.kill();
+  killTree(preview?.proc);
   preview = undefined;
   status?.hide();
 }

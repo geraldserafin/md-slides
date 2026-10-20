@@ -191,21 +191,22 @@ export async function importPptx(file, outDir, { title } = {}) {
   if (!analysis && backgrounds.length) notes.push('Chrome/Chromium was not found, so the free area of the backgrounds was not measured: margins are the defaults (set CHROMIUM=/path and import again, or edit "margin" in deck.json).');
 
   mkdirSync(join(outDir, 'assets'), { recursive: true });
+  // the first slide's background is the cover, the first different one the content background (the one slides get by default);
+  // a template with a single picture uses it for both
+  const coverBg = slides[0]?.bg;
+  const contentSlides = slides.filter((s) => s.bg && s.bg !== coverBg);
+  const contentBg = contentSlides[0]?.bg ?? coverBg;
   const nameOf = new Map();
   const asset = (file) => {
     if (!nameOf.has(file)) {
       const ext = extname(file).toLowerCase();
-      const name = `${nameOf.size === 0 ? 'cover' : `bg${nameOf.size}`}${ext}`;
+      const name = file === contentBg ? `content${ext}` : file === coverBg ? `cover${ext}` : `background${nameOf.size + 1}${ext}`;
       nameOf.set(file, name);
       writeFileSync(join(outDir, 'assets', name), files.get(file));
     }
     return `assets/${nameOf.get(file)}`;
   };
-  const coverBg = slides[0]?.bg;
-  const contentSlides = slides.filter((s) => s.bg && s.bg !== coverBg);
-  const contentBg = contentSlides[0]?.bg;
-  if (coverBg) asset(coverBg);
-  for (const s of contentSlides) asset(s.bg);
+  for (const b of backgrounds) asset(b);
 
   // the content area: the free margins of the content background, plus a breath
   const m = contentBg && analysis?.get(contentBg)?.margin;
@@ -258,53 +259,45 @@ export async function importPptx(file, outDir, { title } = {}) {
   };
   writeFileSync(join(outDir, 'deck.json'), JSON.stringify(deck, null, 2) + '\n');
 
-  // the slides: a cover on the first background, then content slides
-  const cover = coverBg && analysis?.get(coverBg);
-  const light = cover?.dark;
-  writeFileSync(join(outDir, '01-cover.slide'), `<slide>
-  layout: cover
-${coverBg ? `  background: ${q(asset(coverBg))}\n` : ''}  halign: start
-  valign: end
-  margin: 0 6vw 7vh 6vw
-${light ? '  text-color: "#ffffff"\n  heading-color: "#ffffff"\n  --muted: "#d6dbea"\n' : ''}</slide>
+  // one example slide, on the content background
+  writeFileSync(join(outDir, '01-hello.slide'), `<h1>Hello world</h1>
 
-<h1>${name}</h1>
-<p>Subtitle, author, date</p>
-`.replace(/text-color: "#ffffff"/, 'text-color: #ffffff').replace(/heading-color: "#ffffff"/, 'heading-color: #ffffff').replace(/--muted: "#d6dbea"/, '--muted: #d6dbea'));
-  writeFileSync(join(outDir, '02-content.slide'), `<h2>A content slide</h2>
+<p>The background, colors and margins of the template are in place.</p>
 
 <ul steps>
-  <li>The background, colors and margins come from the template</li>
   <li>Text stays inside the free area of the slide</li>
-  <li>Change them in deck.json: "defaults" holds a background and a margin</li>
+  <li>Each <c>.slide</c> file is one slide; add more next to this one</li>
 </ul>
-`);
-  writeFileSync(join(outDir, '03-code.slide'), `<row>
-  <col>
-    <h2>Code that moves</h2>
-    <p>Press → and the code changes.</p>
-  </col>
-  <code lang=ts>
-    <frame>
-      let total = 0;
-    </frame>
-    <frame>
-      let total = items.length;
-    </frame>
-  </code>
-</row>
-`);
-  // the other backgrounds of the template: one slide each, as examples
-  contentSlides.slice(1).forEach((s, i) => writeFileSync(join(outDir, `0${i + 4}-variant.slide`), `<slide>\n  background: ${q(asset(s.bg))}\n</slide>\n\n<h2>${s.layoutName ?? 'Another background'}</h2>\n`));
 
-  writeFileSync(join(outDir, 'README.md'), `# ${name}
-
-Imported from \`${basename(file)}\` with \`slides import\`. Preview: \`slides dev .\`
-
-- \`assets/\`: the backgrounds${Object.keys(bar).length ? ' and logos' : ''} of the template.
-- \`deck.json\`: \`defaults.background\` is the background of every slide, \`defaults.margin\` the free area${themeVars['--accent'] ? `, \`vars\` the colors and sizes (on top of the built-in ${base} theme)` : ''}.
-- \`01-cover.slide\`: the title slide (a different background, light text).
-${notes.map((n) => `\n> ${n}`).join('\n')}
+<notes>Edit or delete this slide.</notes>
 `);
+
+  const fence = '```';
+  const note = (n) => `\n> ${n}`;
+  const list = [...nameOf.values()].map((n) => `- \`assets/${n}\`${n.startsWith('content') ? ' (the default background of every slide)' : n.startsWith('cover') ? ' (the title slide of the template)' : ''}`).join('\n');
+  const readme = [
+    `# ${name}`,
+    '',
+    `Imported from \`${basename(file)}\` with \`slides import\`. Preview: \`slides dev .\``,
+    '',
+    '## What came with the template',
+    '',
+    list + (Object.keys(bar).length ? '\n- the logos, in the header or footer bar (see deck.json)' : ''),
+    '',
+    `\`deck.json\` has \`defaults.background\` (the background of every slide) and \`defaults.margin\` (the free area of the slide)${themeVars['--accent'] ? `, and \`vars\` with the colors and sizes (on top of the built-in ${base} theme)` : ''}.`,
+    '',
+    '## Using a background on one slide',
+    '',
+    fence,
+    '<slide>',
+    '  background: assets/cover.jpg',
+    '</slide>',
+    fence,
+    '',
+    'A slide with nothing else in it shows only its background: the title slide of the template, for example. For a slide with text on a dark background add `layout: cover`, `text-color: #ffffff` and `heading-color: #ffffff`.',
+    ...notes.map(note),
+    '',
+  ].join('\n');
+  writeFileSync(join(outDir, 'README.md'), readme);
   return { name, backgrounds: backgrounds.length, slides: slides.length, notes, margin, analysis: analysis ? Object.fromEntries([...analysis].map(([k, v]) => [nameOf.get(k) ?? k, v])) : undefined, bar };
 }

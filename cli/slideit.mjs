@@ -16,7 +16,7 @@ import tags from '../src/tags.json' with { type: 'json' };
 const TARGETS = ['static', 'single', 'pdf', 'exe'];
 
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
-slides dev   <deck...> [--port N] [--open] [--vite]
+slides dev   <deck...> [--port N] [--open] [--vite] [--stop-with-parent]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
 slides check <deck...>                          find mistakes in the .slide files (file:line: message)
 slides import <file.pptx> <folder>               start a deck from a PowerPoint template (backgrounds, logos, colors, margins)
@@ -45,6 +45,7 @@ function parseArgs(argv) {
     else if (a === '--steps') o.steps = true;
     else if (a === '--open') o.open = true;
     else if (a === '--vite') o.vite = true;
+    else if (a === '--stop-with-parent') o.stopWithParent = true;
     else if (a.startsWith('-')) throw new Error(`unknown option: ${a}`);
     else o.decks.push(a);
   }
@@ -156,6 +157,13 @@ async function cmdBuild(o) {
 
 async function cmdDev(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
+  // started by an editor: stop when it goes away (its end of our stdin closes), however it went
+  if (o.stopWithParent) {
+    process.stdin.resume();
+    process.stdin.on('end', () => process.exit(0));
+    process.stdin.on('close', () => process.exit(0));
+  }
+  for (const sig of ['SIGTERM', 'SIGHUP']) process.on(sig, () => process.exit(0));
   const dirs = expandDecks(o.decks);
   const hubDir = hubFolder(o.decks, o.hub);
   let publicDir = tmp();
