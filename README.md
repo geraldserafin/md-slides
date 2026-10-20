@@ -11,6 +11,7 @@ moved tokens glide to their new place, removed ones fade out, new ones fade in.
 self-contained HTML file, a PDF, or a standalone executable.
 
 ```sh
+npx slides new my-talk                  # a starter deck: cover, bullets, animated code, ending
 npx slides dev my-talk/                 # dev server with live reload
 npx slides build my-talk/ -o dist       # static website (GitHub Pages, Netlify, ...)
 npx slides build my-talk/ -t single     # one .html file, works offline

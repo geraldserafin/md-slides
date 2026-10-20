@@ -2,6 +2,7 @@
 // slides -- a .slide markup -> presentation compiler.
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
+//   slides new   <folder> [--title "My talk"]
 // A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -16,6 +17,7 @@ const TARGETS = ['static', 'single', 'pdf', 'exe'];
 
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
 slides dev   <deck...> [--port N] [--open]
+slides new   <folder> [--title "My talk"]       a starter deck to edit
 
   <deck> is a folder of .slide files, or a folder of such folders (each one becomes a deck).
   A folder of decks may hold a hub.json that customizes the deck chooser (title, subtitle, logo, theme...);
@@ -35,6 +37,7 @@ function parseArgs(argv) {
     else if (a === '--base') o.base = argv[++i];
     else if (a === '--hub') o.hub = argv[++i];
     else if (a === '--port') o.port = Number(argv[++i]);
+    else if (a === '--title') o.title = argv[++i];
     else if (a === '--steps') o.steps = true;
     else if (a === '--open') o.open = true;
     else if (a.startsWith('-')) throw new Error(`unknown option: ${a}`);
@@ -180,10 +183,18 @@ async function cmdDev(o) {
       });
 }
 
+async function cmdNew(o) {
+  if (o.decks.length !== 1) throw new Error(`give the folder to create\n${USAGE}`);
+  const { newDeck } = await import('./new.mjs');
+  const dir = newDeck(o.decks[0], o.title);
+  console.log(`created ${dir}\nnext: slides dev ${o.decks[0]}`);
+}
+
 const [cmd, ...rest] = process.argv.slice(2);
 try {
   if (cmd === 'build') await cmdBuild(parseArgs(rest));
   else if (cmd === 'dev') await cmdDev(parseArgs(rest));
+  else if (cmd === 'new') await cmdNew(parseArgs(rest));
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }
 } catch (e) {
   console.error(`slides: ${e.message ?? e}`);
