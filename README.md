@@ -466,15 +466,18 @@ npm run dev          # dev server for examples/
 npm run build        # typecheck + static build of examples/ into dist/
 npm test             # unit tests + GumTree regression fixtures
 npm run typecheck
+npm run build:viewer  # the prebuilt viewers in viewer/ that the published package ships
 ```
+
+A published package ships the viewer prebuilt (`viewer/`, four variants: with or without the diagram library, normal or "single"), so `slides build` takes a fraction of a second and `slides dev` starts at once: they copy the viewer and add the decks. From a clone there is no `viewer/` and the CLI builds the viewer with vite on the fly (`slides dev --vite` forces vite, with hot reload of the viewer's own code).
 
 A Nix/devenv shell with Node and Chromium is provided (`devenv shell`).
 
 Layout:
 
 ```
-cli/        the `slides` compiler (dev, build, targets)
-src/        the viewer (browser): parsing, GumTree, layout, renderer, themes, drawer, chrome (header/footer), presenter
+cli/        the `slides` command (new, dev, build, check, schema), the prebuilt-viewer dev server
+src/        the markup (markup.ts, schema.ts, check.ts), the viewer (browser): parsing, GumTree, layout, renderer, themes, drawer, chrome (header/footer), presenter
 tests/      vitest suites; tests/fixtures/ has matcher regression cases (old.*, new.*, expect.txt)
 examples/   demo decks used for development and GitHub Pages
 ```

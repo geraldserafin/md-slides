@@ -5,19 +5,18 @@
 //   slides new   <folder> [--title "My talk"]
 //   slides check <deck...>     slides schema
 // A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { build, createLogger, createServer } from 'vite';
+import { spawn } from 'node:child_process';
 import { stageDecks } from './decks.mjs';
+import { buildViewer, hasViewer, rootDir, viewerDir } from './viewer.mjs';
 import tags from '../src/tags.json' with { type: 'json' };
 
-const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TARGETS = ['static', 'single', 'pdf', 'exe'];
 
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
-slides dev   <deck...> [--port N] [--open]
+slides dev   <deck...> [--port N] [--open] [--vite]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
 slides check <deck...>                          find mistakes in the .slide files (file:line: message)
 slides schema                                   the markup as JSON (tags, attributes), for editor tooling
@@ -43,6 +42,7 @@ function parseArgs(argv) {
     else if (a === '--title') o.title = argv[++i];
     else if (a === '--steps') o.steps = true;
     else if (a === '--open') o.open = true;
+    else if (a === '--vite') o.vite = true;
     else if (a.startsWith('-')) throw new Error(`unknown option: ${a}`);
     else o.decks.push(a);
   }
@@ -62,13 +62,6 @@ function usedLanguages(dirs) {
       for (const m of readFileSync(join(d, f), 'utf8').matchAll(/<code\b[^>]*?\blang=["']?([\w+#.-]+)/g))
         if (tags[m[1].toLowerCase()]) used.add(tags[m[1].toLowerCase()]);
   return used;
-}
-
-function quietLogger() {
-  const l = createLogger('warn');
-  const warn = l.warn;
-  l.warn = (m, o) => { if (!/externalized|inlineDynamicImports/.test(m)) warn(m, o); };
-  return l;
 }
 
 /** the folder whose hub.json customizes the gallery: --hub, else the first given folder of decks that has one */
@@ -97,16 +90,18 @@ function expandDecks(args) {
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'slides-'));
 
-async function compile(dirs, outDir, extra = {}, hubDir) {
+/** the viewer plus the decks, into `outDir`: copied from the prebuilt viewer, or built with vite when there is none (a clone) */
+async function compile(dirs, outDir, { single = false, base = './' } = {}, hubDir) {
+  const variant = { single, mermaid: usesMermaid(dirs) };
+  if (hasViewer(variant) && base === './') {
+    rmSync(outDir, { recursive: true, force: true });
+    cpSync(viewerDir(variant), outDir, { recursive: true });
+    stageDecks(dirs, outDir, hubDir);
+    return;
+  }
   const publicDir = tmp();
   stageDecks(dirs, publicDir, hubDir);
-  await build({
-    root: rootDir, configFile: join(rootDir, 'vite.config.ts'), logLevel: 'warn', customLogger: quietLogger(), publicDir,
-    build: {
-      outDir, emptyOutDir: true, ...extra.build,
-      rollupOptions: { ...extra.build?.rollupOptions, onwarn: (w, h) => w.code !== 'EVAL' && h(w) },
-    }, define: { __USE_MERMAID__: String(usesMermaid(dirs)) }, ...extra.top,
-  });
+  await buildViewer({ outDir, publicDir, base, ...variant });
   rmSync(publicDir, { recursive: true, force: true });
 }
 
@@ -120,7 +115,7 @@ async function cmdBuild(o) {
 
   if (o.target === 'static') {
     const out = resolve(o.out ?? 'dist');
-    await compile(dirs, out, { top: { base } }, hubDir);
+    await compile(dirs, out, { base }, hubDir);
     console.log(`static -> ${out}`);
     return;
   }
@@ -128,13 +123,7 @@ async function cmdBuild(o) {
   try {
     if (o.target === 'single') {
       const out = resolve(o.out ?? `${name}.html`);
-      await compile(dirs, work, {
-        build: {
-          assetsInlineLimit: (f) => (f.endsWith('.wasm') ? false : true),
-          cssCodeSplit: false, modulePreload: false,
-          rollupOptions: { output: { codeSplitting: false } },
-        },
-      }, hubDir);
+      await compile(dirs, work, { single: true }, hubDir);
       const { inlineDist } = await import('./single.mjs');
       const n = inlineDist(work, out, usedLanguages(dirs), new Set(Object.values(tags)));
       console.log(`single -> ${out} (${(statSync(out).size / 1048576).toFixed(1)} MB, ${n} files embedded)`);
@@ -168,12 +157,26 @@ async function cmdDev(o) {
   const hubDir = hubFolder(o.decks, o.hub);
   const publicDir = tmp();
   stageDecks(dirs, publicDir, hubDir);
-  const server = await createServer({
-    root: rootDir, configFile: join(rootDir, 'vite.config.ts'), publicDir,
-    server: { port: o.port, open: o.open, fs: { allow: [rootDir, ...dirs] } },
-  });
-  await server.listen();
-  server.printUrls();
+  // the prebuilt viewer when there is one (instant start); vite from a clone
+  const prebuilt = !o.vite && hasViewer({ single: false, mermaid: true });
+  let reload;
+  if (prebuilt) {
+    const { devServer } = await import('./devserver.mjs');
+    const s = devServer([join(publicDir), viewerDir({ single: false, mermaid: true })]);
+    reload = s.reload;
+    const url = await s.listen(o.port);
+    console.log(`  ${url}`);
+    if (o.open) openBrowser(url);
+  } else {
+    const { createServer } = await import('vite');
+    const server = await createServer({
+      root: rootDir, configFile: join(rootDir, 'vite.config.ts'), publicDir,
+      server: { port: o.port, open: o.open, fs: { allow: [rootDir, ...dirs] } },
+    });
+    await server.listen();
+    server.printUrls();
+    reload = () => server.ws.send({ type: 'full-reload' });
+  }
   // a change in a deck folder => restage and reload the page
   let timer;
   for (const d of [...dirs, ...(hubDir ? [hubDir] : [])])
@@ -181,9 +184,14 @@ async function cmdDev(o) {
       watch(d, { recursive: true }, () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
-          try { stageDecks(dirs, publicDir, hubDir); server.ws.send({ type: 'full-reload' }); } catch (e) { console.error(String(e.message ?? e)); }
+          try { stageDecks(dirs, publicDir, hubDir); reload(); } catch (e) { console.error(String(e.message ?? e)); }
         }, 150);
       });
+}
+
+function openBrowser(url) {
+  const [cmd, ...args] = process.platform === 'darwin' ? ['open'] : process.platform === 'win32' ? ['cmd', '/c', 'start'] : ['xdg-open'];
+  spawn(cmd, [...args, url], { stdio: 'ignore', detached: true }).on('error', () => {}).unref();
 }
 
 async function cmdCheck(o) {

@@ -7,3 +7,4 @@ dist
 devenv.local.nix
 devenv.local.yaml
 .direnv
+viewer
