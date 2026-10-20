@@ -9,7 +9,8 @@ const MIME = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.ttf': 'font/ttf', '.woff': 'font/woff', '.woff2': 'font/woff2',
 };
-const RELOAD = '<script>new EventSource("/__reload").onmessage=()=>location.reload()</script>';
+// the page listens: "reload" after a change, "goto:<slide>:<section>" when the editor's cursor moves (an editor's preview follows it)
+const RELOAD = '<script>new EventSource("/__reload").onmessage=(e)=>{if(e.data==="reload")location.reload();else if(e.data.startsWith("goto:")){const[,s,c]=e.data.split(":");window.__slideit?.goTo(+s,c===""?undefined:+c)}}</script>';
 
 /** `roots`: folders searched in order (the staged decks, then the viewer). Returns { listen(port) -> url, reload() }. */
 export function devServer(roots) {
@@ -21,6 +22,12 @@ export function devServer(roots) {
       res.write(': ok\n\n');
       clients.add(res);
       req.on('close', () => clients.delete(res));
+      return;
+    }
+    if (path === '/__goto') {
+      const q = new URL(req.url, 'http://x').searchParams;
+      if (/^\d+$/.test(q.get('slide') ?? '')) clients.forEach((c) => c.write(`data: goto:${q.get('slide')}:${/^\d+$/.test(q.get('section') ?? '') ? q.get('section') : ''}\n\n`));
+      res.writeHead(204, { 'access-control-allow-origin': '*' }).end();
       return;
     }
     const rel = path.endsWith('/') ? `${path}index.html` : path;

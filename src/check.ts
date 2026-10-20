@@ -1,7 +1,7 @@
 // Checks a .slide file against the schema: unknown tags and attributes, tags in the wrong place, bad values, stray text.
 // Used by `slides check` and by the editor tooling. Imports only the parser and the schema, so node loads it directly.
 import { MarkupError, parseMarkup, type El } from './markup.ts';
-import { childrenOf, FX, TAGS } from './schema.ts';
+import { childrenOf, FX, SLIDE_SETTINGS, TAGS } from './schema.ts';
 
 export interface Problem {
   line: number;
@@ -40,6 +40,17 @@ export function check(src: string): Problem[] {
         if ((k === 'at' || k === 'out') && !/^\d+$/.test(v)) add(n.line, `<${n.tag} ${k}=…>: expected a number, got \`${v}\``);
       }
       if (def.empty && n.children.length) add(n.line, `<${n.tag}> has no content`);
+      if (n.tag === 'slide') {
+        const text = typeof n.children[0] === 'string' ? n.children[0] : '';
+        text.split('\n').forEach((l, i) => {
+          const m = /^\s*([^\s:#][^:]*?)\s*:\s*(.*?)\s*$/.exec(l);
+          if (!m || m[1].startsWith('--') || l.trimStart().startsWith('#')) return;
+          const line = n.line + i;
+          const s = SLIDE_SETTINGS[m[1]];
+          if (!s) add(line, `unknown setting \`${m[1]}\` in <slide>`);
+          else if (s.values && !s.values.includes(m[2]) && m[1] !== 'theme') add(line, `${m[1]}: expected ${s.values.join(' | ')}, got \`${m[2]}\``);
+        });
+      }
       if (def.raw) {
         if (n.tag === 'code' && n.attrs.from === undefined && n.attrs.lang === undefined) add(n.line, '<code> needs a `lang`');
         continue;

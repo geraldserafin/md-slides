@@ -1,11 +1,12 @@
 // The language server of the slide markup: diagnostics (check.ts), completion and hover (schema.ts), over stdio.
 // A hand-written JSON-RPC loop, so the package needs no dependency for it. Plain TypeScript, no framework: `slides lsp`
 // runs it, and any editor with an LSP client can use it.
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { check } from './check.ts';
 import { pluginTags } from './plugin-schema.ts';
-import { childrenOf, extendSchema, FX, TAGS } from './schema.ts';
+import { childrenOf, extendSchema, FX, SLIDE_SETTINGS, TAGS } from './schema.ts';
 
 interface Pos { line: number; character: number }
 
@@ -75,6 +76,13 @@ const tagItem = (name: string) => {
 function complete(text: string, p: Pos) {
   const off = offsetAt(text, p);
   const line = text.slice(text.lastIndexOf('\n', off - 1) + 1, off);
+  // inside <slide>: `key: value` lines
+  if (openTags(text, off).at(-1) === 'slide') {
+    const val = /^\s*([\w-]+)\s*:\s*([^\s#]*)$/.exec(line);
+    if (val) return (SLIDE_SETTINGS[val[1]]?.values ?? []).map((v) => ({ label: v, kind: 12 }));
+    if (/^\s*[\w-]*$/.test(line)) return Object.entries(SLIDE_SETTINGS).map(([k, s]) => ({ label: k, kind: 10, documentation: md(s.doc), insertText: `${k}: `, detail: s.values?.join(' | ') }));
+    return [];
+  }
   // a value: <tag attr=va|
   const val = /<([a-z][a-z0-9-]*)\b[^>]*?\s([a-z-]+)=["']?([^"'\s>]*)$/.exec(line);
   if (val) {
@@ -102,6 +110,11 @@ function complete(text: string, p: Pos) {
 
 function hover(text: string, p: Pos) {
   const off = offsetAt(text, p);
+  if (openTags(text, off).at(-1) === 'slide') {
+    const key = /^\s*([\w-]+)\s*:/.exec(text.slice(text.lastIndexOf('\n', off - 1) + 1, text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off)))?.[1];
+    const s = key && SLIDE_SETTINGS[key];
+    return s ? { contents: md(`**${key}**: ${s.doc}${s.values ? `\n\nOne of: ${s.values.map((v) => `\`${v}\``).join(', ')}` : ''}`) } : null;
+  }
   const ls = text.lastIndexOf('\n', off - 1) + 1;
   const le = text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off);
   const line = text.slice(ls, le);
@@ -126,6 +139,74 @@ function hover(text: string, p: Pos) {
   return null;
 }
 
+interface Sym { name: string; kind: number; range: { start: Pos; end: Pos }; selectionRange: { start: Pos; end: Pos }; children: Sym[] }
+
+const SYMBOL_KIND: Record<string, number> = { section: 3, row: 23, col: 23, step: 24, code: 5, slide: 2, h1: 15, h2: 15, h3: 15, chart: 5, diagram: 5 };
+
+/** the structure of a file: sections, rows, cols, steps, code blocks and headings, as a tree with ranges (outline and folding) */
+export function outline(text: string): Sym[] {
+  const roots: Sym[] = [];
+  const stack: { name: string; sym?: Sym; start: Pos }[] = [];
+  const lineOf = (i: number) => text.slice(0, i).split('\n').length - 1;
+  const colOf = (i: number) => i - (text.lastIndexOf('\n', i - 1) + 1);
+  const pos = (i: number): Pos => ({ line: lineOf(i), character: colOf(i) });
+  const re = /<(\/?)([a-z][a-z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?)(\/?)>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    const [all, close, name, attrs, self] = m;
+    if (!TAGS[name]) continue;
+    if (close) {
+      const i = stack.map((s) => s.name).lastIndexOf(name);
+      if (i < 0) continue;
+      const [top] = stack.splice(i);
+      if (top.sym) top.sym.range = { start: top.sym.range.start, end: pos(m.index + all.length) };
+      continue;
+    }
+    let sym: Sym | undefined;
+    if (SYMBOL_KIND[name]) {
+      const lang = /\blang=["']?([\w+#.-]+)/.exec(attrs)?.[1];
+      const id = /\bid=["']?([\w-]+)/.exec(attrs)?.[1];
+      const head = /^h[1-3]$/.test(name) ? text.slice(re.lastIndex, text.indexOf('</', re.lastIndex)).replace(/<[^>]*>/g, '').trim() : '';
+      const label = head || [name, lang, id && `#${id}`].filter(Boolean).join(' ');
+      sym = { name: label || name, kind: SYMBOL_KIND[name], range: { start: pos(m.index), end: pos(m.index + all.length) }, selectionRange: { start: pos(m.index), end: pos(m.index + all.length) }, children: [] };
+      (stack.map((s) => s.sym).filter(Boolean).at(-1)?.children ?? roots).push(sym);
+    }
+    if (self || TAGS[name].empty) { continue; }
+    if (TAGS[name].raw) {
+      const end = text.indexOf(`</${name}>`, re.lastIndex);
+      if (end >= 0) {
+        if (sym) sym.range = { start: sym.range.start, end: pos(end + name.length + 3) };
+        re.lastIndex = end + name.length + 3;
+      }
+      continue;
+    }
+    stack.push({ name, sym, start: pos(m.index) });
+  }
+  return roots;
+}
+
+const flatten = (syms: Sym[]): Sym[] => syms.flatMap((s) => [s, ...flatten(s.children)]);
+
+/** `id=name` / `from=name` under the cursor: the code blocks with that id in the files of the deck */
+function definition(uri: string, text: string, p: Pos) {
+  const off = offsetAt(text, p);
+  const ls = text.lastIndexOf('\n', off - 1) + 1;
+  const line = text.slice(ls, text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off));
+  const hit = [...line.matchAll(/\b(?:id|from)=["']?([\w-]+)/g)].find((m) => off - ls >= m.index! && off - ls <= m.index! + m[0].length);
+  if (!hit || !uri.startsWith('file:')) return [];
+  const dir = dirname(fileURLToPath(uri));
+  const out: { uri: string; range: { start: Pos; end: Pos } }[] = [];
+  for (const f of readdirSync(dir).filter((f) => f.endsWith('.slide')).sort()) {
+    const fileUri = pathToFileURL(join(dir, f)).href;
+    const src = fileUri === uri ? text : readFileSync(join(dir, f), 'utf8');
+    src.split('\n').forEach((l, i) => {
+      const m = new RegExp(`<code\\b[^>]*\\bid=["']?${hit[1]}(?![\\w-])`).exec(l);
+      if (m && !(fileUri === uri && i === p.line)) out.push({ uri: fileUri, range: { start: { line: i, character: m.index }, end: { line: i, character: l.length } } });
+    });
+  }
+  return out;
+}
+
 function validate(uri: string) {
   const text = docs.get(uri) ?? '';
   const lines = text.split('\n');
@@ -141,7 +222,7 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
   const { id, method, params } = msg;
   switch (method) {
     case 'initialize':
-      send({ id, result: { capabilities: { textDocumentSync: 1, hoverProvider: true, completionProvider: { triggerCharacters: ['<', ' ', '=', '"', '/'] } }, serverInfo: { name: 'slides' } } });
+      send({ id, result: { capabilities: { textDocumentSync: 1, hoverProvider: true, documentSymbolProvider: true, foldingRangeProvider: true, definitionProvider: true, completionProvider: { triggerCharacters: ['<', ' ', '=', '"', '/'] } }, serverInfo: { name: 'slides' } } });
       break;
     case 'shutdown': send({ id, result: null }); break;
     case 'exit': process.exit(0); break;
@@ -162,6 +243,15 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
       break;
     case 'textDocument/hover':
       void withPlugins(params.textDocument.uri).then(() => send({ id, result: hover(docs.get(params.textDocument.uri) ?? '', params.position) }));
+      break;
+    case 'textDocument/documentSymbol':
+      send({ id, result: outline(docs.get(params.textDocument.uri) ?? '') });
+      break;
+    case 'textDocument/foldingRange':
+      send({ id, result: flatten(outline(docs.get(params.textDocument.uri) ?? '')).filter((s) => s.range.end.line > s.range.start.line).map((s) => ({ startLine: s.range.start.line, endLine: s.range.end.line - 1 })) });
+      break;
+    case 'textDocument/definition':
+      send({ id, result: definition(params.textDocument.uri, docs.get(params.textDocument.uri) ?? '', params.position) });
       break;
     default:
       if (id !== undefined) send({ id, result: null }); // requests we do not know: an empty answer

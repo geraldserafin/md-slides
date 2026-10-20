@@ -10,3 +10,4 @@ devenv.local.yaml
 viewer
 lib
 *.vsix
+server/

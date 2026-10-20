@@ -76,6 +76,35 @@ describe('slides lsp', () => {
     const r = await request('textDocument/completion', { textDocument: { uri }, position: { line: 1, character: 1 } });
     expect(r.items.map((i: any) => i.label)).toContain('sparkle');
   });
+  it('completes the keys and values of a <slide> block', async () => {
+    open('file:///t/h.slide', '<slide>\n  th\n  halign: \n</slide>');
+    const keys = await request('textDocument/completion', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 1, character: 4 } });
+    expect(keys.items.map((i: any) => i.label)).toContain('theme');
+    const vals = await request('textDocument/completion', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 2, character: 10 } });
+    expect(vals.items.map((i: any) => i.label)).toEqual(['start', 'center', 'end']);
+    const hov = await request('textDocument/hover', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 2, character: 4 } });
+    expect(hov.contents.value).toMatch(/horizontally/);
+  });
+  it('outlines the structure and folds it', async () => {
+    const src = '<h2>Title</h2>\n<section>\n  <row>\n    <p>a</p>\n    <code lang=ts id=x>\n      let a;\n    </code>\n  </row>\n</section>';
+    open('file:///t/i.slide', src);
+    const syms = await request('textDocument/documentSymbol', { textDocument: { uri: 'file:///t/i.slide' } });
+    expect(syms.map((s: any) => s.name)).toEqual(['Title', 'section']);
+    expect(syms[1].children[0].name).toBe('row');
+    expect(syms[1].children[0].children.map((s: any) => s.name)).toEqual(['code ts #x']);
+    const folds = await request('textDocument/foldingRange', { textDocument: { uri: 'file:///t/i.slide' } });
+    expect(folds).toContainEqual({ startLine: 1, endLine: 7 });
+    expect(folds).toContainEqual({ startLine: 4, endLine: 5 });
+  });
+  it('goes from a code id to the blocks that share it, in the files of the deck', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slideit-def-'));
+    writeFileSync(join(dir, '01.slide'), '<code lang=ts id=cart>a;</code>');
+    writeFileSync(join(dir, '02.slide'), '<code lang=ts id=cart>b;</code>\n<code lang=ts from=cart />');
+    const uri = pathToFileURL(join(dir, '02.slide')).href;
+    open(uri, '<code lang=ts id=cart>b;</code>\n<code lang=ts from=cart />');
+    const r = await request('textDocument/definition', { textDocument: { uri }, position: { line: 1, character: 22 } });
+    expect(r.map((x: any) => x.uri.split('/').pop() + ':' + x.range.start.line)).toEqual(['01.slide:0', '02.slide:0']);
+  });
   it('hovers a tag and an attribute', async () => {
     open('file:///t/g.slide', '<code lang=ts>x</code>');
     const tag = await request('textDocument/hover', { textDocument: { uri: 'file:///t/g.slide' }, position: { line: 0, character: 3 } });

@@ -106,6 +106,15 @@ async function main() {
   const ch = new BroadcastChannel(CHANNEL);
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
   const pluginApi = { player, deck };
+  // the editor's preview follows the cursor: the last step of the slide (or of its section) shows everything revealed
+  (window as unknown as { __slideit: unknown }).__slideit = {
+    goTo(slide: number, section?: number) {
+      let to = -1;
+      steps.forEach((st, i) => { if (st.slide === slide && (section === undefined || deck.slides[slide].sections.indexOf(st.section) === section)) to = i; });
+      if (to < 0 && section !== undefined) steps.forEach((st, i) => { if (st.slide === slide) to = i; });
+      if (to >= 0 && to !== player.state().step) player.go(to);
+    },
+  };
   player.onChange = (s) => {
     for (const p of plugins) { try { p.hooks?.step?.(pluginApi, { step: s.step, slide: s.slide }); } catch (e) { console.error(`plugin ${p.name}:`, e); } }
     history.replaceState(null, '', `#${s.step + 1}`);

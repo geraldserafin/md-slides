@@ -1,6 +1,6 @@
 {
   "name": "@geraldserafin/slideit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Presentations with code transitions animated by an AST diff (GumTree), written in a small tag markup.",
   "license": "BSD-3-Clause",
   "type": "module",

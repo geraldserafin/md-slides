@@ -2,34 +2,133 @@
   "name": "slideit-vscode",
   "displayName": "slideit",
   "description": "Syntax highlighting, diagnostics, completion and a live preview for .slide presentations",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "geraldserafin",
   "license": "BSD-3-Clause",
-  "repository": { "type": "git", "url": "https://github.com/geraldserafin/md-slides.git", "directory": "editors/vscode" },
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Programming Languages", "Snippets", "Other"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geraldserafin/md-slides.git",
+    "directory": "editors/vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
   "main": "./extension.js",
-  "activationEvents": ["onLanguage:slide"],
+  "activationEvents": [
+    "onLanguage:slide"
+  ],
   "contributes": {
-    "languages": [{ "id": "slide", "aliases": ["Slide", "slide"], "extensions": [".slide"], "configuration": "./language-configuration.json" }],
-    "grammars": [{ "language": "slide", "scopeName": "text.slide", "path": "./syntaxes/slide.tmLanguage.json" }],
+    "languages": [
+      {
+        "id": "slide",
+        "aliases": [
+          "Slide",
+          "slide"
+        ],
+        "extensions": [
+          ".slide"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "slide",
+        "scopeName": "text.slide",
+        "path": "./syntaxes/slide.tmLanguage.json"
+      }
+    ],
     "commands": [
-      { "command": "slides.preview", "title": "Slides: Open preview to the side", "icon": "$(open-preview)" },
-      { "command": "slides.stopPreview", "title": "Slides: Stop the preview server" }
+      {
+        "command": "slides.preview",
+        "title": "Slides: Open preview to the side",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "slides.stopPreview",
+        "title": "Slides: Stop the preview server"
+      },
+      {
+        "command": "slides.check",
+        "title": "Slides: Check the deck"
+      }
     ],
     "menus": {
-      "editor/title": [{ "command": "slides.preview", "when": "resourceLangId == slide", "group": "navigation" }]
+      "editor/title": [
+        {
+          "command": "slides.preview",
+          "when": "resourceLangId == slide",
+          "group": "navigation"
+        }
+      ]
     },
-    "keybindings": [{ "command": "slides.preview", "key": "ctrl+k v", "mac": "cmd+k v", "when": "resourceLangId == slide" }],
+    "keybindings": [
+      {
+        "command": "slides.preview",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "resourceLangId == slide"
+      }
+    ],
     "configuration": {
       "title": "Slides",
       "properties": {
-        "slides.command": { "type": "string", "default": "slides", "description": "The slides command (the one `npm i -g @geraldserafin/slideit` installs), or a path to it. `npx` users: set it to `npx` and slides.args to [\"@geraldserafin/slideit\"]." },
-        "slides.args": { "type": "array", "items": { "type": "string" }, "default": [], "description": "Arguments put before the subcommand (see slides.command)." }
+        "slides.server": {
+          "type": "string",
+          "enum": [
+            "bundled",
+            "cli"
+          ],
+          "default": "bundled",
+          "description": "Where the language server (completion, hover, diagnostics) comes from: bundled with this extension, or `slides lsp` of the installed command."
+        },
+        "slides.command": {
+          "type": "string",
+          "default": "",
+          "description": "The slides command used for the preview (and for the server when slides.server is \"cli\"). Empty: `slides` if it is on the PATH, else `npx @geraldserafin/slideit`."
+        },
+        "slides.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Arguments put before the subcommand of slides.command."
+        },
+        "slides.autoCloseTags": {
+          "type": "boolean",
+          "default": true,
+          "description": "Typing `>` of an opening tag inserts the closing tag."
+        },
+        "slides.previewFollowsCursor": {
+          "type": "boolean",
+          "default": true,
+          "description": "The preview shows the slide (and section) the cursor is in."
+        }
       }
-    }
+    },
+    "snippets": [
+      {
+        "language": "slide",
+        "path": "./snippets/slide.json"
+      }
+    ]
   },
-  "dependencies": { "vscode-languageclient": "^9.0.1" },
-  "devDependencies": { "@vscode/vsce": "^3.0.0" },
-  "scripts": { "grammar": "node build-grammar.mjs", "package": "vsce package" }
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  },
+  "scripts": {
+    "grammar": "node build-grammar.mjs",
+    "server": "node build-server.mjs",
+    "vscode:prepublish": "npm run grammar && npm run server",
+    "package": "vsce package"
+  }
 }

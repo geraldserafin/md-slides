@@ -137,3 +137,40 @@ export function childrenOf(tag: string): string[] {
     for (const n of c === 'inline' ? INLINE_TEXT : c === 'part' ? PART : c === 'block' ? BLOCK_TEXT : [c]) out.add(n);
   return [...out];
 }
+
+/** the keys of a `<slide>` block (one `key: value` per line) */
+export interface SettingDef {
+  doc: string;
+  values?: string[];
+}
+
+const ALIGN_VALUES = ['start', 'center', 'end'];
+const TRANSITIONS = ['fade', 'slide', 'slide-right', 'slide-left', 'zoom', 'none'];
+
+export const SLIDE_SETTINGS: Record<string, SettingDef> = {
+  layout: { doc: '`cover`: a title slide (no header or footer, a large heading).', values: ['cover'] },
+  theme: { doc: 'The theme for this slide only: dark, light, paper, or one of the deck\'s themes.', values: ['dark', 'light', 'paper'] },
+  background: { doc: 'An image or looping video (relative to the .slide file), or any CSS background: `linear-gradient(...)`, `#123`.' },
+  halign: { doc: 'Where the content sits horizontally, and how text is aligned.', values: ALIGN_VALUES },
+  valign: { doc: 'Where the content sits vertically.', values: ALIGN_VALUES },
+  justify: { doc: 'Justified paragraphs (the last line stays at the start).', values: ['true', 'false'] },
+  class: { doc: 'An extra CSS class on the stage (style it from the deck\'s CSS).' },
+  title: { doc: 'The title shown in the presenter view and the drawer (default: the first heading).' },
+  transition: { doc: 'How the slide\'s content comes in.', values: TRANSITIONS },
+  'section-transition': { doc: 'The same, for the swaps between the slide\'s sections (default: `transition`).', values: TRANSITIONS },
+  stagger: { doc: 'Seconds between consecutive text blocks entering.' },
+  margin: { doc: 'Space around the content (CSS, default `3vmin 40px 4vmin`).' },
+  padding: { doc: 'The same as `margin`.' },
+  gap: { doc: 'Space between stacked parts (CSS).' },
+  'col-gap': { doc: 'Space between parts side by side (CSS).' },
+  'heading-size': { doc: 'Heading size: px or any CSS length.' },
+  'text-size': { doc: 'Text size: px or any CSS length.' },
+  spacing: { doc: 'Gap between text blocks.' },
+  accent: { doc: 'The accent color.' },
+  'heading-color': { doc: 'The heading color.' },
+  'text-color': { doc: 'The text color.' },
+  footer: { doc: '`off` hides the deck\'s footer on this slide.', values: ['on', 'off'] },
+  header: { doc: '`off` hides the deck\'s header on this slide.', values: ['on', 'off'] },
+  hidden: { doc: '`true` leaves the slide out of the show and the PDF (it stays in the folder).', values: ['true', 'false'] },
+  autoplay: { doc: 'Seconds per step when the deck plays itself.' },
+};

@@ -23,6 +23,11 @@ describe('slides check', () => {
     expect(msgs('<code>x</code>')[0]).toMatch(/needs a `lang`/);
     expect(msgs('<img />')[0]).toMatch(/needs a `src`/);
   });
+  it('checks the keys and values of <slide>', () => {
+    expect(msgs('<slide>\n  theme: dark\n  halign: center\n  --my-var: 1\n</slide>')).toEqual([]);
+    expect(msgs('<slide>\n  bogus: 1\n</slide>')[0]).toMatch(/unknown setting `bogus`/);
+    expect(check('<slide>\n  halign: middle\n</slide>')).toEqual([{ line: 2, message: 'halign: expected start | center | end, got `middle`' }]);
+  });
   it('reports parse errors with their line', () => {
     expect(check('<p>a</p>\n<row>')).toEqual([{ line: 2, message: '<row> is never closed' }]);
   });
