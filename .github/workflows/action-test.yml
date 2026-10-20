@@ -1,0 +1,21 @@
+name: Action
+# the action of this repository, run on a deck of the examples
+on:
+  push:
+    paths: [action.yml, .github/workflows/action-test.yml]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: build
+        with:
+          deck: examples/pitch
+          pdf: 'true'
+          pages: 'false'
+      - run: |
+          test -f "${{ steps.build.outputs.path }}/index.html"
+          test -s "${{ steps.build.outputs.path }}/pitch.pdf"
+          ls -la "${{ steps.build.outputs.path }}" | head

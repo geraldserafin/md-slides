@@ -47,7 +47,11 @@ async function openPreview() {
       preview = await startServer(folder);
     }
     const url = `${preview.url}?deck=${encodeURIComponent(path.basename(folder))}`;
-    await vscode.commands.executeCommand('simpleBrowser.show', url, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true });
+    try {
+      await vscode.commands.executeCommand('simpleBrowser.show', url, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true });
+    } catch {
+      await vscode.env.openExternal(vscode.Uri.parse(url)); // an editor without the Simple Browser (some VS Code forks)
+    }
   } catch (e) {
     preview = undefined;
     vscode.window.showErrorMessage(`Slides preview: ${e.message}`);

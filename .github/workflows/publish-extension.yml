@@ -1,0 +1,31 @@
+name: Publish extension
+# Tag vscode-v0.1.0 (matching editors/vscode/package.json) to publish to the Visual Studio Marketplace (VS Code) and to
+# Open VSX (VSCodium, Cursor and other VS Code forks). Secrets: VSCE_PAT, OVSX_PAT.
+on:
+  push:
+    tags: ['vscode-v*']
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci || npm install
+      - run: npm run grammar
+      - run: npx vsce package -o slideit.vsix
+      - run: npx vsce publish --packagePath slideit.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - run: npx ovsx publish slideit.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slideit.vsix
+          path: editors/vscode/slideit.vsix

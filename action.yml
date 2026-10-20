@@ -1,0 +1,69 @@
+name: slideit
+description: Build a deck of .slide presentations into a website (and a PDF) and upload it for GitHub Pages
+author: Gerald Serafin
+branding:
+  icon: play-circle
+  color: blue
+
+inputs:
+  deck:
+    description: A folder of .slide files, or a folder of such folders (each one becomes a deck, with a chooser page)
+    default: '.'
+  output:
+    description: Where the site is written
+    default: _site
+  pdf:
+    description: Also export a PDF per deck into the site (needs Chrome; the GitHub runners have it)
+    default: 'false'
+  check:
+    description: Fail on mistakes in the .slide files (slides check)
+    default: 'true'
+  pages:
+    description: Upload the site as the GitHub Pages artifact (deploy it with actions/deploy-pages in a later job)
+    default: 'true'
+  hub:
+    description: A hub.json file or folder that customizes the chooser page of several decks
+    default: ''
+  version:
+    description: The version of @geraldserafin/slideit to use
+    default: latest
+
+outputs:
+  path:
+    description: The folder the site was written to
+    value: ${{ inputs.output }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+    - name: Install slideit
+      shell: bash
+      run: npm i -g @geraldserafin/slideit@${{ inputs.version }}
+    - name: Check the decks
+      if: inputs.check == 'true'
+      shell: bash
+      run: slides check "${{ inputs.deck }}"
+    - name: Build the site
+      shell: bash
+      run: |
+        hub=()
+        if [ -n "${{ inputs.hub }}" ]; then hub=(--hub "${{ inputs.hub }}"); fi
+        slides build "${{ inputs.deck }}" -o "${{ inputs.output }}" "${hub[@]}"
+    - name: Export PDFs
+      if: inputs.pdf == 'true'
+      shell: bash
+      run: |
+        deck="${{ inputs.deck }}"
+        if ls "$deck"/*.slide >/dev/null 2>&1; then
+          slides build "$deck" -t pdf -o "${{ inputs.output }}/$(basename "$(realpath "$deck")").pdf"
+        else
+          slides build "$deck" -t pdf -o "${{ inputs.output }}/pdf"
+        fi
+    - name: Upload the Pages artifact
+      if: inputs.pages == 'true'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ inputs.output }}
