@@ -43,6 +43,7 @@
     "lecture",
     "workshop",
     "trip",
-    "refactoring"
+    "refactoring",
+    "plugin-demo"
   ]
 }

@@ -35,5 +35,8 @@ export async function buildViewer({ outDir, publicDir = false, mermaid, single =
   });
 }
 
-/** a markup module (schema, markup, check): from lib/ (the published package) or src/ (a clone) */
-export const loadLib = (name) => import(pathToFileURL(existsSync(join(rootDir, 'lib', `${name}.js`)) ? join(rootDir, 'lib', `${name}.js`) : join(rootDir, 'src', `${name}.ts`)).href);
+/** a markup module (schema, markup, check...): from src/ in a clone (always current), else from lib/ (the published package) */
+export const loadLib = (name) => {
+  const src = join(rootDir, 'src', `${name}.ts`);
+  return import(pathToFileURL(existsSync(src) ? src : join(rootDir, 'lib', `${name}.js`)).href);
+};

@@ -10,7 +10,15 @@ export type Lang = string; // grammar name, e.g. "cpp", "typescript"
 /** language tag (`lang=` of a code tag) -> grammar name */
 const TAGS: Record<string, Lang> = tags;
 
+const extraWasm = new Map<Lang, string>();
+
 export const langFromTag = (tag: string): Lang | undefined => TAGS[tag.toLowerCase()];
+
+/** a plugin's language: `tags` are the `lang=` values, `wasm` the tree-sitter grammar */
+export function registerLanguage(name: Lang, langTags: string[], wasm: string) {
+  for (const t of langTags) TAGS[t.toLowerCase()] = name;
+  extraWasm.set(name, wasm);
+}
 
 /** Where the .wasm files live: a URL (browser) or a path (node). */
 export interface GrammarSources {
@@ -41,7 +49,7 @@ async function parserFor(lang: Lang): Promise<Parser> {
   if (p) return p;
   let l = languages.get(lang);
   if (!l) {
-    l = Parser.Language.load(sources!.grammar(lang));
+    l = Parser.Language.load(extraWasm.get(lang) ?? sources!.grammar(lang));
     languages.set(lang, l);
   }
   p = new Parser();

@@ -1,12 +1,24 @@
 // The language server of the slide markup: diagnostics (check.ts), completion and hover (schema.ts), over stdio.
 // A hand-written JSON-RPC loop, so the package needs no dependency for it. Plain TypeScript, no framework: `slides lsp`
 // runs it, and any editor with an LSP client can use it.
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { check } from './check.ts';
-import { childrenOf, FX, TAGS } from './schema.ts';
+import { pluginTags } from './plugin-schema.ts';
+import { childrenOf, extendSchema, FX, TAGS } from './schema.ts';
 
 interface Pos { line: number; character: number }
 
 const docs = new Map<string, string>();
+
+/** the tags of the plugins of the deck a file belongs to (read once per folder) */
+const decks = new Map<string, Promise<void>>();
+const withPlugins = (uri: string): Promise<void> => {
+  if (!uri.startsWith('file:')) return Promise.resolve();
+  const dir = dirname(fileURLToPath(uri));
+  if (!decks.has(dir)) decks.set(dir, pluginTags(dir).then(extendSchema, () => {}));
+  return decks.get(dir)!;
+};
 
 const send = (msg: object) => {
   const body = JSON.stringify({ jsonrpc: '2.0', ...msg });
@@ -135,21 +147,21 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
     case 'exit': process.exit(0); break;
     case 'textDocument/didOpen':
       docs.set(params.textDocument.uri, params.textDocument.text);
-      validate(params.textDocument.uri);
+      void withPlugins(params.textDocument.uri).then(() => validate(params.textDocument.uri));
       break;
     case 'textDocument/didChange':
       docs.set(params.textDocument.uri, params.contentChanges[params.contentChanges.length - 1].text);
-      validate(params.textDocument.uri);
+      void withPlugins(params.textDocument.uri).then(() => validate(params.textDocument.uri));
       break;
     case 'textDocument/didClose':
       docs.delete(params.textDocument.uri);
       send({ method: 'textDocument/publishDiagnostics', params: { uri: params.textDocument.uri, diagnostics: [] } });
       break;
     case 'textDocument/completion':
-      send({ id, result: { isIncomplete: false, items: complete(docs.get(params.textDocument.uri) ?? '', params.position) } });
+      void withPlugins(params.textDocument.uri).then(() => send({ id, result: { isIncomplete: false, items: complete(docs.get(params.textDocument.uri) ?? '', params.position) } }));
       break;
     case 'textDocument/hover':
-      send({ id, result: hover(docs.get(params.textDocument.uri) ?? '', params.position) });
+      void withPlugins(params.textDocument.uri).then(() => send({ id, result: hover(docs.get(params.textDocument.uri) ?? '', params.position) }));
       break;
     default:
       if (id !== undefined) send({ id, result: null }); // requests we do not know: an empty answer

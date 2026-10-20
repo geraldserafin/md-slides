@@ -3,7 +3,7 @@
 // `<` and `&` need no escaping there. `\</code>` writes a closing tag as text inside a raw tag.
 // Anything outside a tag is returned as a string.
 
-import { RAW_TAGS } from './schema.ts';
+import { isRaw } from './schema.ts';
 
 export interface El {
   tag: string;
@@ -19,8 +19,6 @@ export class MarkupError extends Error {
     this.line = line;
   }
 }
-
-export const RAW = new Set(RAW_TAGS);
 
 const OPEN = /^<([a-z][a-z0-9-]*)(?=[\s/>])/;
 const CLOSE = /^<\/([a-z][a-z0-9-]*)\s*>/;
@@ -83,7 +81,7 @@ export function parseMarkup(src: string): (El | string)[] {
     i = j;
     text = i;
     if (selfClosed) continue;
-    if (RAW.has(el.tag)) {
+    if (isRaw(el.tag)) {
       // content up to the first closing tag that is not escaped with a backslash
       const closer = `</${el.tag}>`;
       let end = i;

@@ -7,6 +7,7 @@ import { fenceAlign, parseAlign, place, resolveAlign, type Align } from './align
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
 import type { Block, CodeStyle, Deck, Item, Layout, Section, Slide } from './deck';
 import { fileUrl } from './files';
+import { pluginTag } from './plugins';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
 
@@ -413,6 +414,26 @@ export class Player {
         const pre = document.createElement('pre');
         pre.textContent = it.text;
         el.append(pre);
+        break;
+      }
+      case 'custom': {
+        // a tag of a plugin: it renders into the item (a string of HTML, a node, or by filling `el` itself)
+        el.classList.add('item-custom', `item-${it.tag}`);
+        const put = (out: string | Node | void) => {
+          if (typeof out === 'string') el.innerHTML = out;
+          else if (out) el.append(out);
+        };
+        const fail = (e: unknown) => {
+          const pre = document.createElement('pre');
+          pre.className = 'plugin-error';
+          pre.textContent = `<${it.tag}>: ${e instanceof Error ? e.message : String(e)}`;
+          el.replaceChildren(pre);
+        };
+        try {
+          const out = pluginTag(it.tag)?.render({ tag: it.tag, attrs: it.attrs, text: it.text, el, base: new URL(`decks/${this.deck.name}/`, document.baseURI).href });
+          if (out instanceof Promise) out.then((o) => { put(o); this.relayout(true); }, fail);
+          else put(out);
+        } catch (e) { fail(e); }
         break;
       }
       case 'diagram': {

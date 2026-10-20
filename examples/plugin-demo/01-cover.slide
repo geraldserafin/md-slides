@@ -1,0 +1,11 @@
+<slide>
+  layout: cover
+  halign: center
+  valign: center
+</slide>
+
+<h1>Plugins</h1>
+<p>New tags, a theme and a button, from one file</p>
+<badge color=green>demo.js</badge>
+
+<notes>This deck loads demo.js, listed in deck.json under "plugins".</notes>

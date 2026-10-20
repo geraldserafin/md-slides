@@ -1,0 +1,18 @@
+{
+  "title": "Plugins",
+  "description": "A deck with a plugin: new tags, a theme, a toolbox button",
+  "author": "slideit",
+  "plugins": [
+    "./demo.js"
+  ],
+  "theme": "dark",
+  "footer": {
+    "left": "Plugins",
+    "right": "{slide} / {slides}",
+    "height": 42
+  },
+  "vars": {
+    "--text-size": "clamp(21px,3.5vmin,46px)",
+    "--heading-size": "clamp(34px,5.8vmin,76px)"
+  }
+}

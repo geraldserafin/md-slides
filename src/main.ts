@@ -7,6 +7,7 @@ import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
 import { buildSteps } from './steps';
+import { plugins } from './plugins';
 import { createOverview, type Overview } from './overview';
 import { startPrintView } from './print';
 import { blackScreen, clearDrawing, drawing, startAutoplay, toggleBlack, toggleDraw, toggleLaser, toggleZoom } from './tools';
@@ -104,7 +105,9 @@ async function main() {
 
   const ch = new BroadcastChannel(CHANNEL);
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
+  const pluginApi = { player, deck };
   player.onChange = (s) => {
+    for (const p of plugins) { try { p.hooks?.step?.(pluginApi, { step: s.step, slide: s.slide }); } catch (e) { console.error(`plugin ${p.name}:`, e); } }
     history.replaceState(null, '', `#${s.step + 1}`);
     overview?.setCurrent(s.slide);
     clearDrawing(); // the ink stays on the slide it was drawn on
@@ -182,6 +185,7 @@ async function main() {
     { title: 'Magnifier (z)', icon: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>'), run: () => toggleZoom(app), on: () => document.body.classList.contains('zoomed') },
     { title: 'Black screen (b)', icon: svg('<rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor"/>'), run: toggleBlack, on: blackScreen },
     { title: 'Autoplay (a)', icon: svg('<path d="M7 5l12 7-12 7z" fill="currentColor"/>'), run: () => (autoplay ? stopAuto() : playAuto()), on: () => autoplay },
+    ...plugins.flatMap((p) => p.tools ?? []).map((t) => ({ title: t.title, icon: t.icon, run: () => t.run(pluginApi) })),
     { title: 'Help (h)', icon: svg('<path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h.01"/>'), run: toggleHelp, on: () => document.body.classList.contains('show-help') },
   ];
   // one button; it unfolds the others (a toolbox)

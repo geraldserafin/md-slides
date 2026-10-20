@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 
 const MIME = {
-  '.slide': 'text/plain', '.json': 'application/json', '.css': 'text/css', '.svg': 'image/svg+xml',
+  '.slide': 'text/plain', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.wasm': 'application/wasm', '.ttf': 'font/ttf',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.otf': 'font/otf', '.pdf': 'application/pdf',
@@ -20,7 +20,7 @@ export function inlineDist(dist, outFile, usedLangs, allLangs) {
   const files = {};
   for (const p of walk(dist)) {
     const rel = relative(dist, p).split(sep).join('/');
-    if (rel === 'index.html' || rel.endsWith('.js') || rel.endsWith('.css')) continue;
+    if (rel === 'index.html' || /^assets\/.*\.(js|css)$/.test(rel)) continue; // the app itself is inlined below; a plugin's .js is a deck file
     const g = /tree-sitter-([\w-]+?)(?:-[\w-]{8})?\.wasm$/.exec(rel);
     if (g && allLangs.has(g[1]) && !usedLangs.has(g[1])) continue; // grammar not used by the deck
     const mime = MIME[extname(p).toLowerCase()] ?? 'application/octet-stream';

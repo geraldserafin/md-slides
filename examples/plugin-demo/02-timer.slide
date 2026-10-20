@@ -1,0 +1,7 @@
+<h2>A tag from a plugin</h2>
+
+<p>The <c><timer></c> tag comes from <c>demo.js</c>. It runs while this slide is on screen:</p>
+
+<timer minutes=3 />
+
+<p>The toolbox has a new button that restarts it, and the <b>t</b> key now cycles through a <i>sepia</i> theme too.</p>

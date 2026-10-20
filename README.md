@@ -451,6 +451,13 @@ jobs:
 deck and this workflow. *Use this template*, then *Settings → Pages → Source: GitHub Actions*; a live example is at
 <https://geraldserafin.github.io/slideit-template/>.
 
+## Plugins
+
+A deck can load plugins (`"plugins": ["./demo.js", "@someone/slideit-plugin-qr"]` in `deck.json`): ES modules that add **tags**, **themes**,
+**tree-sitter languages**, **toolbox buttons** and **step hooks**. The viewer loads them before it parses the slides, and `slides check`
+and the editor tooling know their tags. `examples/plugin-demo` is a working example and [docs/plugins.md](docs/plugins.md) is the guide
+for authors (the format, packaging for npm, describing the tags to editors).
+
 ## Viewer controls
 
 | Key | Action |

@@ -98,11 +98,11 @@ async function compile(dirs, outDir, { single = false, base = './' } = {}, hubDi
     rmSync(outDir, { recursive: true, force: true });
     cpSync(viewerDir(variant), outDir, { recursive: true });
     if (existsSync(sharedDir)) cpSync(sharedDir, outDir, { recursive: true });
-    stageDecks(dirs, outDir, hubDir);
+    await stageDecks(dirs, outDir, hubDir);
     return;
   }
   const publicDir = tmp();
-  stageDecks(dirs, publicDir, hubDir);
+  await stageDecks(dirs, publicDir, hubDir);
   await buildViewer({ outDir, publicDir, base, ...variant });
   rmSync(publicDir, { recursive: true, force: true });
 }
@@ -158,7 +158,7 @@ async function cmdDev(o) {
   const dirs = expandDecks(o.decks);
   const hubDir = hubFolder(o.decks, o.hub);
   const publicDir = tmp();
-  stageDecks(dirs, publicDir, hubDir);
+  await stageDecks(dirs, publicDir, hubDir);
   // the prebuilt viewer when there is one (instant start); vite from a clone
   const prebuilt = !o.vite && hasViewer({ single: false, mermaid: true });
   let reload;
@@ -185,8 +185,8 @@ async function cmdDev(o) {
     if (existsSync(d))
       watch(d, { recursive: true }, () => {
         clearTimeout(timer);
-        timer = setTimeout(() => {
-          try { stageDecks(dirs, publicDir, hubDir); reload(); } catch (e) { console.error(String(e.message ?? e)); }
+        timer = setTimeout(async () => {
+          try { await stageDecks(dirs, publicDir, hubDir); reload(); } catch (e) { console.error(String(e.message ?? e)); }
         }, 150);
       });
 }
@@ -199,10 +199,14 @@ function openBrowser(url) {
 async function cmdCheck(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
   const { check } = await loadLib('check');
+  const { extendSchema } = await loadLib('schema');
+  const { pluginTags } = await loadLib('plugin-schema');
   let n = 0;
   let files = 0;
+  const seen = new Set();
   for (const d of expandDecks(o.decks))
     for (const f of readdirSync(d).filter((f) => f.endsWith('.slide')).sort()) {
+      if (!seen.has(d)) { seen.add(d); extendSchema(await pluginTags(d)); }
       files++;
       for (const p of check(readFileSync(join(d, f), 'utf8'))) { console.log(`${join(d, f)}:${p.line}: ${p.message}`); n++; }
     }

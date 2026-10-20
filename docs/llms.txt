@@ -98,6 +98,10 @@ html, css, lua. Between two different languages the code cross-fades. A language
 `section-transition: ...` (between sections), `heading-size`, `text-size`, `spacing`, `margin`, `gap`, `class`,
 `footer: off`, `hidden: true` (skip the slide), `autoplay: 5`, any CSS variable `--accent: #f00`.
 
+## Plugins
+
+`"plugins": ["./demo.js", "@x/slideit-plugin-y"]` in deck.json loads ES modules that default-export `{ name, tags, themes, languages, tools, hooks }`; a plugin's tags (e.g. `<timer minutes=5 />`) then work like built-in ones. Authors: docs/plugins.md in the repository.
+
 ## deck.json
 
 ```json

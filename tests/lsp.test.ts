@@ -1,4 +1,8 @@
 import { spawn } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 
 // talks to `slides lsp` over stdio like an editor does
@@ -60,6 +64,17 @@ describe('slides lsp', () => {
     open('file:///t/f.slide', '<row>\n<col>\n</');
     const r = await request('textDocument/completion', { textDocument: { uri: 'file:///t/f.slide' }, position: { line: 2, character: 2 } });
     expect(r.items.map((i: any) => i.label)).toEqual(['col']);
+  });
+  it('knows the tags of the plugins of the deck a file belongs to', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slideit-lsp-'));
+    writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
+    writeFileSync(join(dir, 'p.js'), "export default { tags: { sparkle: { doc: 'Sparkles.', empty: true } } };");
+    const uri = pathToFileURL(join(dir, 'a.slide')).href;
+    open(uri, '<sparkle />\n<');
+    const diag = await until((x) => x.method === 'textDocument/publishDiagnostics' && x.params.uri === uri);
+    expect(diag.params.diagnostics.map((d: any) => d.message).join()).not.toMatch(/unknown tag <sparkle>/);
+    const r = await request('textDocument/completion', { textDocument: { uri }, position: { line: 1, character: 1 } });
+    expect(r.items.map((i: any) => i.label)).toContain('sparkle');
   });
   it('hovers a tag and an attribute', async () => {
     open('file:///t/g.slide', '<code lang=ts>x</code>');

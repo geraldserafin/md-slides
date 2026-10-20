@@ -18,6 +18,8 @@ export interface TagDef {
   empty?: boolean;
   /** where the tag may sit: `slide` (top level), `section`, `part` (in a row/col/step), `text` (inside a text tag), `code` */
   in: string[];
+  /** added by a plugin: the viewer renders it with the plugin's `render` */
+  plugin?: boolean;
   /** tags allowed inside (for non-raw tags); `block` and `inline` stand for the groups below */
   children?: string[];
   attrs?: Record<string, AttrDef>;
@@ -44,7 +46,7 @@ const LAYOUT: Record<string, AttrDef> = {
 
 export const BLOCK_TEXT = ['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'quote', 'table', 'tex'];
 export const INLINE_TEXT = ['b', 'i', 's', 'c', 'a', 'kbd', 'mark', 'sub', 'sup', 'br', 'tex'];
-const PART = ['row', 'col', 'step', 'code', 'img', 'video', 'audio', 'chart', 'diagram', 'notes', ...BLOCK_TEXT];
+export const PART = ['row', 'col', 'step', 'code', 'img', 'video', 'audio', 'chart', 'diagram', 'notes', ...BLOCK_TEXT];
 
 const text = (doc: string, extra: Record<string, AttrDef> = {}): TagDef => ({
   doc, in: ['slide', 'section', 'part'], children: ['inline'],
@@ -116,8 +118,17 @@ export const TAGS: Record<string, TagDef> = {
   notes: { doc: 'Presenter notes (press p). The content is raw.', raw: true, in: ['slide', 'section', 'part'] },
 };
 
-/** the tags whose content is not parsed */
-export const RAW_TAGS = Object.entries(TAGS).filter(([, t]) => t.raw).map(([name]) => name);
+/** is the content of the tag not parsed? (a plugin's tags are too, when they say `raw`) */
+export const isRaw = (tag: string) => TAGS[tag]?.raw === true;
+
+/** a plugin's tags: they may sit wherever a part may, and take the animation attributes */
+export function extendSchema(defs: Record<string, Partial<TagDef>>) {
+  for (const [name, def] of Object.entries(defs)) {
+    if (TAGS[name] && !TAGS[name].plugin) continue; // a plugin cannot replace a built-in tag
+    TAGS[name] = { doc: '', in: ['slide', 'section', 'part'], children: def.empty || def.raw ? undefined : ['inline'], ...def, plugin: true, attrs: { ...FX, ...(def.attrs ?? {}) } };
+    if (!PART.includes(name)) PART.push(name);
+  }
+}
 
 /** the tags a tag may contain, with `block`/`inline`/`part` expanded */
 export function childrenOf(tag: string): string[] {

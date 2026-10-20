@@ -8,14 +8,17 @@ import { renderChart } from './chart';
 import { fileUrl } from './files';
 import type { ChromeBar } from './chrome';
 import { dedent, MarkupError, parseMarkup, rawText, tagAttrs, type El } from './markup';
+import { loadPlugins, pluginThemes } from './plugins';
 import { langFromTag, type Lang } from './parse';
+import { TAGS } from './schema';
 
 export type Item = (
   | { kind: 'html'; html: string; tag: string } // heading/paragraph/list/quote...
   | { kind: 'image'; src: string; alt: string; attrs: Attrs }
   | { kind: 'video'; src: string; attrs: Attrs }
   | { kind: 'audio'; src: string; attrs: Attrs }
-  | { kind: 'diagram'; text: string; attrs: Attrs } // a ```mermaid fence
+  | { kind: 'diagram'; text: string; attrs: Attrs } // a <diagram>
+  | { kind: 'custom'; tag: string; attrs: Record<string, string>; text: string } // a tag of a plugin
   | { kind: 'code'; text: string; lang: string } // static block (language without a grammar)
   | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
 ) & {
@@ -124,6 +127,8 @@ export interface DeckMeta {
   animation?: AnimationOpts;
   /** look of animated code blocks; a block's own options win */
   code?: CodeStyle;
+  /** plugins (ES modules, relative to the deck folder, or npm package names the CLI stages) */
+  plugins?: string[];
   files: string[];
 }
 
@@ -354,7 +359,11 @@ export function parseSlide(src: string, url: string): Slide {
           break;
         }
         case 'notes': notes.push(dedent(rawText(n))); break;
-        default: throw new MarkupError(`<${n.tag}> is not a tag of the slide markup here`, n.line);
+        default: {
+          if (!TAGS[n.tag]?.plugin) throw new MarkupError(`<${n.tag}> is not a tag of the slide markup here`, n.line);
+          const text = n.children.map((c) => (typeof c === 'string' ? c : '')).join('');
+          groups.push([leaf(st, { kind: 'custom', tag: n.tag, attrs: Object.fromEntries(Object.entries(a).filter(([k]) => !FX.includes(k) && k !== 'at' && k !== 'id')), text: dedent(text) }, a)]);
+        }
       }
     }
     return groups;
@@ -405,6 +414,8 @@ export function resolveRefs(slides: Slide[]) {
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
   const root = new URL(`${base}/${name}/`, document.baseURI).href;
   const meta = (await (await fetch(fileUrl(root + 'manifest.json'))).json()) as DeckMeta;
+  await loadPlugins((meta.plugins ?? []).map((p) => fileUrl(new URL(p, root).href)));
+  if (Object.keys(pluginThemes()).length) meta.themes = { ...pluginThemes(), ...(meta.themes ?? {}) };
   const slides = await Promise.all(
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
