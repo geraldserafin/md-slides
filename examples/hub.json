@@ -32,29 +32,17 @@
       "href": "llms.txt"
     }
   ],
-  "groups": [
-    {
-      "title": "Learn the tool",
-      "subtitle": "A manual made with the tool itself: every slide uses what it describes.",
-      "decks": [
-        "showcase",
-        "writing",
-        "code-animation",
-        "theming",
-        "presenting"
-      ]
-    },
-    {
-      "title": "Example talks",
-      "subtitle": "Complete decks for different kinds of talks, to read and copy.",
-      "decks": [
-        "pitch",
-        "quarterly",
-        "lecture",
-        "workshop",
-        "trip",
-        "refactoring"
-      ]
-    }
+  "order": [
+    "showcase",
+    "writing",
+    "code-animation",
+    "theming",
+    "presenting",
+    "pitch",
+    "quarterly",
+    "lecture",
+    "workshop",
+    "trip",
+    "refactoring"
   ]
 }

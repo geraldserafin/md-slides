@@ -90,7 +90,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 
 ## Examples
 
-`examples/` is a chooser with two groups. **Learn the tool** is a manual made with the tool itself, split by topic; every slide uses the feature it describes:
+`examples/` is a chooser with two kinds of decks. **Learn the tool** is a manual made with the tool itself, split by topic; every slide uses the feature it describes:
 
 | Deck | Shows |
 | --- | --- |
