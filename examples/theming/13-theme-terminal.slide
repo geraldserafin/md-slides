@@ -11,11 +11,11 @@
 
 <code lang=bash id=g1>
   <frame>
-    $ slideit dev my-talk/
+    $ slides dev my-talk/
       ready in 312 ms
   </frame>
   <frame>
-    $ slideit build my-talk/ -t single
+    $ slides build my-talk/ -t single
       wrote my-talk.html (3.8 MB)
   </frame>
 </code>

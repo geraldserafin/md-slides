@@ -10,7 +10,7 @@
 1. Make a folder `my-talk/`. Put one slide per `.slide` file; slides play in file-name order, so number them:
    `01-cover.slide`, `02-problem.slide`, `03-demo.slide` ...
 2. Optionally add `deck.json` (title, theme, author, footer ...), images and videos next to the slides.
-3. Run `npx slideit dev my-talk/` (live reload) or `npx slideit build my-talk/ -o dist` (static site),
+3. Install with `npm i -g slideit` (the command is `slides`; one-off: `npx slideit ...`), then run `slides dev my-talk/` (live reload) or `slides build my-talk/ -o dist` (static site),
    `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
 4. Write for the audience: one idea per slide, short text, code that changes in small steps.
 

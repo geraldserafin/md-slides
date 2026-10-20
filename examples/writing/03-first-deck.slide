@@ -10,8 +10,8 @@
 </code>
 
 <code lang=bash>
-  npx slideit dev my-talk/            # live reload
-  npx slideit build my-talk/ -o dist  # static website
+  npx slides dev my-talk/            # live reload
+  npx slides build my-talk/ -o dist  # static website
 </code>
 
 <notes>

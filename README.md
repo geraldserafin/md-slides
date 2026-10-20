@@ -11,12 +11,14 @@ moved tokens glide to their new place, removed ones fade out, new ones fade in.
 self-contained HTML file, a PDF, or a standalone executable.
 
 ```sh
-npx slideit new my-talk                  # a starter deck: cover, bullets, animated code, ending
-npx slideit dev my-talk/                 # dev server with live reload
-npx slideit build my-talk/ -o dist       # static website (GitHub Pages, Netlify, ...)
-npx slideit build my-talk/ -t single     # one .html file, works offline
-npx slideit build my-talk/ -t pdf        # PDF
-npx slideit build my-talk/ -t exe        # standalone executable
+npm i -g slideit                        # installs the `slides` command (`slideit` works too; one-off: npx slideit ...)
+
+slides new my-talk                      # a starter deck: cover, bullets, animated code, ending
+slides dev my-talk/                     # dev server with live reload
+slides build my-talk/ -o dist           # static website (GitHub Pages, Netlify, ...)
+slides build my-talk/ -t single         # one .html file, works offline
+slides build my-talk/ -t pdf            # PDF
+slides build my-talk/ -t exe            # standalone executable
 ```
 
 > Until the package is published, run the CLI from a clone: `node cli/slideit.mjs <command> ...`.
@@ -53,7 +55,7 @@ my-talk/
   diagram.svg        # assets are referenced relative to the .slide file
 ```
 
-`slideit dev` and `slideit build` accept one or more deck folders, or a folder of deck folders.
+`slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
 With a single deck the viewer opens it directly; with several it shows a **gallery**: a card per deck with a
 live thumbnail of its first slide, the title and a line with author, date and the number of slides. The gallery follows the OS light/dark mode and has a toggle (every animation step counts as a slide, as it does for the audience).
 Make the first slide a `layout: cover` slide with a background and the card looks good.
@@ -386,7 +388,7 @@ The site also serves `llms.txt` (a compact syntax reference and instructions for
 
 ## Build targets
 
-`slideit build <deck...> [-o out] [-t static|single|pdf|exe] [--steps] [--base /path/]`
+`slides build <deck...> [-o out] [-t static|single|pdf|exe] [--steps] [--base /path/]`
 
 | Target | Output | Notes |
 | --- | --- | --- |
@@ -397,7 +399,7 @@ The site also serves `llms.txt` (a compact syntax reference and instructions for
 
 PDF export is also available from any browser: open `?print=slides` or `?print=steps` and use *Print*.
 
-`slideit dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
+`slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
 ## Viewer controls

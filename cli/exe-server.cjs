@@ -23,7 +23,7 @@ const server = createServer((req, res) => {
 });
 server.listen(port, '127.0.0.1', () => {
   const url = `http://127.0.0.1:${server.address().port}/`;
-  console.log(`slideit: ${url}  (Ctrl+C to quit)`);
+  console.log(`slides: ${url}  (Ctrl+C to quit)`);
   if (args.includes('--no-open')) return;
   const [cmd, a] = process.platform === 'darwin' ? ['open', []] : process.platform === 'win32' ? ['cmd', ['/c', 'start', '']] : ['xdg-open', []];
   try { spawn(cmd, [...a, url], { stdio: 'ignore', detached: true }).on('error', () => {}).unref(); } catch { /* no browser available */ }

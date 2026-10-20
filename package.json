@@ -6,6 +6,7 @@
   "type": "module",
   "private": true,
   "bin": {
+    "slides": "cli/slideit.mjs",
     "slideit": "cli/slideit.mjs"
   },
   "files": [
