@@ -1,0 +1,26 @@
+## Animate one element
+
+Give any tag `anim=zoom`, `delay=0.2`, `dur=0.7` and it comes in that way.
+Together with `<step>` it is a build, like PowerPoint's entrance effects:
+
+<step>
+  <text anim=fade>
+    Fades in on the first click, no movement.
+  </text>
+</step>
+
+<step>
+  <text anim=zoom dur=0.7>
+    Zooms in from a smaller size.
+  </text>
+</step>
+
+<step>
+  <text anim=pop out=4>
+    Pops with a little overshoot, then leaves again on the fourth click.
+  </text>
+</step>
+
+<notes>
+  anim: fade | rise (default) | zoom | left | right | down | blur | pop | none. delay and dur are seconds; at=N sets the click, out=N the click where it disappears. A step passes its attributes to everything inside.
+</notes>

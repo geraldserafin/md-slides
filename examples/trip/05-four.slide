@@ -1,0 +1,12 @@
+<slide>
+  layout: cover
+  halign: start
+  valign: center
+  justify: false
+  transition: slide
+  background: linear-gradient(120deg, #1b0f2e 0%, #3d1f6b 45%, #38d9a9 140%)
+</slide>
+
+# Northern lights
+
+They arrived at 1 a.m., green first, then violet.

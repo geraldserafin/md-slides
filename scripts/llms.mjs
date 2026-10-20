@@ -13,7 +13,7 @@ const parts = [
   '## README\n\n' + readFileSync('README.md', 'utf8'),
 ];
 for (const deck of MANUAL)
-  for (const f of readdirSync(join('examples', deck)).filter((f) => f.endsWith('.md')).sort())
-    parts.push(`## Manual slide: ${deck}/${f}\n\n\`\`\`\`markdown\n${readFileSync(join('examples', deck, f), 'utf8').trimEnd()}\n\`\`\`\``);
+  for (const f of readdirSync(join('examples', deck)).filter((f) => f.endsWith('.slide')).sort())
+    parts.push(`## Manual slide: ${deck}/${f}\n\n\`\`\`\`text\n${readFileSync(join('examples', deck, f), 'utf8').trimEnd()}\n\`\`\`\``);
 writeFileSync(join(out, 'llms-full.txt'), parts.join('\n\n') + '\n');
 console.log(`llms.txt, llms-full.txt -> ${out}`);

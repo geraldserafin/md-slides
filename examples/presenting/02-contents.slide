@@ -1,0 +1,15 @@
+<slide>
+  text-size: 4vmin
+</slide>
+
+## What's inside
+
+1. Controls and the slide drawer
+2. The presenter window and tools
+3. PDF, static site, single file, executable
+4. GitHub Pages
+5. Writing decks with an LLM
+
+<notes>
+  Press o at any time for the slide drawer, h for help. Every slide in this deck is live: it uses the feature it describes.
+</notes>

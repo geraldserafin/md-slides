@@ -1,0 +1,16 @@
+<slide>
+  layout: cover
+  halign: center
+  valign: center
+  justify: false
+</slide>
+
+# Presenting and shipping
+
+From the first keypress to a published site.
+
+Controls, presenter view, export, deployment · press **→**
+
+<notes>
+  Presenting and shipping: part of the slides manual. Source: examples/presenting.
+</notes>

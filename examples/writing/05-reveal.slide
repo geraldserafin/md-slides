@@ -1,0 +1,33 @@
+## Reveal: add content on a click
+
+Wrap anything in `<step>` and it stays hidden until the next click. Nothing moves when it appears:
+the space is reserved.
+
+<step>
+  This text appeared on the first click.
+</step>
+
+<step>
+  - and a list
+  - on the second
+</step>
+
+<step>
+  <code lang=typescript>
+    const clicks = 3; // the code block came last
+  </code>
+</step>
+
+<step>
+  A list can appear bullet by bullet: write `<text steps>` around it.
+</step>
+
+<text steps>
+  - first click
+  - second click
+  - third click
+</text>
+
+<notes>
+  Works for text, lists, images, video, charts and code blocks. Frames of a code block count as clicks too. `<step at=3>` names the click.
+</notes>

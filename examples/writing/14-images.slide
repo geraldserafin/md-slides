@@ -1,0 +1,18 @@
+<slide>
+  theme: light
+</slide>
+
+## Images
+
+The `<img>` tag: `src` is relative to the `.slide` file; `class` and `width` / `height` size and place it.
+
+<img src=diagram.svg alt=diagram class=small />
+
+<code lang=text>
+  <img src=diagram.svg class=left width=420px />
+  <img src=photo.jpg alt="a wide photo" class=large />
+</code>
+
+<notes>
+  .small .large .left .right adjust size/alignment; width= and height= set CSS sizes.
+</notes>

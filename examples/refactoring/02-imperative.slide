@@ -1,0 +1,151 @@
+<section>
+  <row>
+    <text>
+      ## Step 1: types and basics
+    </text>
+    <code lang=typescript id=calc>
+      <frame>
+        function calc(items) {
+          var total = 0;
+          for (var i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        function calc(items) {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items) {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total = total + item.price * item.qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+      </frame>
+    </code>
+  </row>
+</section>
+
+<section>
+  <row>
+    <text>
+      ## Step 2: naming and a guard clause
+    </text>
+    <code lang=typescript id=calc>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(cartItems: Item[]): number {
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+      </frame>
+      <frame>
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(cartItems: Item[]): number {
+          if (cartItems.length === 0) {
+            return 0;
+          }
+
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+      </frame>
+    </code>
+  </row>
+</section>
+
+<notes>
+  Start with the bare loop, show it works, then add types gradually
+</notes>
+
+<notes>
+  var->let, then interface, then type annotations, then for-of, then +=
+</notes>
+
+<notes>
+  rename calc->calculateTotal, items->cartItems, add a guard for an empty cart
+</notes>

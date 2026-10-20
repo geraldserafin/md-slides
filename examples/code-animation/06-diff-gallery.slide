@@ -1,0 +1,89 @@
+<section>
+  ## Small edits, one at a time
+
+  <code lang=typescript id=g1>
+    <frame>
+      if (count > 10) {
+        alert("too many items: " + count);
+      }
+    </frame>
+    <frame>
+      if (count >= 10) {
+        alert("too many items: " + count);
+      }
+    </frame>
+    <frame>
+      if (count >= limit) {
+        alert("too many items: " + count);
+      }
+    </frame>
+    <frame>
+      if (count >= limit) {
+        alert(`too many items: ${count}`);
+      }
+    </frame>
+    <frame>
+      if (count >= limit) {
+        notify(`too many items: ${count}`);
+      }
+    </frame>
+  </code>
+</section>
+
+<section>
+  ## Reorder arguments
+
+  <code lang=typescript id=g2>
+    <frame>
+      const point = makePoint(y, x, label, color);
+    </frame>
+    <frame>
+      const point = makePoint(x, y, label, color);
+    </frame>
+    <frame>
+      const point = makePoint(x, y, color, label);
+    </frame>
+  </code>
+</section>
+
+<section>
+  ## if / else to a ternary
+
+  <code lang=typescript>
+    <frame>
+      let label;
+      if (count === 1) {
+        label = "item";
+      } else {
+        label = "items";
+      }
+    </frame>
+    <frame>
+      const label = count === 1 ? "item" : "items";
+    </frame>
+  </code>
+</section>
+
+<section>
+  ## Loop to method chain
+
+  <code lang=typescript>
+    <frame>
+      const names = [];
+      for (const user of users) {
+        if (user.active) {
+          names.push(user.name);
+        }
+      }
+    </frame>
+    <frame>
+      const names = users
+        .filter((user) => user.active)
+        .map((user) => user.name);
+    </frame>
+  </code>
+</section>
+
+<notes>
+  Each edit changes exactly one token or a tiny region; everything else must stay still.
+</notes>

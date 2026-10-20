@@ -1,0 +1,16 @@
+<slide>
+  layout: cover
+  halign: center
+  valign: center
+  justify: false
+</slide>
+
+# Writing slides
+
+Everything the .slide markup can do.
+
+One file is one slide · press **→**
+
+<notes>
+  Writing slides: part of the slides manual. Source: examples/writing.
+</notes>

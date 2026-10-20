@@ -1,0 +1,42 @@
+## Frame transitions: `transition=`
+
+By default a frame **morphs** from the previous one. Put `transition=` on a `<frame>` to change
+how *that* frame is entered:
+
+- `morph` (default) — the diff animation
+- `fade` — no matching: the old code fades out, the new code fades in
+- `none` — a hard cut, no animation at all
+
+Frame 1 is the starting point; the next three use a different mode each.
+
+<code lang=typescript id=g1>
+  <frame>
+    function area(w: number, h: number) {
+      return w * h;
+    }
+  </frame>
+  <frame>
+    function area(width: number, height: number) {
+      return width * height;
+    }
+  </frame>
+  <frame transition=fade>
+    function area(width: number, height: number) {
+      return width * height * 2;
+    }
+  </frame>
+  <frame transition=none>
+    function area(width: number, height: number) {
+      return width * height * 3;
+    }
+  </frame>
+  <frame>
+    function area(width: number, height: number) {
+      return width * height * 4;
+    }
+  </frame>
+</code>
+
+<notes>
+  Per frame option, written on the frame you are entering. Default is morph.
+</notes>

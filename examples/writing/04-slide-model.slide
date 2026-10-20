@@ -1,0 +1,25 @@
+<slide>
+  text-size: 2.4vmin
+</slide>
+
+## Slides, sections, blocks and clicks
+
+A **slide** is one `.slide` file. In it you write text (Markdown), images, charts and **code blocks** in reading order.
+A `<code>` is one animated block, and its `<frame>`s are the states it passes through, one click each:
+
+<code lang=text>
+  <code lang=ts>
+    <frame>let a = 1;</frame>         <- block "fn", state 1
+    <frame>let a = 2;</frame>         <- state 2: the tokens morph 1 -> 2
+  \</code>
+  <code lang=py>print("independent")\</code>   <- another block, no relation
+
+  <section> ... \</section>         <- a slide can swap whole sections under a shared <head>
+</code>
+
+Blocks with the **same `id`** are one animation, in the same place, even across sections and slides:
+that is how code keeps morphing while the text around it changes.
+
+<notes>
+  The most important idea of the tool. Take your time here.
+</notes>

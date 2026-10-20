@@ -1,0 +1,16 @@
+<slide>
+  valign: center
+  text-size: 4.2vmin
+</slide>
+
+## Quick check
+
+A note vibrates at $440\ \mathrm{Hz}$. What is the wavelength in air?
+
+<step>
+  <text anim=fade>
+    $$
+    \lambda = \frac{v}{f} = \frac{343}{440} \approx 0.78\ \mathrm{m}
+    $$
+  </text>
+</step>

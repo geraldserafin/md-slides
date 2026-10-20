@@ -7,7 +7,7 @@ import tags from './tags.json';
 
 export type Lang = string; // grammar name, e.g. "cpp", "typescript"
 
-/** markdown fence tag -> grammar name */
+/** language tag (`lang=` of a code tag) -> grammar name */
 const TAGS: Record<string, Lang> = tags;
 
 export const langFromTag = (tag: string): Lang | undefined => TAGS[tag.toLowerCase()];

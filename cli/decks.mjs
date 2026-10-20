@@ -1,4 +1,4 @@
-// Assembles deck folders (.md + assets + deck.json) into <publicDir>/decks/<name>/
+// Assembles deck folders (.slide files + assets + deck.json) into <publicDir>/decks/<name>/
 // with manifests and an index.json.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -28,8 +28,8 @@ export function stageDecks(dirs, publicDir, hubDir) {
     const name = basename(dir);
     const dest = join(out, name);
     cpSync(dir, dest, { recursive: true, filter: (s) => !/(^|\/)(node_modules|\.git)(\/|$)/.test(s) });
-    const files = readdirSync(dir).filter((f) => f.endsWith('.md')).sort();
-    if (!files.length) throw new Error(`no .md files in folder: ${dir}`);
+    const files = readdirSync(dir).filter((f) => f.endsWith('.slide')).sort();
+    if (!files.length) throw new Error(`no .slide files in folder: ${dir}`);
     const metaPath = join(dir, 'deck.json');
     const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
     writeFileSync(join(dest, 'manifest.json'), JSON.stringify({ title: name, ...meta, files }, null, 2));

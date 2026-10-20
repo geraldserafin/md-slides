@@ -1,0 +1,67 @@
+<section>
+  ## std::optional: the error is in the type, not in an out-param
+
+  <code lang=cpp id=flow>
+    std::optional<int> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::nullopt;
+      }
+    }
+
+    std::optional<int> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::nullopt;
+      }
+      return a / b;
+    }
+
+    std::optional<int> process(const std::string& s, int divisor) {
+      auto parsed = parseInt(s);
+      if (!parsed) {
+        return std::nullopt;
+      }
+      return safeDivide(*parsed, divisor);
+    }
+  </code>
+</section>
+
+<section>
+  ## Refactor: and_then (monadic bind)
+
+  <code lang=cpp id=flow>
+    std::optional<int> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::nullopt;
+      }
+    }
+
+    std::optional<int> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::nullopt;
+      }
+      return a / b;
+    }
+
+    std::optional<int> process(const std::string& s, int divisor) {
+      return parseInt(s).and_then([divisor](int parsed) {
+        return safeDivide(parsed, divisor);
+      });
+    }
+  </code>
+</section>
+
+<notes>
+  Now the error comes back as a value, not through a reference -- but manual checking remains
+</notes>
+
+<notes>
+  This is Haskell's bind/flatMap -- and_then is in std::optional since C++23
+</notes>
+
+<notes>
+  process() shrinks from 5 lines to a single expression
+</notes>

@@ -1,0 +1,24 @@
+<slide>
+  theme: sunset
+</slide>
+
+## A custom theme: `sunset`
+
+Defined once under `themes` in this deck's `deck.json` and used here with `theme: sunset`.
+It also joins the **t** key cycle.
+
+<code lang=typescript id=g1 class=left>
+  <frame>
+    const theme = {
+      name: "sunset",
+      warm: true,
+    };
+  </frame>
+  <frame>
+    const theme = {
+      name: "sunset",
+      warm: true,
+      accent: "#ff9e64",
+    };
+  </frame>
+</code>

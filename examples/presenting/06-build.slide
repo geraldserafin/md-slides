@@ -1,0 +1,13 @@
+## Build targets
+
+<code lang=bash>
+  slides dev   my-talk/                       # dev server, live reload
+  slides build my-talk/ -o dist               # static website
+  slides build my-talk/ -t single -o talk.html  # one file, works offline
+  slides build my-talk/ -t pdf  -o talk.pdf   # PDF (Chromium needed)
+  slides build my-talk/ -t exe  -o talk       # standalone executable
+</code>
+
+<notes>
+  static: any hosting, --base for sub-paths. single: everything inline as data URIs. pdf: --steps for one page per step. exe: Node single-executable app for the current platform.
+</notes>

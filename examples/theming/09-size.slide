@@ -1,0 +1,16 @@
+<row>
+  <text size=34%>
+    ## Column widths: `size`
+
+    In a `<row>` every part takes an equal share of the width.
+    `size=34%` makes this one narrower, here for a short note next to wider code. `size=2` would be a weight: twice as wide.
+  </text>
+  <code lang=typescript>
+    <frame>
+      const columns = { text: "34%", code: "the rest" };
+    </frame>
+    <frame>
+      const columns = { text: "34%", code: "the rest", gap: "4vmin" };
+    </frame>
+  </code>
+</row>

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// slides -- a markdown -> presentation compiler.
+// slides -- a .slide markup -> presentation compiler.
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
-// A deck = a folder of .md files (+ deck.json, images, videos...). See README.md.
+// A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -17,7 +17,7 @@ const TARGETS = ['static', 'single', 'pdf', 'exe'];
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
 slides dev   <deck...> [--port N] [--open]
 
-  <deck> is a folder of .md files, or a folder of such folders (each one becomes a deck).
+  <deck> is a folder of .slide files, or a folder of such folders (each one becomes a deck).
   A folder of decks may hold a hub.json that customizes the deck chooser (title, subtitle, logo, theme...);
   for other layouts point at it with --hub <folder>.
 
@@ -43,18 +43,18 @@ function parseArgs(argv) {
   return o;
 }
 
-/** does any deck use a ```mermaid fence? (the diagram library is left out of the build otherwise) */
+/** does any deck use a <diagram> tag? (the diagram library is left out of the build otherwise) */
 function usesMermaid(dirs) {
-  return dirs.some((d) => readdirSync(d).some((f) => f.endsWith('.md') && /^[ \t]*(?:`{3,}|~{3,})[ \t]*mermaid\b/m.test(readFileSync(join(d, f), 'utf8'))));
+  return dirs.some((d) => readdirSync(d).some((f) => f.endsWith('.slide') && /<diagram[\s>]/.test(readFileSync(join(d, f), 'utf8'))));
 }
 
-/** languages used in the decks' fences (to drop unused grammars from the single target) */
+/** languages used by the decks' <code> tags (to drop unused grammars from the single target) */
 function usedLanguages(dirs) {
   const used = new Set();
   for (const d of dirs)
-    for (const f of readdirSync(d).filter((f) => f.endsWith('.md')))
-      for (const m of readFileSync(join(d, f), 'utf8').matchAll(/^[ \t]*(?:`{3,}|~{3,})[ \t]*(.*)$/gm))
-        for (const w of m[1].trim().split(/\s+/)) if (tags[w.toLowerCase()]) used.add(tags[w.toLowerCase()]);
+    for (const f of readdirSync(d).filter((f) => f.endsWith('.slide')))
+      for (const m of readFileSync(join(d, f), 'utf8').matchAll(/<code\b[^>]*?\blang=["']?([\w+#.-]+)/g))
+        if (tags[m[1].toLowerCase()]) used.add(tags[m[1].toLowerCase()]);
   return used;
 }
 
@@ -71,20 +71,20 @@ function hubFolder(args, hub) {
     const p = resolve(hub);
     return existsSync(p) && statSync(p).isFile() ? dirname(p) : p;
   }
-  const hasMd = (d) => readdirSync(d).some((f) => f.endsWith('.md'));
+  const hasMd = (d) => readdirSync(d).some((f) => f.endsWith('.slide'));
   return args.map((a) => resolve(a)).find((d) => existsSync(join(d, 'hub.json')) && !hasMd(d));
 }
 
-/** A folder with .md files is a deck; a folder of such folders expands to its decks. */
+/** A folder with .slide files is a deck; a folder of such folders expands to its decks. */
 function expandDecks(args) {
-  const hasMd = (d) => existsSync(d) && readdirSync(d).some((f) => f.endsWith('.md'));
+  const hasMd = (d) => existsSync(d) && readdirSync(d).some((f) => f.endsWith('.slide'));
   return args.flatMap((a) => {
     const dir = resolve(a);
     if (!existsSync(dir)) throw new Error(`deck folder not found: ${a}`);
     if (hasMd(dir)) return [dir];
     const subs = readdirSync(dir, { withFileTypes: true })
       .filter((e) => e.isDirectory() && hasMd(join(dir, e.name))).map((e) => join(dir, e.name)).sort();
-    if (!subs.length) throw new Error(`no .md files in: ${a}`);
+    if (!subs.length) throw new Error(`no .slide files in: ${a}`);
     return subs;
   });
 }

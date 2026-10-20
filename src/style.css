@@ -48,15 +48,16 @@ body.drawer-open #app { left: 316px; }
   position: absolute; left: 0; right: 0; top: var(--header-h, 0px); bottom: var(--footer-h, 0px);
   display: flex; flex-direction: column; padding: var(--stage-padding, 3vmin 40px 4vmin);
 }
-/* the grid of a section: rows (`---`) of cells (`|||`); one row fills the slide, several rows take the height of their content
-   (front matter: rows: auto 1fr 1fr, cols: 1fr 2fr, split: 40%) */
-.grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--row-gap, 3vmin); }
+/* the layout of a section: a col of rows (parts side by side) and cols (parts stacked); what a part gets is set with size= */
+.grid { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* rows and cols inside a col are set apart from what is above them; the items keep their own spacing */
+.grid > :is(.row, .cell):not(:first-child), .cell > :is(.row, .cell):not(:first-child) { margin-top: var(--row-gap, 3vmin); }
 .grid.leaving, .head.leaving { position: absolute; flex: none; pointer-events: none; }
 .head { flex: none; margin-bottom: var(--row-gap, 3vmin); }
 .head > .item { flex: none; }
 .row { display: flex; gap: var(--col-gap, 5vmin); min-height: 0; }
 .cell { display: flex; flex-direction: column; justify-content: flex-start; min-width: 0; min-height: 0; position: relative; }
-.cell > .item { flex: none; }
+.cell > .item, .grid > .item { flex: none; }
 
 /* animated code: the block is a box in the flow, the tokens are drawn over it (see .code-layer) */
 .code-block { position: relative; width: 100%; box-sizing: border-box; }

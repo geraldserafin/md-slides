@@ -1,0 +1,27 @@
+## Rows and columns
+
+A slide is one column by default: **title, text, code**, top left. Two tags change that. A `<row>` puts its children **side by side**
+and divides the width between them; a `<col>` **stacks** its children. Nest them for any layout, and the parts always add up to
+the whole slide.
+
+<code lang=text>
+  ## Title                     <- loose text on top
+
+  <row>                        <- below it, side by side:
+    The text on the left
+    <code lang=ts>...\</code>   <- the code on the right
+  \</row>
+
+  <row>
+    <col>a <img src=x.png />\</col>   <- a col: several things in one part
+    b
+    <text size=2>c\</text>          <- twice as wide
+  \</row>
+</code>
+
+Every direct child of a row is a part (loose text between tags is one part). `size=2` is a weight, `size=auto` the size of the
+content, `size=40%` a length. Add `halign` or `valign` to align inside a part.
+
+<notes>
+  Slide settings: layout: cover for a title slide. margin: and gap: in the slide block set the space around and between the parts.
+</notes>

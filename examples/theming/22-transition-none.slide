@@ -1,0 +1,17 @@
+<slide>
+  transition: none
+</slide>
+
+## none
+
+No entrance animation for the text: it appears instantly. Code still animates.
+
+<code lang=typescript id=g1>
+  <frame>
+    const instant = true;
+  </frame>
+  <frame>
+    const instant = true;
+    const code = "still animates";
+  </frame>
+</code>

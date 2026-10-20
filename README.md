@@ -1,13 +1,13 @@
 # slides
 
-Markdown presentations where **code transitions are animated by an AST diff**.
+Presentations where **code transitions are animated by an AST diff**, written in a small tag markup with Markdown for the text.
 
-Write your slides as plain Markdown. When one code block is followed by an edited copy of itself,
+Write each slide as a `.slide` file. When a code block goes through several frames,
 the viewer parses both with [tree-sitter](https://tree-sitter.github.io/), matches the two syntax trees
 with [GumTree](https://hal.science/hal-01054552), and animates the result: unchanged tokens stay,
 moved tokens glide to their new place, removed ones fade out, new ones fade in.
 
-`slides` is a compiler: it turns a folder of Markdown files into a static website, a single
+`slides` is a compiler: it turns a folder of `.slide` files into a static website, a single
 self-contained HTML file, a PDF, or a standalone executable.
 
 ```sh
@@ -24,7 +24,7 @@ npx slides build my-talk/ -t exe        # standalone executable
 
 - [Quick start](#quick-start)
 - [Writing slides](#writing-slides)
-- [Slide front matter](#slide-front-matter)
+- [Slide settings](#slide-settings)
 - [Deck configuration](#deck-configuration-deckjson)
 - [Build targets](#build-targets)
 - [Viewer controls](#viewer-controls)
@@ -42,14 +42,14 @@ npm install
 npm run dev            # serves everything in examples/ with live reload
 ```
 
-A deck is a folder; each `.md` file in it (sorted by name) is one slide:
+A deck is a folder; each `.slide` file in it (sorted by name) is one slide:
 
 ```
 my-talk/
-  01-intro.md
-  02-refactoring.md
+  01-intro.slide
+  02-refactoring.slide
   deck.json          # optional configuration
-  diagram.svg        # assets are referenced relative to the .md file
+  diagram.svg        # assets are referenced relative to the .slide file
 ```
 
 `slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
@@ -95,8 +95,8 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | Deck | Shows |
 | --- | --- |
 | `showcase` | a short tour: code morphing, the diff, math, charts, diagrams, morph, themes |
-| `writing` | the markdown syntax: sections, clicks, text and media, math, charts, diagrams, rows, columns, grids, per-element animation |
-| `code-animation` | the AST diff: every kind of edit, groups and frames, languages, fence options, focus, fit, frame transitions, how matching works |
+| `writing` | the .slide syntax: sections, clicks, text and media, math, charts, diagrams, rows and columns, per-element animation |
+| `code-animation` | the AST diff: every kind of edit, frames, languages, code options, focus, fit, frame transitions, how matching works |
 | `theming` | alignment, themes, backgrounds, motion, header/footer, `deck.json`, fonts, CSS |
 | `presenting` | controls, presenter view and tools, export, build targets, GitHub Pages, writing decks with an LLM |
 
@@ -114,195 +114,206 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 
 ## Writing slides
 
-Normal Markdown (headings, paragraphs, lists, quotes, inline code) plus a few conventions.
+A slide is a `.slide` file: **tags** for the structure, **Markdown** for the text. Tags are strict (an unknown tag or a missing
+closing tag is an error with the line number). Attributes are `key=value`, quoted when they contain spaces; a bare word is a flag
+(`autoplay`); a tag without content ends with `/>`. The content of `<code>`, `<chart>`, `<diagram>`, `<text>`, `<notes>` and `<slide>`
+is **raw**: `<` and `&` need no escaping there, and the common indentation is removed. To write a closing tag as text inside one, put
+a backslash before it: `\</code>`. In loose text a tag inside backticks (a Markdown code span) is just text.
 
-**Sections.** A slide (one `.md` file) splits into sections at a `#` or `##` heading. Moving to the next section fades
-the old text and code out and the new ones in. Inside a section you write text, images and code in reading order.
+```text
+<slide>
+  theme: light
+</slide>
 
-**Animated code.** A fenced block in a supported language is an animated code block. Blocks are **independent** unless
-they share an id: `#name` after the language. Blocks with the same id are the *frames* of one animation, in the same
-place, one click each; the diff between two frames is what moves:
+## Plan                                  <- loose text is Markdown
 
-````markdown
-## Step 1
+<row>                                    <- two parts side by side
+  The first point is there from the start.
+  <code lang=ts>
+    <frame>let total = 0;</frame>        <- states of one block: a click each
+    <frame>let total = items.length;</frame>
+  </code>
+</row>
 
-```ts #total
-function total(items: number[]) {
-  let sum = 0;
-  for (const x of items) sum += x;
-  return sum;
-}
+<step>The second point appears on a click.</step>
+<notes>Say this out loud.</notes>
 ```
 
-```ts #total
-function total(items: number[]) {
-  return items.reduce((sum, x) => sum + x, 0);
-}
+| Tag | Does | Attributes |
+| --- | --- | --- |
+| `<slide>` | settings of this slide, one `key: value` per line (see below) | |
+| `<head>` | content that stays while the `<section>`s below swap | |
+| `<section>` | one of several sub-presentations in a slide: the old one fades out, the next fades in | |
+| `<row>` | its children side by side, sharing the width | `size` `halign` `valign` `class` |
+| `<col>` | its children one under the other | the same |
+| `<step>` | everything inside appears on the next click | `at=3` (click 3) |
+| `<text>` | Markdown (loose text between tags is the same) | `steps` (a list bullet by bullet), `size` `halign` `valign` (its part of a row), animation attributes |
+| `<code>` | one animated code block | `lang` `id` `from` `class` `size` `fit` `start` `title` `halign` `valign` `focus` `transition` `at` |
+| `<frame>` | a state of a `<code>` | `focus` `transition` `at` |
+| `<img>` `<video>` `<audio>` | media, `src` relative to the `.slide` file | `alt` `class` `width` `height` `autoplay` `loop` `muted` `controls=false` |
+| `<chart>` | CSV lines as an SVG chart | `type=bar\|line\|pie` `title` `width` |
+| `<diagram>` | a Mermaid diagram | `width` `class` |
+| `<notes>` | presenter notes | |
+
+**Animation attributes** work on every tag with content: `anim` (`fade`, `rise` (default), `zoom`, `left`, `right`, `down`, `blur`,
+`pop`, `none`), `delay` and `dur` (seconds), `at` (the click it comes in on), `out` (the click it leaves on) and `id` (see morph).
+A `<step>` passes its animation attributes on to what is inside.
+
+**Animated code.** A `<code>` is one block; its `<frame>`s are the states it passes through. The first one is there with the block,
+each next one takes a click, and the diff between two frames is what moves. A block with a single state needs no `<frame>`:
+
+```text
+<code lang=ts>
+  <frame>
+    function total(items: number[]) {
+      let sum = 0;
+      for (const x of items) sum += x;
+      return sum;
+    }
+  </frame>
+  <frame>
+    function total(items: number[]) {
+      return items.reduce((sum, x) => sum + x, 0);
+    }
+  </frame>
+</code>
 ```
 
-```py
-print("a block of its own, shown right below")
-```
-````
+Blocks are **independent** unless they share an `id`: the same `id` in another section or slide continues the animation from the
+last frame it showed. `<code from=total />` shows a copy of the last frame of the earlier block with that id (an independent block).
+Tabs are expanded to four spaces; a `lang` without a grammar is shown as static code. Options are attributes of the tag:
 
-A group id can continue across sections and slides (the same id in the next section morphs the code there). Without an id
-a block is shown as it is, and you can have as many as you like on a slide, with text in between. Tabs are expanded
-to four spaces. Blocks in languages without a grammar are shown as static code.
-
-**Reveal.** A line with three plus signs, `+++`, hides everything after it until the next click, like PowerPoint's
-build-in animations. It works for text, lists, images, video and code blocks, and nothing moves when the content appears
-(its space is reserved). Write `{.steps}` on a line after a list to show it bullet by bullet:
-
-````markdown
-## Plan
-
-The first point is there from the start.
-
-+++
-
-The second appears on a click.
-
-+++
-
-```ts
-const third = "a code block on the last click";
-```
-````
-
-**Rows and columns.** A slide is one column by default (title, text, code, from the top left). A line with three dashes,
-`---`, starts a new **row**; a line with three bars, `|||`, starts a new **cell** in the row. Any combination works: two
-columns, three, a title row above two cells, a 2 × 2 grid. Every cell holds text, images and code blocks, and code in any
-cell is animated:
-
-````markdown
-## What the diff does       <- row 1: a title
-
----
-
-### rename                  <- row 2, cell 1
-```ts #r
-...
-```
-
-|||
-
-### insert                  <- row 2, cell 2
-```ts #i
-...
-```
-
----
-
-### delete                  <- row 3 ...
-````
-
-Leave a blank line around `---` and `|||` (right after a line of text `---` would turn it into a heading). Sizes come from the
-front matter: `cols: 1fr 2fr` (cell widths, every row), `rows: auto 1fr` (row heights), `split: 40%` (two cells). By default
-cells are equal and a row is as tall as its content (a single row fills the slide). Alignment inside the cells is `valign` /
-`halign` (see below). Code blocks in cells next to each other share one font size.
-
-**Cell options and `grid:`.** Options go after the bars: `||| span=2` (twice as wide), `||| halign=end valign=center`
-(at the start of a cell, after a `---`, they apply to that cell). `grid: 3` in the front matter wraps the cells into rows
-of three, so a grid is just a list of `|||` cells.
-
-**A slide with a head (a sub-presentation).** A level 1 heading at the start of a slide, with `##` sections after it,
-is the slide's *head*: it stays on screen while the sections below swap one after another. Use it for a title with several
-examples that you present one at a time:
-
-````markdown
-# What the diff does       <- stays
-
-Six kinds of edit, one at a time.
-
-## rename                  <- section 1 (then → plays its code, → again for the next)
-...
-## insert                  <- section 2
-````
-
-**Clicks across cells.** `@1` on a fence puts that frame on click 1 instead of the next free one, so every group with an
-`@1` frame advances on the same click; `+++ 3` puts what follows on click 3:
-
-````markdown
-```ts #r
-function area(r) {}
-```
-
-```ts #r @1
-function circleArea(radius) {}
-```
-````
-
-**Fence options** go after the language: ` ```cpp #fn .lines size=18 `
-
-| Option | Meaning |
+| Attribute | Meaning |
 | --- | --- |
-| `halign=start\|center\|end` (or `.left` `.center` `.right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
-| `valign=start\|center\|end` (or `.top` `.middle` `.bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
-| `#name` | the group: blocks with the same id are the frames of one animation |
-| `@1` | the click this frame appears on (default: the next one); `@1` on frames of several groups = one click for all |
-| `.lines` / `.nolines`, `start=10` | line numbers, and the number of the first line |
-| `.panel` (or `.bg`) / `.nopanel`, `bg=#16213e`, `radius=12`, `pad="1em 1.4em"` | a background box around the code; `bg=` sets its color (and switches it on) |
+| `halign=start\|center\|end` (or `class="left"`, `center`, `right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
+| `valign=start\|center\|end` (or `class="top"`, `middle`, `bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
+| `id=name` | the animation: blocks with the same id continue each other; also a target for `from` |
+| `class="lines"` / `nolines`, `start=10` | line numbers, and the number of the first line |
+| `class="panel"` (or `bg`) / `nopanel`, `bg=#16213e`, `radius=12`, `pad="1em 1.4em"` | a background box around the code; `bg=` sets its color (and switches it on) |
 | `title="cart.ts"` | a caption above the code, e.g. a file name |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
-| `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; set it per frame to walk through code |
+| `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; on a `<frame>` to walk through code |
 | `transition=morph\|fade\|none` | how *this frame* is entered from the previous one: the diff animation (default), a plain cross-fade, or a hard cut |
+| `at=3` | the click a frame (or the whole block) appears on |
 
 The font size is fitted to the largest frame of a section and stays constant across its frames.
 
-**Images and video.** A paragraph that contains only an image or video:
+**Reveal.** `<step>` hides what is inside until the next click, like PowerPoint's build-in animations. It works for anything and
+nothing moves when the content appears (its space is reserved). `<step at=3>` is click 3. `<text steps>` around a list shows it
+bullet by bullet. Frames of a `<code>` count as clicks too:
 
-```markdown
-![diagram](diagram.svg){.left width=420px}
-![](clip.mp4){autoplay loop muted}
+```text
+The first point is there from the start.
+
+<step>The second appears on a click.</step>
+
+<step>
+  <code lang=ts>const third = "a code block on the last click";</code>
+</step>
 ```
 
-Paths are relative to the `.md` file. Videos are recognized by extension (`mp4`, `webm`, `ogv`, `mov`, `m4v`), audio too (`mp3`, `ogg`, `wav`, `m4a`, `aac`, `flac`, `opus`): `![](talk.mp3){autoplay loop}` shows a player bar and stops when the slide changes.
+**Rows and columns.** A slide is one column by default (title, text, code, from the top left). A `<row>` puts its children **side by
+side** and gives each an equal share of the width; a `<col>` **stacks** its children. Nest them for any layout: two columns, three, a
+title above two parts, a 2 × 2 grid, a sidebar next to a stack. The parts always add up to the whole slide (minus the margin).
+Every direct child of a row is a part; loose text between tags is one part; use `<col>` to put several things into one part.
+In a `<col>` text and images take the height of their content and a `<row>` or `<col>` inside takes the rest.
 
-**Animating one element.** A line `{anim=zoom delay=0.2}` right after an item (blank line between) sets how it comes in: `anim` is `fade`, `rise` (default), `zoom`, `left`, `right`, `down`, `blur`, `pop` or `none`; `delay` and `dur` are seconds; `at=2` puts it on click 2 (instead of a `+++`) and `out=4` makes it leave again on click 4. It works on text, images, tables, code blocks and diagrams.
+```text
+## What the diff does                    <- a title on top, then:
 
-**Morph for anything.** Code morphs by itself; any other item can too. Items with the same id, written `{morph=logo}` after them, glide from their place on the section (or slide) that leaves to their place on the one that arrives, scaling as they go; if their content changed it cross-fades on the way. Images with the same file match automatically (`{morph=none}` turns that off).
-
-**Math.** `$x^2$` inline and `$$ ... $$` as a block are rendered with [KaTeX](https://katex.org) (plain HTML, so it works in every target and in the PDF). A dollar sign next to a space or a digit stays a dollar sign (`$5 and $6`). Math follows the slide's alignment and reveals like any item.
-
-**Charts.** A `chart` fence turns CSV lines into an SVG chart in the slide's colors. The first row names the series (its first cell is the label column); `type` is `bar` (default), `line` or `pie` (the first series), `title` and `width` are optional. Bars grow and lines draw themselves when the chart appears.
-
-````markdown
-```chart type=bar title="Build time (s)"
-tool, cold, warm
-webpack, 12, 4
-vite, 3, 1.2
+<row>
+  <col>
+    ### rename
+    <code lang=ts>...</code>
+  </col>
+  <col size=2>                           <- twice as wide
+    ### insert
+    <code lang=ts>...</code>
+  </col>
+</row>
 ```
-````
 
-**Diagrams.** A `mermaid` fence draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme changes); fence options work like on images (` ```mermaid width=70% `). The library is loaded on first use and left out of builds whose decks have no mermaid fence.
+`size` on a part of a row is a weight (`size=2`), `auto` (the size of its content) or a CSS length (`size=40%`). `halign` and
+`valign` align the content inside a part. Code blocks in parts next to each other share one font size. `margin` and `gap` in
+the `<slide>` block set the space around and between the parts.
 
-**Presenter notes.** HTML comments (`<!-- like this -->`) become notes in the presenter window.
+**A slide with a head (a sub-presentation).** A `<head>` stays on screen while the `<section>`s below swap one after another. Use it
+for a title with several examples that you present one at a time:
 
-## Slide front matter
+```text
+<head># What the diff does</head>        <- stays
+
+<section>                                <- section 1 (then → plays its code, → again for the next)
+  ## rename
+  <code lang=ts>...</code>
+</section>
+<section>                                <- section 2
+  ## insert
+  <code lang=ts>...</code>
+</section>
+```
+
+Without a `<section>` the whole slide is one section; a heading never splits a slide by itself.
+
+**Images and video.** Paths are relative to the `.slide` file. Audio gives a player bar and stops when the slide changes.
+
+```text
+<img src=diagram.svg class=left width=420px />
+<video src=clip.mp4 autoplay loop muted />
+<audio src=talk.mp3 autoplay loop />
+```
+
+**Morph for anything.** Code morphs by itself; any other item can too. Items with the same `id` glide from their place on the
+section (or slide) that leaves to their place on the one that arrives, scaling as they go; if their content changed it cross-fades
+on the way. Images with the same file match automatically (`morph=none` turns that off).
+
+**Math.** `$x^2$` inline and `$$ ... $$` as a block (in text) are rendered with [KaTeX](https://katex.org) (plain HTML, so it works in every
+target and in the PDF). A dollar sign next to a space or a digit stays a dollar sign (`$5 and $6`). Math follows the slide's alignment
+and reveals like any item.
+
+**Charts.** A `<chart>` turns CSV lines into an SVG chart in the slide's colors. The first row names the series (its first cell is the
+label column); `type` is `bar` (default), `line` or `pie` (the first series), `title` and `width` are optional. Bars grow and lines draw
+themselves when the chart appears.
+
+```text
+<chart type=bar title="Build time (s)">
+  tool, cold, warm
+  webpack, 12, 4
+  vite, 3, 1.2
+</chart>
+```
+
+**Diagrams.** A `<diagram>` draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme
+changes); `width=70%` sizes it. The library is loaded on first use and left out of builds whose decks have no `<diagram>`.
+
+**Presenter notes.** `<notes>…</notes>` becomes notes in the presenter window.
+
+## Slide settings
 
 `hidden: true` leaves a slide out of the show, the drawer and the PDF while it stays in the folder (handy for drafts and backup slides).
 
-An optional block at the top of a `.md` file:
+An optional `<slide>` block anywhere in the file (usually at the top), one `key: value` per line, `#` starts a comment:
 
-```yaml
----
-layout: cover         # a title slide (the old side / side-right still work: text left + code right, or the reverse)
-theme: light          # theme for this slide only
-background: img.jpg   # an image or a looping muted video (clip.mp4) relative to the .md, or any CSS: "linear-gradient(...)", "#123"
-halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
-valign: center        # start | center | end (default start): where the content sits vertically
-justify: true         # justified paragraphs (the last line stays at the start)
-class: my-class       # extra CSS class on the stage
-title: Custom title   # title shown in the presenter view
-transition: slide     # how the slide's content comes in: fade | slide | slide-right | slide-left | zoom | none (none = a hard cut)
-section-transition: slide-right   # the same, for the swaps between the ## sections of the slide (default: transition)
-stagger: 0.1          # seconds between consecutive text elements
-heading-size: 56      # also text-size, spacing (gap between blocks), padding, split (width of the left cell, default equal), cols, rows (grid track sizes)
-accent: #ffb454       # also heading-color, text-color
-footer: off           # hide the deck's footer / header on this slide (header: off)
---accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
----
+```text
+<slide>
+  layout: cover         # a title slide: no header or footer, a large heading
+  theme: light          # theme for this slide only
+  background: img.jpg   # an image or a looping muted video (clip.mp4) relative to the .slide file, or any CSS: "linear-gradient(...)", "#123"
+  halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
+  valign: center        # start | center | end (default start): where the content sits vertically
+  justify: true         # justified paragraphs (the last line stays at the start)
+  class: my-class       # extra CSS class on the stage
+  title: Custom title   # title shown in the presenter view
+  transition: slide     # how the slide's content comes in: fade | slide | slide-right | slide-left | zoom | none (none = a hard cut)
+  section-transition: slide-right   # the same, for the swaps between the <section>s of the slide (default: transition)
+  stagger: 0.1          # seconds between consecutive text elements
+  margin: 6vmin         # space around the content (default 3vmin 40px 4vmin); gap and col-gap: between the parts
+  heading-size: 56      # also text-size, spacing (gap between blocks)
+  accent: #ffb454       # also heading-color, text-color
+  footer: off           # hide the deck's footer / header on this slide (header: off)
+  --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
+</slide>
 ```
 
 ## Deck configuration (`deck.json`)
@@ -338,13 +349,13 @@ Optional, placed in the deck folder:
 | `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
 | `schemes` | `{ "light": "ink", "dark": "midnight" }`: the themes for light and dark mode. The deck starts in the one matching the OS (or the hub's light/dark toggle), and its card in the hub follows the toggle; `theme` is the fallback |
 | `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
-| `autoplay`, `loop` | `"autoplay": 5` plays the deck by itself, a step every 5 s (a slide's own `autoplay:` front matter sets its pace); `"loop": true` starts over at the end. Also `?autoplay=5&loop` in the URL, or the `a` key |
+| `autoplay`, `loop` | `"autoplay": 5` plays the deck by itself, a step every 5 s (a slide's own `autoplay:` setting sets its pace); `"loop": true` starts over at the end. Also `?autoplay=5&loop` in the URL, or the `a` key |
 | `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
 | `css` | extra stylesheet, relative to the deck folder |
 | `vars` | CSS variables applied to the whole deck |
-| `defaults` | front matter applied to every slide (a slide's own front matter wins), e.g. `layout`, `halign`, `justify`, `heading-size` |
+| `defaults` | settings applied to every slide (a slide's own settings win), e.g. `layout`, `halign`, `justify`, `heading-size` |
 | `code` | look of every code block (a block's own options win): `bg` (`"panel"`, `"none"` or a color), `lines` (line numbers), `radius`, `pad` |
-| `columns` | like `defaults`, but only for the classic two-column slide (one row, several cells with `|||`), e.g. `{"valign": "center"}`; grids of several rows use `defaults` |
+| `columns` | like `defaults`, but only for slides with a `<row>` of several parts, e.g. `{"valign": "center"}` |
 | `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
 | `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
 | `themes` | custom themes as CSS variables; they join the `t` key cycle |
@@ -358,7 +369,7 @@ Two complete custom themes (`sunset`, `terminal`) live in `examples/theming/deck
 
 ## Writing decks with an LLM
 
-The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.md` per slide plus a `deck.json`. For example:
+The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.slide` per slide plus a `deck.json`. For example:
 
 > Read https://geraldserafin.github.io/md-slides/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
 
@@ -407,7 +418,7 @@ Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<
 
 ## Adding a language
 
-1. Add the fence tags to `src/tags.json` (`"kt": "kotlin"`).
+1. Add the language tags (the `lang=` values) to `src/tags.json` (`"kt": "kotlin"`).
 2. Add the grammar name to the glob in `src/main.ts` (grammars come from the
    [`tree-sitter-wasms`](https://www.npmjs.com/package/tree-sitter-wasms) package).
 3. Optionally map node types to token classes in `src/tokens.ts`.

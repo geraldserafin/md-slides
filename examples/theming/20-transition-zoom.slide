@@ -1,0 +1,12 @@
+<slide>
+  transition: zoom
+  stagger: 0.12
+</slide>
+
+## zoom
+
+Each block scales up while it fades in.
+
+- first
+- second
+- third

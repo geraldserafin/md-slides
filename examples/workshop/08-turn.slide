@@ -1,0 +1,14 @@
+<slide>
+  valign: center
+  text-size: 4.6vmin
+</slide>
+
+## Your turn
+
+Mix your dough now. We fold at 10:00.
+
+<step>
+  <text anim=fade delay=0.2>
+    *Questions? Ask while the flour is still on your hands.*
+  </text>
+</step>

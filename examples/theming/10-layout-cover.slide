@@ -1,0 +1,13 @@
+<slide>
+  theme: midnight
+  layout: cover
+  background: bg.svg
+</slide>
+
+# `cover`
+
+Large centered heading, ideal with a background image.
+
+<notes>
+  background: accepts an image path (relative to the .slide file) or any CSS background value.
+</notes>

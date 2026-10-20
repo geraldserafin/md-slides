@@ -5,7 +5,7 @@
 import { renderDiagram } from './diagram';
 import { fenceAlign, parseAlign, place, resolveAlign, type Align } from './align';
 import { barVisible, renderSlot, usesSlideNumber, type ChromeBar } from './chrome';
-import type { Block, CodeStyle, Deck, Item, Section, Slide } from './deck';
+import type { Block, CodeStyle, Deck, Item, Layout, Section, Slide } from './deck';
 import { fileUrl } from './files';
 import type { Step } from './steps';
 import { tokenClass } from './tokens';
@@ -21,7 +21,9 @@ const ALIASES: Record<string, { v: string; px?: boolean }> = {
   'text-size': { v: '--text-size', px: true },
   spacing: { v: '--item-gap', px: true },
   padding: { v: '--stage-padding', px: true },
-  split: { v: '--split' },
+  margin: { v: '--stage-padding', px: true },
+  gap: { v: '--row-gap', px: true },
+  'col-gap': { v: '--col-gap', px: true },
   accent: { v: '--accent' },
   'heading-color': { v: '--heading' },
   'text-color': { v: '--fg' },
@@ -484,13 +486,14 @@ export class Player {
     this.leaving = true;
   }
 
-  /** Track sizes from the front matter ("auto", "1fr", "2fr", "40%", "12em") as a CSS flex value. */
-  private trackFlex(t: string | undefined, dflt: string): string {
-    const v = (t ?? dflt).trim();
-    if (v === 'auto') return '0 0 auto'; // never shrink below its content: a row that is too tall overflows (and the code scales down) instead of overlapping
-    const fr = /^(\d*\.?\d+)fr$/.exec(v);
-    if (fr) return `${fr[1]} 1 0`;
-    return `0 0 ${v}`;
+  /**
+   * The share of a part of a row or col: `size=2` (a weight), `size=auto` (the size of its content), `size=40%` or any
+   * CSS length. `fill` is the default of parts that share what is left (the parts of a row, a row or col in a col).
+   */
+  private setSize(el: HTMLElement, size: string | undefined, fill: boolean) {
+    const v = (size ?? '').trim();
+    const w = /^(\d*\.?\d+)(fr)?$/.exec(v);
+    el.style.flex = w ? `${w[1]} 1 0` : v === 'auto' ? '0 0 auto' : v ? `0 0 ${v}` : fill ? '1 1 0' : '';
   }
 
   private swapText(step: Step, instant: boolean) {
@@ -504,9 +507,6 @@ export class Player {
     const metrics = new Map<Block, { cols: number; rows: number }>();
     for (const st of this.steps) if (st.section === sec) for (const bs of st.blocks) metrics.set(bs.block, { cols: bs.cols, rows: bs.rows });
 
-    // the grid: rows (front matter `rows:`) of cells (`cols:`, or `split:` for two); one row fills the slide
-    const rowTracks = (meta.rows ?? '').split(/\s+/).filter(Boolean);
-    const colTracks = (meta.cols ?? '').split(/\s+/).filter(Boolean);
     // the slide's head: a level 1 heading above its sections; it stays while the sections below swap
     const slide = this.deck.slides[step.slide];
     const headItems: { el: HTMLElement; at: number }[] = [];
@@ -526,35 +526,46 @@ export class Player {
     }
     const grid = document.createElement('div');
     grid.className = 'grid';
-    sec.rows.forEach((cells, r) => {
-      const rowEl = document.createElement('div');
-      rowEl.className = 'row';
-      rowEl.style.flex = this.trackFlex(rowTracks[r], sec.rows.length === 1 ? '1fr' : 'auto');
-      cells.forEach((list, c) => {
-        const cellEl = document.createElement('div');
-        cellEl.className = 'cell text';
-        const co = sec.cellOpts[r]?.[c] ?? {};
-        const split = cells.length === 2 && !colTracks.length && meta.split ? [meta.split, '1fr'] : colTracks;
-        // `||| span=2` makes the cell twice as wide as one with span 1 (unless cols: says otherwise)
-        cellEl.style.flex = co.span && !split[c] ? `${parseFloat(co.span) || 1} 1 0` : this.trackFlex(split[c], '1fr');
-        const cellH = parseAlign(co.halign);
-        const cellV = parseAlign(co.valign);
-        if (cellH) cellEl.dataset.h = cellH;
-        if (cellV) cellEl.dataset.v = cellV;
-        const first = views.length;
-        for (const it of list) {
-          const e = this.renderItem(it, sec, views, r, cells.length);
-          e.dataset.at = String(it.at);
-          const out = this.applyFx(e, it);
-          if (it.at > step.stage || (out !== undefined && step.stage >= out)) e.classList.add('pending');
-          items.push({ el: e, at: it.at, out });
-          cellEl.append(e);
+    /** a layout node into `parent`; `cells` = parts of the row it is in (1 outside a row) */
+    const build = (l: Layout, parent: HTMLElement, inRow: boolean, cells: number, h?: Align, v?: Align) => {
+      if (l.kind === 'item') {
+        let host = parent;
+        if (inRow) {
+          host = document.createElement('div');
+          host.className = 'cell text';
+          this.setSize(host, undefined, true);
+          if (h) host.dataset.h = h;
+          if (v) host.dataset.v = v;
+          parent.append(host);
         }
-        for (const v of views.slice(first)) { v.cellH = cellH; v.cellV = cellV; }
-        rowEl.append(cellEl);
-      });
-      grid.append(rowEl);
-    });
+        const first = views.length;
+        const e = this.renderItem(l.item, sec, views, 0, cells);
+        e.dataset.at = String(l.item.at);
+        const out = this.applyFx(e, l.item);
+        if (l.item.at > step.stage || (out !== undefined && step.stage >= out)) e.classList.add('pending');
+        items.push({ el: e, at: l.item.at, out });
+        host.append(e);
+        for (const bv of views.slice(first)) { bv.cellH = h; bv.cellV = v; }
+        return;
+      }
+      const el = document.createElement('div');
+      const ph = parseAlign(l.opts.halign) ?? h;
+      const pv = parseAlign(l.opts.valign) ?? v;
+      if (l.kind === 'row') {
+        el.className = 'row';
+        this.setSize(el, l.opts.size, true);
+        l.children.forEach((c: Layout) => build(c, el, true, l.children.length, ph, pv));
+      } else {
+        el.className = 'cell text';
+        this.setSize(el, l.opts.size, true);
+        if (ph) el.dataset.h = ph;
+        if (pv) el.dataset.v = pv;
+        l.children.forEach((c: Layout) => build(c, el, false, cells, ph, pv));
+      }
+      if (l.opts.class) el.classList.add(...l.opts.class.split(/\s+/));
+      parent.append(el);
+    };
+    if (sec.layout.kind === 'col') sec.layout.children.forEach((c: Layout) => build(c, grid, false, 1));
     this.stage.insertBefore(grid, this.codeLayer);
     grid.addEventListener('load', () => this.relayout(false), true); // images/videos change the height once loaded
     grid.addEventListener('loadedmetadata', () => this.relayout(false), true);
@@ -638,7 +649,8 @@ export class Player {
   private applyAlign(step: Step) {
     const slide = this.deck.slides[step.slide];
     // "columns" = the classic two-column slide: a single row of cells. A grid of several rows starts at the top.
-    const columns = step.section.rows.length === 1 && step.section.rows[0].length > 1;
+    const rowsOf = step.section.layout.kind === 'col' ? step.section.layout.children.filter((k) => k.kind === 'row') : [];
+    const columns = rowsOf.length === 1 && rowsOf[0].kind === 'row' && rowsOf[0].children.length > 1;
     const textOnly = step.section.blocks.length === 0;
     const src = { own: slide.own, defaults: this.deck.meta.defaults, columns: this.deck.meta.columns, textOnly: this.deck.meta.textOnly };
     const ctx = { twoColumns: columns, textOnly };

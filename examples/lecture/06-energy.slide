@@ -1,0 +1,13 @@
+## Energy and amplitude
+
+The energy a wave carries grows with the **square of its amplitude**:
+
+$$
+E \propto A^2
+$$
+
+<step>
+  <text anim=zoom>
+    Twice the amplitude, four times the energy.
+  </text>
+</step>

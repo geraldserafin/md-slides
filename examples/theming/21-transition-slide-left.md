@@ -1,7 +1,0 @@
----
-transition: slide-left
----
-
-## slide-left
-
-The content travels to the left: the new section comes in from the right, the old one leaves to the left. `slide-right` is the mirror image, and it moves the code along with the text.

@@ -1,0 +1,15 @@
+## Image sizes and alignment
+
+Classes: `.small`, default, `.large`; `.left`, `.right`. Or set `width=` / `height=` yourself.
+
+<img src=diagram.svg alt=small class=small height=70px />
+
+<img src=diagram.svg alt=left class=left height=70px />
+
+<img src=diagram.svg alt=right class=right height=70px />
+
+<img src=diagram.svg alt="centered, bigger" height=110px />
+
+<notes>
+  Each image is its own block: they fade in together, or one after another with stagger.
+</notes>

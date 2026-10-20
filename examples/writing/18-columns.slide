@@ -1,0 +1,27 @@
+<row>
+  <text>
+    ## Two columns: `<row>`
+
+    Text on the left, code on the right. The code is centered vertically in its column; the text starts at the top.
+  </text>
+  <code lang=go id=g1>
+    <frame>
+      func Sum(xs []int) int {
+      	total := 0
+      	for _, x := range xs {
+      		total += x
+      	}
+      	return total
+      }
+    </frame>
+    <frame>
+      func Sum[T int | float64](xs []T) T {
+      	var total T
+      	for _, x := range xs {
+      		total += x
+      	}
+      	return total
+      }
+    </frame>
+  </code>
+</row>

@@ -1,0 +1,21 @@
+<row>
+  <code lang=python id=g1>
+    <frame>
+      def mean(xs):
+          return sum(xs) / len(xs)
+    </frame>
+    <frame>
+      def mean(xs):
+          if not xs:
+              raise ValueError("empty")
+          return sum(xs) / len(xs)
+    </frame>
+  </code>
+  <step at=1>
+    <text>
+      ## Code on the left
+
+      Put the code first and the text after it: the mirror image.
+    </text>
+  </step>
+</row>

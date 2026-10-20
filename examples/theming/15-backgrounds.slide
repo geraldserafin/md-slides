@@ -1,0 +1,12 @@
+<slide>
+  background: #2d1b4e
+  theme: midnight
+</slide>
+
+## Backgrounds: solid colors
+
+`background: #2d1b4e` — any CSS color. Backgrounds crossfade between slides.
+
+<notes>
+  Next: radial gradient, stripes, an SVG, and an animated feel via crossfades.
+</notes>

@@ -1,0 +1,48 @@
+## A grid is rows in a col
+
+Put `<row>`s one under the other and every row is a line of equal parts. `size=` makes a part wider,
+`halign` and `valign` align inside it.
+
+<row>
+  <text>
+    ### One
+
+    Plain text.
+  </text>
+  <col>
+    <text>
+      ### Two
+    </text>
+
+    <code lang=python>
+      <frame>
+        x = 1
+      </frame>
+      <frame>
+        x = 2   # on the first click
+      </frame>
+    </code>
+  </col>
+  <text>
+    ### Three
+
+    Nothing special.
+  </text>
+</row>
+
+<row>
+  <col halign=end>
+    <text>
+      ### Four
+
+      Right-aligned with `halign=end`.
+    </text>
+  </col>
+  <col size=2>
+    <text>
+      ### Five (`size=2`)
+
+      This part is twice as wide as a normal one.
+    </text>
+  </col>
+</row>

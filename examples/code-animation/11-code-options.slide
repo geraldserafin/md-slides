@@ -1,0 +1,48 @@
+<section>
+  ## Code options: alignment
+
+  Alignment: `halign=` and `valign=` (`start` | `center` | `end`), or the classes `left` `center` `right` and `top` `middle` `bottom` in `class=`.
+  Without them the code follows its slide: `start`, unless the slide says otherwise.
+  Other options: `id` (the animation), classes `lines` and `panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
+
+  <code lang=typescript id=g1 class=left>
+    <frame>
+      const where = "left";
+    </frame>
+    <frame>
+      const where = "still left, now longer";
+    </frame>
+  </code>
+</section>
+
+<section>
+  ## Code options: size
+
+  `size=14` fixes the font size in pixels. Without it the code is scaled to fit,
+  using the largest frame of the section, so the size never jumps between frames.
+
+  <code lang=typescript id=g2 size=14>
+    <frame>
+      const small = "size=14";
+    </frame>
+    <frame>
+      const small = "size=14, and the same font size in every frame";
+    </frame>
+  </code>
+</section>
+
+<section>
+  ## Code options: `class="right top"`
+
+  <code lang=typescript class="right top">
+    const corner = "top right";
+  </code>
+</section>
+
+<notes>
+  Options are attributes of the tag: <code lang=ts class=left size=18>
+</notes>
+
+<notes>
+  Next: focus=, fit and size in detail.
+</notes>

@@ -1,0 +1,16 @@
+<slide>
+  layout: cover
+  halign: center
+  valign: center
+  justify: false
+</slide>
+
+# Code that moves
+
+How the diff animates every edit.
+
+Rename, insert, delete, move, wrap, extract · press **→**
+
+<notes>
+  Code animation: part of the slides manual. Source: examples/code-animation.
+</notes>

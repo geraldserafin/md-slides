@@ -1,14 +1,14 @@
-// Markdown -> presentation model. One .md file = one slide. A slide is a list of sections (a new section starts at
-// a level 1-2 heading); a section is a grid: rows split by `---` lines, cells split by `|||` lines, and in every cell text,
-// images and animated code blocks in reading order. A `+++` line makes everything after it appear on the next click
-// (a reveal stage; `+++ 3` = on click 3). Animated code
-// blocks are independent unless they share a `#id`: blocks with the same id are the frames of one animation.
-// HTML comments => presenter notes.
+// .slide markup -> presentation model. One .slide file = one slide (see markup.ts for the syntax). A slide is a list of sections
+// (`<section>`; without one, a single section); a section is a tree of `<row>`s (parts side by side) and `<col>`s (parts
+// stacked) whose leaves are text (Markdown), animated code blocks, images, charts... in reading order. `<step>` makes what is
+// inside appear on the next click. A `<code>` is one animated block, its `<frame>`s are the states it passes through;
+// blocks with the same `id` are one animation across sections and slides.
 import { marked, type Token, type Tokens } from 'marked';
 import katex from 'katex';
 import { renderChart } from './chart';
 import { fileUrl } from './files';
 import type { ChromeBar } from './chrome';
+import { dedent, MarkupError, parseMarkup, rawText, tagAttrs, type El } from './markup';
 import { langFromTag, type Lang } from './parse';
 
 export type Item = (
@@ -21,7 +21,7 @@ export type Item = (
   | { kind: 'block'; block: number } // an animated code block: index into Section.blocks
 ) & {
   at: number; // the reveal stage it appears at (0 = from the start)
-  /** per-element animation, from a `{anim=zoom delay=0.2 dur=0.6 out=3}` line after it */
+  /** per-element animation, from the attributes `anim=zoom delay=0.2 dur=0.6 out=3` */
   fx?: Record<string, string>;
 };
 
@@ -37,12 +37,14 @@ export interface Frame {
 
 /** An animated code block; blocks with the same id are the frames of one animation. */
 export interface Block {
-  id: string; // explicit (`#name`, shared across the deck) or generated
+  id: string; // explicit (`id=name`, shared across the deck) or generated
   explicit: boolean;
   lang: Lang;
-  classes: string[]; // fence classes (e.g. "left", "lines", "panel")
-  opts: Record<string, string>; // fence key=value (e.g. size=18, start=10, title=cart.ts)
+  classes: string[]; // `class=` of the code tag (e.g. "left", "lines", "panel")
+  opts: Record<string, string>; // the other attributes (e.g. size=18, start=10, title=cart.ts)
   frames: Frame[];
+  /** `<code from=id />`: a copy of the last frame of the block with that id (filled in when the deck is loaded) */
+  from?: string;
 }
 
 export interface Attrs {
@@ -50,24 +52,27 @@ export interface Attrs {
   opts: Record<string, string>;
 }
 
+/** the layout of a section: `row` = parts side by side, `col` = parts stacked; the leaves are the items */
+export type Layout =
+  | { kind: 'row' | 'col'; opts: Record<string, string>; children: Layout[] } // opts: size, halign, valign, justify, class
+  | { kind: 'item'; item: Item };
+
 export interface Section {
-  /** the grid: rows (split by `---`) of cells (split by `|||`) of items; a plain section is one row with one cell */
-  rows: Item[][][];
-  /** options of the cells (after a `||| span=2 valign=center`), parallel to rows: cellOpts[row][cell] */
-  cellOpts: Record<string, string>[][];
+  layout: Layout; // a col
   blocks: Block[];
   stages: number; // reveal stages: 1 + the number of clicks that add content
 }
 
+const leavesOf = (l: Layout): Item[] => (l.kind === 'item' ? [l.item] : l.children.flatMap(leavesOf));
 /** all items of a section, in reading order */
-export const sectionItems = (s: Section): Item[] => s.rows.flat(2);
+export const sectionItems = (s: Section): Item[] => leavesOf(s.layout);
 
 export interface Slide {
-  /** slide front matter (layout, theme, background, class, halign, valign, --css-vars), merged over the deck defaults */
+  /** the slide's settings (the \`<slide>\` block: theme, background, class, halign, valign, --css-vars...), merged over the deck defaults */
   meta: Record<string, string>;
   /** the slide's own front matter, before the deck defaults were merged in */
   own: Record<string, string>;
-  /** a level 1 heading (and what follows it) before the first level 2 heading: stays while the sections below swap */
+  /** the \`<head>\`: stays while the sections below swap */
   head: Item[];
   sections: Section[];
   notes: string[];
@@ -99,9 +104,9 @@ export interface DeckMeta {
   thumbnail?: string; // gallery image instead of the live first slide
   author?: string;
   date?: string;
-  /** front matter applied to every slide unless the slide sets its own, e.g. {"align": "left"} */
+   /** settings applied to every slide unless the slide sets its own, e.g. {"align": "left"} */
   defaults?: Record<string, string>;
-  /** like defaults, but only for slides that show two columns (text next to code); e.g. {"valign": "center"} */
+  /** like defaults, but only for slides that show two columns (a row of two parts); e.g. {"valign": "center"} */
   columns?: Record<string, string>;
   /** like defaults, but only for slides without code (a single column of text); e.g. {"halign": "center", "valign": "center"} */
   textOnly?: Record<string, string>;
@@ -161,36 +166,8 @@ marked.use({
   ],
 });
 
-/** front matter `hidden: true`: the slide is left out of the presentation (and the PDF) but stays in the files */
+/** `hidden: true` in the slide settings: the slide is left out of the presentation (and the PDF) but stays in the files */
 export const isHidden = (s: Slide) => /^(true|yes|on|1)$/i.test(s.meta.hidden ?? '');
-
-const VIDEO_EXT = /\.(mp4|webm|ogv|mov|m4v)(\?.*)?$/i;
-const AUDIO_EXT = /\.(mp3|ogg|oga|wav|m4a|aac|flac|opus)(\?.*)?$/i;
-
-/** "{.left width=60% muted}" -> classes + options */
-export function parseAttrs(s: string | undefined): Attrs {
-  const attrs: Attrs = { classes: [], opts: {} };
-  if (!s) return attrs;
-  for (const w of s.trim().match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []) {
-    if (w.startsWith('.')) attrs.classes.push(w.slice(1));
-    else if (w.includes('=')) {
-      const [k, ...v] = w.split('=');
-      attrs.opts[k] = v.join('=').replace(/^["']|["']$/g, '');
-    } else attrs.opts[w] = 'true';
-  }
-  return attrs;
-}
-
-/** fence info string: "cpp #fn .lines start=10 title=\"a b.ts\"" -> language, group id, classes and options */
-function parseFence(info: string): { lang?: Lang; tag: string; id?: string; at?: number; attrs: Attrs } {
-  const words = info.trim().match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
-  const plain = words.filter((w) => !w.startsWith('.') && !w.startsWith('#') && !w.startsWith('@') && !w.includes('='));
-  const lang = plain.map((w) => langFromTag(w)).find((l) => l !== undefined);
-  const rest = words.filter((w) => w.startsWith('.') || w.includes('='));
-  const id = words.find((w) => w.startsWith('#') && w.length > 1)?.slice(1);
-  const atWord = words.find((w) => /^@\d+$/.test(w));
-  return { lang, tag: plain[0] ?? '', id, at: atWord ? parseInt(atWord.slice(1), 10) : undefined, attrs: parseAttrs(rest.join(' ')) };
-}
 
 const resolve = (src: string, base: string) => {
   try {
@@ -200,260 +177,256 @@ const resolve = (src: string, base: string) => {
   }
 };
 
-function stripComment(raw: string): string {
-  return raw.trim().replace(/^<!--/, '').replace(/-->$/, '').trim();
-}
+/** attributes that animate an element (any content tag takes them) */
+const FX = ['anim', 'delay', 'dur', 'out', 'morph'];
+/** attributes of the layout tags */
+const LAYOUT = ['size', 'halign', 'valign', 'justify', 'class'];
+/** attributes that are not options of an image or video */
+const NOT_OPTS = new Set(['src', 'alt', 'class', 'at', 'id', ...FX]);
 
-/** A paragraph made of ONE image/video: ![alt](src){.class opt=val} */
-const SOLO_MEDIA = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)(?:\{([^}]*)\})?$/;
+const without = (a: Record<string, string>, ...keys: string[]) => Object.fromEntries(Object.entries(a).filter(([k]) => !keys.includes(k)));
+const words = (s: string | undefined) => (s ?? '').split(/\s+/).filter(Boolean);
 
-/** Front matter: a `---` block at the very start of the file, `key: value` lines. */
-export function splitFrontMatter(md: string): { meta: Record<string, string>; body: string } {
-  const m = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/.exec(md);
-  if (!m) return { meta: {}, body: md };
+/** the `<slide>` block: `key: value` lines */
+function parseSettings(text: string): Record<string, string> {
   const meta: Record<string, string> = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const i = line.indexOf(":");
-    if (i > 0 && !line.trimStart().startsWith("#")) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  for (const line of text.split(/\r?\n/)) {
+    const i = line.indexOf(':');
+    if (i > 0 && !line.trimStart().startsWith('#')) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim();
   }
-  return { meta, body: md.slice(m[0].length) };
+  return meta;
 }
 
-export function parseSlide(markdown: string, url: string): Slide {
-  const { meta, body } = splitFrontMatter(markdown);
-  const tokens = marked.lexer(body);
-  marked.walkTokens(tokens, (t) => {
-    if (t.type === 'image') (t as Tokens.Image).href = resolve((t as Tokens.Image).href, url);
-    if (t.type === 'link') {
-      const l = t as Tokens.Link;
-      if (!/^(#|[a-z]+:)/i.test(l.href)) l.href = resolve(l.href, url);
+/** the `<frame>`s of a code block (or the whole content as its only frame) */
+function splitFrames(el: El): { attrs: Record<string, string>; code: string }[] {
+  const raw = rawText(el);
+  if (!/^\s*<frame[\s>]/.test(raw)) return [{ attrs: {}, code: dedent(raw) }];
+  const out: { attrs: Record<string, string>; code: string }[] = [];
+  let pos = 0;
+  for (;;) {
+    while (/\s/.test(raw[pos] ?? '')) pos++;
+    if (pos >= raw.length) return out;
+    const open = /^<frame\b([^>]*)>/.exec(raw.slice(pos));
+    if (!open) throw new MarkupError('a <code> with <frame>s holds nothing but <frame>s', el.line);
+    pos += open[0].length;
+    let end = pos;
+    for (;;) {
+      end = raw.indexOf('</frame>', end);
+      if (end < 0) throw new MarkupError('<frame> is never closed', el.line);
+      if (raw[end - 1] !== '\\') break;
+      end += 8;
     }
-  });
+    out.push({ attrs: tagAttrs(open[1]), code: dedent(raw.slice(pos, end).replace(/\\<\//g, '</')) });
+    pos = end + 8;
+  }
+}
 
+export function parseSlide(src: string, url: string): Slide {
+  const nodes = parseMarkup(src);
   const notes: string[] = [];
+  const head: Item[] = [];
   const sections: Section[] = [];
+  let meta: Record<string, string> = {};
   let title = '';
+
+  /** the state of the section being built */
+  interface State {
+    stage: number; // the reveal stage of what is being added
+    clicks: number; // the highest stage used so far (the next <step> is clicks + 1)
+    blocks: Block[];
+    fx: Record<string, string>; // animation attributes of the enclosing <step>
+    inHead: boolean;
+  }
   let autoId = 0;
 
-  // the section being built: a grid of rows (`---`) of cells (`|||`)
-  // a level 1 heading at the start, with level 2 headings after it: the h1 part is the slide's head, shown above every section
-  const real = (tokens as Token[]).filter((t) => t.type !== 'space' && !(t.type === 'html' && t.raw.trim().startsWith('<!--')));
-  const hasHead = real[0]?.type === 'heading' && (real[0] as Tokens.Heading).depth === 1 &&
-    real.some((t) => t.type === 'heading' && (t as Tokens.Heading).depth === 2);
-  let inHead = hasHead;
-  const head: Item[] = [];
-  let cur: Section = { rows: [[[]]], cellOpts: [[{}]], blocks: [], stages: 1 };
-  let row = 0;
-  let cell = 0;
-  let stage = 0;
-  let bumped = false; // a `+++` since the last content: the next frame of a group needs no extra click
-  let hasContent = false; // the section holds more than headings
-  let maxStage = 0;
-
-  const col = () => cur.rows[row][cell];
-  const startSection = () => {
-    sections.push(cur);
-    cur = { rows: [[[]]], cellOpts: [[{}]], blocks: [], stages: 1 };
-    row = 0;
-    cell = 0;
-    stage = 0;
-    maxStage = 0;
-    bumped = false;
-    hasContent = false;
+  const fxOf = (attrs: Record<string, string>, id = true): Record<string, string> => {
+    const fx: Record<string, string> = {};
+    for (const k of FX) if (attrs[k] !== undefined) fx[k] = attrs[k];
+    if (id && attrs.id !== undefined && fx.morph === undefined) fx.morph = attrs.id;
+    return fx;
   };
-  const closeSection = () => {
-    cur.stages = Math.max(stage, maxStage) + 1;
-    if (sectionItems(cur).length || cur.blocks.length) startSection();
+  const leaf = (st: State, item: ItemInit, attrs: Record<string, string> = {}, id = true): Layout => {
+    const own = fxOf(attrs, id);
+    const fx = { ...st.fx, ...own };
+    const at = /^\d+$/.test(attrs.at ?? '') ? parseInt(attrs.at, 10) : st.stage;
+    st.clicks = Math.max(st.clicks, at, /^\d+$/.test(fx.out ?? '') ? parseInt(fx.out, 10) : 0);
+    return { kind: 'item', item: { ...item, at, ...(Object.keys(fx).length ? { fx } : {}) } as Item };
   };
+  const layoutOpts = (attrs: Record<string, string>) => Object.fromEntries(LAYOUT.filter((k) => attrs[k] !== undefined).map((k) => [k, attrs[k]]));
+  const mediaAttrs = (attrs: Record<string, string>): Attrs => ({
+    classes: words(attrs.class),
+    opts: Object.fromEntries(Object.entries(attrs).filter(([k]) => !NOT_OPTS.has(k))),
+  });
 
-  const add = (item: ItemInit, isHeading = false) => {
-    if (inHead) {
-      head.push({ ...item, at: 0 } as Item);
-      return;
-    }
-    col().push({ ...item, at: stage } as Item);
-    maxStage = Math.max(maxStage, stage);
-    bumped = false;
-    if (!isHeading) hasContent = true;
-  };
-
-  /** split the list that was just added into one item per bullet, each on a click of its own */
-  const stepList = () => {
-    const items = col();
-    const last = items[items.length - 1];
-    const list = lastList;
-    if (!list || !last || last.kind !== 'html' || last.tag !== 'list') return;
-    items.pop();
-    const base = stage;
-    list.items.forEach((li, i) => {
-      const one = { ...list, items: [li], start: list.ordered ? (Number(list.start) || 1) + i : list.start } as Tokens.List;
-      col().push({ kind: 'html', html: marked.parser([one] as Token[]), tag: 'list', at: base + 1 + i });
+  /** Markdown -> one leaf per block (heading, paragraph, list...) */
+  const textLeaves = (md: string, attrs: Record<string, string>, st: State, line: number): Layout[] => {
+    const tokens = marked.lexer(md);
+    marked.walkTokens(tokens, (t) => {
+      if (t.type === 'image') (t as Tokens.Image).href = resolve((t as Tokens.Image).href, url);
+      if (t.type === 'link') {
+        const l = t as Tokens.Link;
+        if (!/^(#|[a-z]+:)/i.test(l.href)) l.href = resolve(l.href, url);
+      }
     });
-    stage = base + list.items.length;
-    maxStage = Math.max(maxStage, stage);
-    bumped = true;
-  };
-  let lastList: Tokens.List | undefined;
-
-  for (const tok of tokens as Token[]) {
-    if (tok.type === 'space') continue;
-    if (tok.type === 'html' && tok.raw.trim().startsWith('<!--')) {
-      notes.push(stripComment(tok.raw));
-      continue;
-    }
-    if (tok.type === 'hr') {
-      // `---`: the next row (nothing yet in the very first cell means a leading `---`: ignore it)
-      if (sectionItems(cur).length || row > 0 || cell > 0) {
-        cur.rows.push([[]]);
-        cur.cellOpts.push([{}]);
-        row++;
-        cell = 0;
-      }
-      continue;
-    }
-    if (tok.type === 'paragraph') {
-      const text = (tok as Tokens.Paragraph).text.trim();
-      const bars = /^\|\|\|(?:\s+(.+))?$/.exec(text);
-      if (bars) {
-        // `|||`: the next cell of this row; `||| span=2 valign=center` gives it options. At the start of a cell it only
-        // sets the options of that (still empty) cell.
-        const opts = parseAttrs(bars[1]).opts;
-        if (col().length === 0 && !(row === 0 && cell === 0 && !bars[1])) {
-          Object.assign(cur.cellOpts[row][cell], opts);
-        } else {
-          cur.rows[row].push([]);
-          cur.cellOpts[row].push(opts);
-          cell++;
-        }
-        continue;
-      }
-      const fx = /^\{([^}]*=[^}]*)\}$/.exec(text);
-      if (fx) {
-        // `{anim=zoom delay=0.2 dur=0.6 at=2 out=4}` right after an item (blank line between): how it comes in, when, and when it goes
-        const last = col()[col().length - 1];
-        if (last) {
-          const o = parseAttrs(fx[1]).opts;
-          last.fx = { ...last.fx, ...o };
-          if (o.at !== undefined && /^\d+$/.test(o.at)) last.at = parseInt(o.at, 10);
-          if (o.out !== undefined && /^\d+$/.test(o.out)) maxStage = Math.max(maxStage, parseInt(o.out, 10));
-          maxStage = Math.max(maxStage, last.at);
-          continue;
-        }
-      }
-      if (text === '{.steps}') {
-        // the list right before it appears bullet by bullet, one click each
-        stepList();
-        continue;
-      }
-      const plus = /^\+\+\+(?:\s+(\d+))?$/.exec(text);
-      if (plus) {
-        // `+++`: everything after this appears on the next click; `+++ 3`: on click 3
-        stage = plus[1] !== undefined ? parseInt(plus[1], 10) : stage + 1;
-        maxStage = Math.max(maxStage, stage);
-        bumped = true;
-        continue;
-      }
-    }
-    if (inHead && tok.type === 'heading' && (tok as Tokens.Heading).depth === 2) inHead = false;
-    // a new level 1-2 heading after real content starts the next section (one that opens a later cell belongs to it)
-    if (tok.type === 'heading' && (tok as Tokens.Heading).depth <= 2 && hasContent && !((row > 0 || cell > 0) && col().length === 0)) {
-      closeSection();
-    }
-    if (tok.type === 'code') {
-      const code = tok as Tokens.Code;
-      const f = parseFence(code.lang ?? '');
-      if (f.tag.toLowerCase() === 'chart') {
-        add({ kind: 'html', html: `<div class="chart-box" style="${f.attrs.opts.width ? `width:${f.attrs.opts.width}` : ''}">${renderChart(code.text, f.attrs.opts)}</div>`, tag: 'chart' });
-        continue;
-      }
-      if (f.tag.toLowerCase() === 'mermaid') {
-        add({ kind: 'diagram', text: code.text, attrs: f.attrs });
-        continue;
-      }
-      if (!f.lang || inHead) {
-        // language without a grammar: a static block in the text
-        add({ kind: 'code', text: code.text, lang: f.tag });
-        continue;
-      }
-      const existing = f.id ? cur.blocks.find((b) => b.id === f.id) : undefined;
-      if (existing) {
-        // another frame of the same group: it takes a click of its own, unless a `+++` already made one or @N says which
-        if (f.at === undefined && !bumped) stage++;
-        const at = f.at ?? stage;
-        existing.frames.push({ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at });
-        maxStage = Math.max(maxStage, at);
-        bumped = false;
-      } else {
-        const at = f.at ?? stage;
-        cur.blocks.push({
-          id: f.id ?? `b${autoId++}`, explicit: !!f.id, lang: f.lang, classes: f.attrs.classes, opts: f.attrs.opts,
-          frames: [{ code: code.text, focus: f.attrs.opts.focus, transition: f.attrs.opts.transition, at }],
+    const out: Layout[] = [];
+    let first = true;
+    for (const tok of tokens as Token[]) {
+      if (tok.type === 'space') continue;
+      // the first block takes the id (a morph target), the others get it with a number
+      const own = { ...attrs, ...(attrs.id !== undefined && !first ? { id: `${attrs.id}~${out.length}` } : {}) };
+      first = false;
+      if (tok.type === 'heading' && !title) title = (tok as Tokens.Heading).text;
+      if (tok.type === 'list' && attrs.steps !== undefined) {
+        // bullet by bullet, one click each
+        const list = tok as Tokens.List;
+        const base = st.stage;
+        list.items.forEach((li, i) => {
+          const one = { ...list, items: [li], start: list.ordered ? (Number(list.start) || 1) + i : list.start } as Tokens.List;
+          const saved = st.stage;
+          st.stage = base + 1 + i;
+          out.push(leaf(st, { kind: 'html', html: marked.parser([one] as Token[]), tag: 'list' }, without(own, 'id', 'at')));
+          st.stage = saved;
         });
-        col().push({ kind: 'block', block: cur.blocks.length - 1, at });
-        maxStage = Math.max(maxStage, at);
-        bumped = false;
-        hasContent = true;
-      }
-      continue;
-    }
-    if (tok.type === 'paragraph') {
-      const m = SOLO_MEDIA.exec(tok.raw.trim());
-      if (m) {
-        const src = resolve(m[2], url);
-        const attrs = parseAttrs(m[3]);
-        add(VIDEO_EXT.test(src) ? { kind: 'video', src, attrs } : AUDIO_EXT.test(src) ? { kind: 'audio', src, attrs } : { kind: 'image', src, alt: m[1], attrs });
         continue;
       }
-    }
-    lastList = tok.type === 'list' ? (tok as Tokens.List) : undefined;
-    const isHeading = tok.type === 'heading';
-    if (isHeading && !title) title = (tok as Tokens.Heading).text;
-    const html = marked.parser([tok] as Token[]);
-    add({ kind: 'html', html, tag: isHeading ? `h${(tok as Tokens.Heading).depth}` : tok.type }, isHeading);
-  }
-  closeSection();
-  const slide: Slide = { meta, own: meta, head, sections, notes, title: meta.title || title || '(untitled)', url };
-  applyLegacyLayout(slide);
-  applyGrid(slide);
-  return slide;
-}
-
-/**
- * `layout: side` / `side-right` (the old way of getting two columns) put the code blocks of every section in the right
- * (side) or left (side-right) cell and the rest in the other one. Sections that already have a grid are left alone.
- */
-/**
- * `grid: 3` (or `3x2`) in the front matter: cells that overflow N per row wrap into the next row, so a grid is just N
- * and a list of `|||` cells (rows written with `---` are kept; only rows longer than N are cut).
- */
-export function applyGrid(slide: Slide) {
-  const n = parseInt(slide.meta.grid ?? '', 10);
-  if (!(n >= 1)) return;
-  for (const s of slide.sections) {
-    const rows: Item[][][] = [];
-    const opts: Record<string, string>[][] = [];
-    s.rows.forEach((cells, r) => {
-      for (let i = 0; i < cells.length; i += n) {
-        rows.push(cells.slice(i, i + n));
-        opts.push(s.cellOpts[r].slice(i, i + n));
+      if (tok.type === 'code') {
+        out.push(leaf(st, { kind: 'code', text: (tok as Tokens.Code).text, lang: (tok as Tokens.Code).lang ?? '' }, own));
+        continue;
       }
-    });
-    s.rows = rows;
-    s.cellOpts = opts;
+      const isHeading = tok.type === 'heading';
+      out.push(leaf(st, { kind: 'html', html: marked.parser([tok] as Token[]), tag: isHeading ? `h${(tok as Tokens.Heading).depth}` : tok.type }, own));
+    }
+    void line;
+    return out;
+  };
+
+  const codeLeaf = (el: El, st: State): Layout => {
+    const a = el.attrs;
+    const frames = splitFrames(el);
+    const lang = a.from === undefined && a.lang ? langFromTag(a.lang) : undefined;
+    if (a.from === undefined && (!lang || st.inHead)) return leaf(st, { kind: 'code', text: frames[0].code, lang: a.lang ?? '' }, a, false);
+    const opts = Object.fromEntries(Object.entries(a).filter(([k]) => !['lang', 'id', 'class', 'at', 'from', 'focus', 'transition', ...FX].includes(k)));
+    const at = /^\d+$/.test(a.at ?? '') ? parseInt(a.at, 10) : st.stage;
+    const block: Block = {
+      id: a.id ?? `b${autoId++}`, explicit: a.id !== undefined, lang: lang ?? '', classes: words(a.class), opts,
+      frames: a.from !== undefined ? [] : frames.map((f, i) => {
+        const fat = i === 0 ? at : /^\d+$/.test(f.attrs.at ?? '') ? parseInt(f.attrs.at, 10) : ++st.clicks;
+        st.clicks = Math.max(st.clicks, fat);
+        return { code: f.code, focus: f.attrs.focus ?? a.focus, transition: f.attrs.transition ?? a.transition, at: fat };
+      }),
+    };
+    if (a.from !== undefined) block.from = a.from;
+    st.clicks = Math.max(st.clicks, at);
+    st.blocks.push(block);
+    return leaf(st, { kind: 'block', block: st.blocks.length - 1 }, without(a, 'id'), false);
+  };
+
+  /** the content of a container, as groups: every content tag (or run of loose text) is one group, i.e. one part of a row */
+  const walk = (children: (El | string)[], st: State): Layout[][] => {
+    const groups: Layout[][] = [];
+    let run = '';
+    let runLine = 0;
+    const flush = () => {
+      if (run.trim()) groups.push(textLeaves(dedent(run), {}, st, runLine));
+      run = '';
+    };
+    for (const n of children) {
+      if (typeof n === 'string') { run += n; continue; }
+      flush();
+      runLine = n.line;
+      const a = n.attrs;
+      switch (n.tag) {
+        case 'text': {
+          // size / halign / valign on a <text> belong to its part of the layout
+          const g = textLeaves(dedent(rawText(n)), a, st, n.line);
+          groups.push(a.size || a.halign || a.valign ? [{ kind: 'col', opts: layoutOpts(a), children: g }] : g);
+          break;
+        }
+        case 'code': groups.push([codeLeaf(n, st)]); break;
+        case 'img': {
+          const src = resolve(a.src ?? '', url);
+          groups.push([leaf(st, { kind: 'image', src, alt: a.alt ?? '', attrs: mediaAttrs(a) }, a)]);
+          break;
+        }
+        case 'video': groups.push([leaf(st, { kind: 'video', src: resolve(a.src ?? '', url), attrs: mediaAttrs(a) }, a)]); break;
+        case 'audio': groups.push([leaf(st, { kind: 'audio', src: resolve(a.src ?? '', url), attrs: mediaAttrs(a) }, a)]); break;
+        case 'chart': {
+          const opts = Object.fromEntries(Object.entries(a).filter(([k]) => !NOT_OPTS.has(k)));
+          groups.push([leaf(st, { kind: 'html', html: `<div class="chart-box" style="${a.width ? `width:${a.width}` : ''}">${renderChart(dedent(rawText(n)), opts)}</div>`, tag: 'chart' }, a)]);
+          break;
+        }
+        case 'diagram': groups.push([leaf(st, { kind: 'diagram', text: dedent(rawText(n)), attrs: mediaAttrs(a) }, a)]); break;
+        case 'row':
+        case 'col': {
+          const inner = walk(n.children, st);
+          const kids = n.tag === 'row' ? inner.map(part) : inner.flat();
+          groups.push([{ kind: n.tag, opts: layoutOpts(a), children: kids }]);
+          break;
+        }
+        case 'step': {
+          const base = st.stage;
+          const baseFx = st.fx;
+          const at = /^\d+$/.test(a.at ?? '') ? parseInt(a.at, 10) : st.clicks + 1;
+          st.clicks = Math.max(st.clicks, at);
+          st.stage = at;
+          st.fx = { ...st.fx, ...fxOf(a, false) };
+          groups.push(...walk(n.children, st));
+          st.stage = base;
+          st.fx = baseFx;
+          break;
+        }
+        case 'notes': notes.push(dedent(rawText(n))); break;
+        default: throw new MarkupError(`<${n.tag}> is not a tag of the slide markup here`, n.line);
+      }
+    }
+    flush();
+    return groups;
+  };
+  /** several things in one part of a row = a col */
+  const part = (g: Layout[]): Layout => (g.length === 1 ? g[0] : { kind: 'col', opts: {}, children: g });
+
+  const section = (children: (El | string)[]): Section => {
+    const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: false };
+    const layout: Layout = { kind: 'col', opts: {}, children: walk(children, st).flat() };
+    return { layout, blocks: st.blocks, stages: st.clicks + 1 };
+  };
+
+  const loose: (El | string)[] = [];
+  let explicit = false;
+  for (const n of nodes) {
+    if (typeof n !== 'string' && n.tag === 'slide') meta = { ...meta, ...parseSettings(rawText(n)) };
+    else if (typeof n !== 'string' && n.tag === 'head') {
+      const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: true };
+      for (const l of walk(n.children, st).flat()) head.push(...leavesOf(l).map((i) => ({ ...i, at: 0 })));
+    } else if (typeof n !== 'string' && n.tag === 'section') {
+      explicit = true;
+      sections.push(section(n.children));
+    } else loose.push(n);
   }
+  if (explicit) {
+    const stray = loose.find((n) => (typeof n === 'string' ? n.trim() : n.tag !== 'notes'));
+    if (stray) throw new MarkupError('content outside a <section> in a slide that has sections', typeof stray === 'string' ? 1 : stray.line);
+    for (const n of loose) if (typeof n !== 'string') notes.push(dedent(rawText(n)));
+  } else {
+    const s = section(loose);
+    if (sectionItems(s).length) sections.push(s);
+  }
+  return { meta, own: meta, head, sections, notes, title: meta.title || title || '(untitled)', url };
 }
 
-export function applyLegacyLayout(slide: Slide) {
-  const layout = slide.meta.layout;
-  if (layout !== 'side' && layout !== 'side-right') return;
-  for (const s of slide.sections) {
-    if (!s.blocks.length || s.rows.length !== 1 || s.rows[0].length !== 1) continue; // already a grid of its own
-    const items = s.rows[0][0];
-    const code = items.filter((i) => i.kind === 'block');
-    const rest = items.filter((i) => i.kind !== 'block');
-    s.rows = [layout === 'side' ? [rest, code] : [code, rest]];
-    s.cellOpts = [[{}, {}]];
-  }
+/** `<code from=id />`: fill in the copies (the last frame of the nearest earlier block with that id) */
+export function resolveRefs(slides: Slide[]) {
+  const seen = new Map<string, Block>();
+  for (const slide of slides)
+    for (const sec of slide.sections)
+      for (const b of sec.blocks) {
+        if (b.from !== undefined) {
+          const src = seen.get(b.from);
+          if (!src) throw new Error(`<code from=${b.from}>: no earlier block with that id (${slide.url})`);
+          b.lang = src.lang;
+          b.frames = [{ code: src.frames[src.frames.length - 1].code, at: b.frames[0]?.at ?? 0 }];
+        } else if (b.explicit) seen.set(b.id, b);
+      }
 }
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
@@ -463,12 +436,16 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
       const text = await (await fetch(fileUrl(url))).text();
-      const slide = parseSlide(text, url);
+      let slide: Slide;
+      try {
+        slide = parseSlide(text, url);
+      } catch (e) {
+        throw new Error(`${name}/${f}, ${(e as Error).message}`);
+      }
       slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
-      applyLegacyLayout(slide);
-      applyGrid(slide);
       return slide;
     }),
   );
+  resolveRefs(slides);
   return { name, meta, slides };
 }
