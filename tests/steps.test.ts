@@ -56,6 +56,13 @@ describe('steps of code groups', () => {
   });
 });
 
+describe('slides without content', () => {
+  it('take a step of their own', async () => {
+    const steps = await buildSteps(deckOf('<slide>\n  background: x.jpg\n</slide>', '<h1>B</h1>'));
+    expect(steps.map((s) => s.slide)).toEqual([0, 1]);
+  });
+});
+
 describe('hidden slides', () => {
   it('are left out of the steps', async () => {
     const d = deckOf('<h1>A</h1>', '<h1>B</h1>', '<h1>C</h1>');

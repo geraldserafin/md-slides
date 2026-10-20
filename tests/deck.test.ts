@@ -41,6 +41,15 @@ describe('slide settings and notes', () => {
   });
 });
 
+describe('a slide with no content', () => {
+  it('is still a slide (one step): it shows its background', () => {
+    const s = parse('<slide>\n  background: cover.jpg\n</slide>');
+    expect(s.sections).toHaveLength(1);
+    expect(sectionItems(s.sections[0])).toEqual([]);
+    expect(s.sections[0].stages).toBe(1);
+  });
+});
+
 describe('text tags', () => {
   const html = (src: string) => sectionItems(parse(src).sections[0]).map((i) => (i.kind === 'html' ? i.html : i.kind));
   it('one item per block tag, with the tag kind', () => {

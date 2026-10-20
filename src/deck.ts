@@ -390,8 +390,8 @@ export function parseSlide(src: string, url: string): Slide {
     for (const l of walk(loose, st).flat()) head.push(...leavesOf(l).map((i) => ({ ...i, at: 0 })));
     for (const p of parts) sections.push(section(p.children));
   } else {
-    const s = section(loose);
-    if (sectionItems(s).length) sections.push(s);
+    // a slide with nothing in it is still a slide: it shows its background (a cover that is only a picture)
+    sections.push(section(loose));
   }
   return { meta, own: meta, head, sections, notes, title: meta.title || title || '(untitled)', url };
 }
