@@ -2,8 +2,8 @@
   "name": "slideit-vscode",
   "displayName": "slideit",
   "description": "Syntax highlighting, diagnostics, completion and a live preview for .slide presentations",
-  "version": "0.2.0",
-  "publisher": "geraldserafin",
+  "version": "0.2.1",
+  "publisher": "serafingerald",
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
