@@ -1,3 +1,8 @@
+---
+valign: center
+text-size: 4.2vmin
+---
+
 ## Quick check
 
 A note vibrates at $440\ \mathrm{Hz}$. What is the wavelength in air?

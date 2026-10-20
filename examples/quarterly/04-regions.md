@@ -1,6 +1,6 @@
 ## By region
 
-```chart type=bar title="Q3 revenue by region ($M)" width=75%
+```chart type=bar title="Q3 revenue by region ($M)" width=95%
 region, revenue
 North, 1.6
 South, 1.1

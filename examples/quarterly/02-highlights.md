@@ -1,3 +1,7 @@
+---
+text-size: 4.2vmin
+---
+
 ## Highlights
 
 - Revenue grew **12%** over Q2, our best quarter

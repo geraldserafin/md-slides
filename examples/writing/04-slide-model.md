@@ -1,3 +1,7 @@
+---
+text-size: 2.4vmin
+---
+
 ## Slides, sections, groups and clicks
 
 <!-- The most important idea of the tool. Take your time here. -->

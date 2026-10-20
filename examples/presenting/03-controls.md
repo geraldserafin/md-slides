@@ -1,3 +1,7 @@
+---
+text-size: 3.8vmin
+---
+
 ## Controls
 
 - **→ Space PageDown Enter** next step · **← PageUp Backspace** previous

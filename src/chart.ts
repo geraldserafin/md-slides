@@ -40,7 +40,9 @@ export function renderChart(text: string, opts: Record<string, string> = {}): st
   const type = (opts.type ?? 'bar').toLowerCase();
   const title = opts.title ? `<text class="chart-title" x="${W / 2}" y="24" text-anchor="middle">${esc(opts.title)}</text>` : '';
   const out: string[] = [];
-  const top = opts.title ? 44 : 20;
+  const legendRow = type !== 'pie' && data.series.length > 1 ? 30 : 0; // the legend gets its own row under the title
+  const head = opts.title ? 44 : 20;
+  const top = head + legendRow;
   const left = 52;
   const bottom = H - 44;
   const right = W - 16;
@@ -58,8 +60,8 @@ export function renderChart(text: string, opts: Record<string, string> = {}): st
       const p = (a: number, rad: number) => `${(cx + Math.cos(a) * rad).toFixed(1)} ${(cy + Math.sin(a) * rad).toFixed(1)}`;
       const ir = r * 0.52;
       out.push(`<path class="chart-slice" style="animation-delay:${i * 0.08}s" fill="${PALETTE[i % PALETTE.length]}" d="M ${p(a0, r)} A ${r} ${r} 0 ${large} 1 ${p(a1, r)} L ${p(a1, ir)} A ${ir} ${ir} 0 ${large} 0 ${p(a0, ir)} Z"/>`);
-      const ly = top + 18 + i * 26;
-      out.push(`<rect x="${W * 0.62}" y="${ly - 12}" width="14" height="14" rx="3" fill="${PALETTE[i % PALETTE.length]}"/><text class="chart-label" x="${W * 0.62 + 22}" y="${ly}">${esc(data.labels[i] ?? '')} · ${Math.round((v / sum) * 100)}%</text>`);
+      const ly = top + 24 + i * 32;
+      out.push(`<rect x="${W * 0.62}" y="${ly - 12}" width="14" height="14" rx="3" fill="${PALETTE[i % PALETTE.length]}"/><text class="chart-legend" x="${W * 0.62 + 22}" y="${ly}">${esc(data.labels[i] ?? '')} · ${Math.round((v / sum) * 100)}%</text>`);
       a0 = a1;
     });
   } else {
@@ -91,8 +93,8 @@ export function renderChart(text: string, opts: Record<string, string> = {}): st
     }
     if (k > 1) {
       data.series.forEach((s, si) => {
-        const lx = right - (data.series.length - si) * 110;
-        out.push(`<rect x="${lx}" y="${top - 14}" width="12" height="12" rx="3" fill="${PALETTE[si % PALETTE.length]}"/><text class="chart-label" x="${lx + 18}" y="${top - 4}">${esc(s.name)}</text>`);
+        const lx = right - (data.series.length - si) * 130;
+        out.push(`<rect x="${lx}" y="${head + 6}" width="14" height="14" rx="3" fill="${PALETTE[si % PALETTE.length]}"/><text class="chart-legend" x="${lx + 20}" y="${head + 19}">${esc(s.name)}</text>`);
       });
     }
   }

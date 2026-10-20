@@ -1,3 +1,7 @@
+---
+text-size: 4.2vmin
+---
+
 ## Summary
 
 - A wave moves energy, not matter

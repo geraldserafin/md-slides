@@ -30,7 +30,7 @@ const SLIDE_PX = 60; // px, how far content travels for `transition: slide-right
 /** direction of travel of a text transition: +1 = to the right, -1 = to the left, 0 = none */
 const slideDir = (kind: string) => (kind === 'slide-right' ? 1 : kind === 'slide-left' ? -1 : 0);
 const MIN_SCALE = 0.5;
-const MAX_SCALE = 1.6;
+const MAX_SCALE = 2.2;
 
 /** how one animated code block looks: from the deck defaults ("code" in deck.json) and the block's own fence options */
 interface BlockCfg {

@@ -1,4 +1,10 @@
-## Risks and what we do about them
+---
+grid: 2
+---
+
+## Risks and responses
+
+---
 
 ### Risks
 

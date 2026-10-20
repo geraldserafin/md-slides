@@ -2,7 +2,7 @@
 
 At about $343\ \mathrm{m/s}$, doubling the frequency halves the wavelength:
 
-```chart type=line title="Wavelength (m) of sound at frequency f" width=75%
+```chart type=line title="Wavelength (m) of sound at frequency f" width=95%
 frequency, wavelength
 100 Hz, 3.43
 200 Hz, 1.72

@@ -6,7 +6,7 @@ grid: 2
 
 ---
 
-```chart type=pie title="Our users" width=90%
+```chart type=pie title="Our users" width=95%
 segment, share
 First-time owners, 46
 Gift receivers, 27

@@ -23,3 +23,7 @@
 /* the short rule under a cover title follows the title's alignment */
 .stage[data-h='center'].layout-cover .item h1::after { margin-inline: auto; }
 .stage[data-h='end'].layout-cover .item h1::after { margin-inline: auto 0; }
+
+/* tables: as wide as the text column, left aligned, the size of the text */
+.item table { width: min(100%, 46em); margin: 0.4em 0; font-size: 1em; }
+.item th, .item td { padding: 0.5em 1em; }

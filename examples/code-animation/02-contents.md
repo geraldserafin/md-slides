@@ -1,3 +1,7 @@
+---
+text-size: 4vmin
+---
+
 ## What's inside
 
 1. What the diff does, edit by edit

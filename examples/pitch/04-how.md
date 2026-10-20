@@ -1,6 +1,6 @@
 ## How it works
 
-```mermaid width=90%
+```mermaid width=100%
 flowchart LR
   A[Photo] --> B[Identify species]
   B --> C[Plan from light and humidity]

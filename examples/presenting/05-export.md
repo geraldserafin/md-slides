@@ -1,3 +1,7 @@
+---
+text-size: 3.8vmin
+---
+
 ## Slide drawer and export
 
 - **o** (or the ☰ button that appears when you move the mouse) opens the drawer: a thumbnail of every slide,

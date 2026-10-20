@@ -1,6 +1,6 @@
 ## Next two quarters
 
-```mermaid width=95%
+```mermaid width=100%
 flowchart LR
   A[Oct: second supplier] --> B[Nov: new hires]
   B --> C[Dec: Nordics launch]

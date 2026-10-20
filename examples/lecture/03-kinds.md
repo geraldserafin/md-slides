@@ -1,6 +1,6 @@
 ## Two families
 
-```mermaid width=80%
+```mermaid width=100%
 flowchart TD
   W[Waves] --> T[Transverse]
   W --> L[Longitudinal]

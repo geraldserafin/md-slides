@@ -1,6 +1,6 @@
 ## Traction
 
-```chart type=bar title="Weekly active households (thousands)" width=80%
+```chart type=bar title="Weekly active households (thousands)" width=95%
 month, households
 Apr, 4
 May, 7

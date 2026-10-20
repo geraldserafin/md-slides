@@ -22,7 +22,7 @@ function variables(box: HTMLElement) {
     background: bg, mainBkg: panel, primaryColor: panel, primaryTextColor: fg, primaryBorderColor: accent,
     secondaryColor: panel, tertiaryColor: bg, lineColor: v('--muted', fg), textColor: fg, nodeTextColor: fg,
     edgeLabelBackground: bg, clusterBkg: bg, clusterBorder: v('--muted', fg), titleColor: fg,
-    fontFamily: cs.fontFamily, fontSize: '16px', dropShadow: 'none',
+    fontFamily: cs.fontFamily, fontSize: '20px', dropShadow: 'none',
   };
 }
 

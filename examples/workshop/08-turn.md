@@ -1,3 +1,8 @@
+---
+valign: center
+text-size: 4.6vmin
+---
+
 ## Your turn
 
 Mix your dough now. We fold at 10:00.

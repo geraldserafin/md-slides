@@ -1,3 +1,7 @@
+---
+text-size: 4vmin
+---
+
 ## Step 1: mix
 
 1. Stir flour and water until no dry flour is left

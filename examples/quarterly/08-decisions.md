@@ -1,3 +1,8 @@
+---
+valign: center
+text-size: 4vmin
+---
+
 ## Decisions we need today
 
 1. Approve the Nordics launch budget

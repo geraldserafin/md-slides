@@ -11,7 +11,7 @@
   background: radial-gradient(130% 100% at 12% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%); }
 .stage.layout-cover .item h1 { font-weight: 700; letter-spacing: -0.015em; }
 .stage.layout-cover .item h1::after { content: ''; display: block; width: 3.2em; height: 2px; margin: 0.55em 0 0.1em; background: var(--accent); opacity: 0.9; }
-.stage.layout-cover .item p { font-style: italic; color: var(--muted); font-size: 1.08em; }
+.stage.layout-cover .item p { font-style: italic; color: color-mix(in srgb, var(--fg) 88%, transparent); font-size: 1.08em; }
 
 /* `class: spotlight` (used by a guide slide) */
 .stage.spotlight .item h2 { color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }

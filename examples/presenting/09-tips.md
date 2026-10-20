@@ -1,3 +1,7 @@
+---
+text-size: 3.8vmin
+---
+
 ## Tips
 
 - keep frames **small and incremental**: one idea per step gives the cleanest motion

@@ -1,6 +1,9 @@
 ---
 theme: midnight
 layout: cover
+halign: center
+valign: center
+justify: false
 background: bg.svg
 transition: zoom
 ---

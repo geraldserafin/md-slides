@@ -1,3 +1,8 @@
+---
+valign: center
+text-size: 4.6vmin
+---
+
 ## Plants die. Not because of you.
 
 Most people do not forget to care. They forget *when*, and they never learned *what*.

@@ -1,6 +1,6 @@
 ## Revenue
 
-```chart type=line title="Revenue by quarter ($M)" width=75%
+```chart type=line title="Revenue by quarter ($M)" width=95%
 quarter, this year, last year
 Q1, 2.8, 2.1
 Q2, 3.7, 2.6

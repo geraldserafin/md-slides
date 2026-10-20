@@ -2,7 +2,7 @@
 
 A `chart` fence turns a few CSV lines into a chart in the slide's colors: `type=bar` (default), `line` or `pie`.
 
-```chart type=bar title="Build time (s)" width=60%
+```chart type=bar title="Build time (s)" width=85%
 tool, cold, warm
 webpack, 12, 4
 vite, 3, 1.2

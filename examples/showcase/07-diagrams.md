@@ -2,7 +2,7 @@
 
 A `mermaid` fence draws a diagram with the slide's colors; press **t** to see it follow the theme.
 
-```mermaid width=70%
+```mermaid width=100%
 flowchart LR
   md[Markdown] --> parse[Parse] --> diff{{GumTree diff}} --> play[Animate]
   diff -. same language .-> play
