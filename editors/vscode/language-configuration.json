@@ -1,0 +1,13 @@
+{
+  "brackets": [["<", ">"]],
+  "autoClosingPairs": [
+    { "open": "\"", "close": "\"", "notIn": ["string"] },
+    { "open": "'", "close": "'", "notIn": ["string"] }
+  ],
+  "surroundingPairs": [["\"", "\""], ["'", "'"]],
+  "wordPattern": "[\\w-]+",
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*<(?!/|(?:br|img|video|audio)\\b)[a-z][\\w-]*(?:\\s[^>]*)?>\\s*$",
+    "decreaseIndentPattern": "^\\s*</[a-z][\\w-]*>"
+  }
+}

@@ -1,0 +1,2911 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Slide",
+  "scopeName": "text.slide",
+  "fileTypes": [
+    "slide"
+  ],
+  "patterns": [
+    {
+      "include": "#slide-settings"
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:ts|typescript)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.ts",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.ts"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.ts"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:tsx)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.tsx",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.tsx"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.tsx"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:js|javascript|jsx)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.js",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.js"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:cpp|c\\+\\+|cxx|cc|hpp)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.cpp",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.cpp"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.cpp"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:c|h)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.c",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.c"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.c"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:py|python)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.python",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.python"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:rs|rust)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.rust",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.rust"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.rust"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:go|golang)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.go",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.go"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.go"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:java)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.java",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.java"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.java"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:sh|bash|shell)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.shell",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.shell"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.shell"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:json)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.json",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.json"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.json"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:html)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "text.html.basic",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "text.html.basic"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "text.html.basic"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:css)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.css",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.css"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.css"
+        }
+      ]
+    },
+    {
+      "begin": "(<)(code)(?![\\w-])(?=[^>]*\\blang=[\"']?(?:lua)[\"'\\s>/])([^>]*)(>)",
+      "end": "(</)(code)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(frame)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(frame)(>)",
+          "contentName": "source.lua",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        },
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "source.lua"
+        }
+      ]
+    },
+    {
+      "include": "#raw"
+    },
+    {
+      "include": "#tag"
+    },
+    {
+      "include": "#entity"
+    }
+  ],
+  "repository": {
+    "escape": {
+      "match": "\\\\</[a-z]+>",
+      "name": "constant.character.escape.slide"
+    },
+    "entity": {
+      "match": "&(#\\d+|#x[0-9a-fA-F]+|\\w+);",
+      "name": "constant.character.entity.slide"
+    },
+    "slide-settings": {
+      "begin": "(<)(slide)(>)",
+      "end": "(</)(slide)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.slide"
+        },
+        "2": {
+          "name": "entity.name.tag.slide"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.slide"
+        }
+      },
+      "patterns": [
+        {
+          "match": "^\\s*(#.*)$",
+          "captures": {
+            "1": {
+              "name": "comment.line.number-sign.slide"
+            }
+          }
+        },
+        {
+          "match": "^\\s*([\\w-]+)\\s*(:)\\s*(.*)$",
+          "captures": {
+            "1": {
+              "name": "variable.other.property.slide"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.slide"
+            },
+            "3": {
+              "name": "string.unquoted.slide"
+            }
+          }
+        }
+      ]
+    },
+    "raw": {
+      "patterns": [
+        {
+          "begin": "(<)(code)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(code)(>)",
+          "contentName": "markup.raw.block.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(c)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(c)(>)",
+          "contentName": "markup.inline.raw.string.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(tex)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(tex)(>)",
+          "contentName": "markup.math.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            },
+            {
+              "include": "text.tex.latex"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(chart)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(chart)(>)",
+          "contentName": "markup.raw.block.csv.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(diagram)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(diagram)(>)",
+          "contentName": "markup.raw.block.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        },
+        {
+          "begin": "(<)(notes)(?![\\w-])([^>]*)(>)",
+          "end": "(</)(notes)(>)",
+          "contentName": "comment.block.notes.slide",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "patterns": [
+                {
+                  "patterns": [
+                    {
+                      "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        },
+                        "3": {
+                          "name": "string.unquoted.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "([\\w-]+)(=)(?=[\"'])",
+                      "captures": {
+                        "1": {
+                          "name": "entity.other.attribute-name.slide"
+                        },
+                        "2": {
+                          "name": "punctuation.separator.key-value.slide"
+                        }
+                      }
+                    },
+                    {
+                      "match": "[\\w-]+",
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    {
+                      "begin": "\"",
+                      "end": "\"",
+                      "name": "string.quoted.double.slide"
+                    },
+                    {
+                      "begin": "'",
+                      "end": "'",
+                      "name": "string.quoted.single.slide"
+                    }
+                  ]
+                }
+              ]
+            },
+            "4": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            },
+            "3": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#escape"
+            }
+          ]
+        }
+      ]
+    },
+    "tag": {
+      "patterns": [
+        {
+          "begin": "(</?)([a-z][\\w-]*)(?![\\w-])",
+          "end": "(/?>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.slide"
+            },
+            "2": {
+              "name": "entity.name.tag.slide"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.slide"
+            }
+          },
+          "patterns": [
+            {
+              "patterns": [
+                {
+                  "match": "([\\w-]+)(=)([^\\s\"'>]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    },
+                    "3": {
+                      "name": "string.unquoted.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "([\\w-]+)(=)(?=[\"'])",
+                  "captures": {
+                    "1": {
+                      "name": "entity.other.attribute-name.slide"
+                    },
+                    "2": {
+                      "name": "punctuation.separator.key-value.slide"
+                    }
+                  }
+                },
+                {
+                  "match": "[\\w-]+",
+                  "name": "entity.other.attribute-name.slide"
+                },
+                {
+                  "begin": "\"",
+                  "end": "\"",
+                  "name": "string.quoted.double.slide"
+                },
+                {
+                  "begin": "'",
+                  "end": "'",
+                  "name": "string.quoted.single.slide"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "slideit-vscode",
+  "displayName": "slideit",
+  "description": "Syntax highlighting, diagnostics, completion and a live preview for .slide presentations",
+  "version": "0.1.0",
+  "publisher": "geraldserafin",
+  "license": "BSD-3-Clause",
+  "repository": { "type": "git", "url": "https://github.com/geraldserafin/md-slides.git", "directory": "editors/vscode" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages", "Snippets", "Other"],
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:slide"],
+  "contributes": {
+    "languages": [{ "id": "slide", "aliases": ["Slide", "slide"], "extensions": [".slide"], "configuration": "./language-configuration.json" }],
+    "grammars": [{ "language": "slide", "scopeName": "text.slide", "path": "./syntaxes/slide.tmLanguage.json" }],
+    "commands": [
+      { "command": "slides.preview", "title": "Slides: Open preview to the side", "icon": "$(open-preview)" },
+      { "command": "slides.stopPreview", "title": "Slides: Stop the preview server" }
+    ],
+    "menus": {
+      "editor/title": [{ "command": "slides.preview", "when": "resourceLangId == slide", "group": "navigation" }]
+    },
+    "keybindings": [{ "command": "slides.preview", "key": "ctrl+k v", "mac": "cmd+k v", "when": "resourceLangId == slide" }],
+    "configuration": {
+      "title": "Slides",
+      "properties": {
+        "slides.command": { "type": "string", "default": "slides", "description": "The slides command (the one `npm i -g @geraldserafin/slideit` installs), or a path to it. `npx` users: set it to `npx` and slides.args to [\"@geraldserafin/slideit\"]." },
+        "slides.args": { "type": "array", "items": { "type": "string" }, "default": [], "description": "Arguments put before the subcommand (see slides.command)." }
+      }
+    }
+  },
+  "dependencies": { "vscode-languageclient": "^9.0.1" },
+  "devDependencies": { "@vscode/vsce": "^3.0.0" },
+  "scripts": { "grammar": "node build-grammar.mjs", "package": "vsce package" }
+}

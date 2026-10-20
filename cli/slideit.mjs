@@ -20,6 +20,7 @@ slides dev   <deck...> [--port N] [--open] [--vite]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
 slides check <deck...>                          find mistakes in the .slide files (file:line: message)
 slides schema                                   the markup as JSON (tags, attributes), for editor tooling
+slides lsp                                      the language server (stdio): diagnostics, completion, hover
 
   <deck> is a folder of .slide files, or a folder of such folders (each one becomes a deck).
   A folder of decks may hold a hub.json that customizes the deck chooser (title, subtitle, logo, theme...);
@@ -209,6 +210,10 @@ async function cmdCheck(o) {
   if (n) process.exit(1);
 }
 
+async function cmdLsp() {
+  (await loadLib('lsp')).serve();
+}
+
 async function cmdSchema() {
   const { TAGS } = await loadLib('schema');
   console.log(JSON.stringify(TAGS, null, 2));
@@ -228,6 +233,7 @@ try {
   else if (cmd === 'new') await cmdNew(parseArgs(rest));
   else if (cmd === 'check') await cmdCheck(parseArgs(rest));
   else if (cmd === 'schema') await cmdSchema();
+  else if (cmd === 'lsp') await cmdLsp();
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }
 } catch (e) {
   console.error(`slides: ${e.message ?? e}`);
