@@ -1,6 +1,6 @@
 {
-  "title": "Code in motion",
-  "subtitle": "Presentations where every edit to the code is animated as an AST diff. Write markdown, press →.",
+  "title": "Presentations, written in markdown",
+  "subtitle": "Write plain markdown, get animated slides: code that morphs edit by edit, math, diagrams, charts, themes, presenter view and a single file to share. Start with the manual, or open an example talk and copy it.",
   "fonts": [
     {
       "family": "Libertinus Serif",
