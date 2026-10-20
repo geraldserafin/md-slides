@@ -1,0 +1,23 @@
+{
+  "grammars": [
+    {
+      "name": "slide",
+      "camelcase": "Slide",
+      "scope": "text.slide",
+      "file-types": [
+        "slide"
+      ],
+      "injection_regex": "slide",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "BSD-3-Clause",
+    "description": "tree-sitter grammar of the slideit markup (.slide files)",
+    "links": {
+      "repository": "https://github.com/geraldserafin/md-slides"
+    }
+  }
+}

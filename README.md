@@ -26,6 +26,7 @@ Other ways to get it:
 ```sh
 bunx @geraldserafin/slideit new my-talk   # bun: bunx / bun add -g @geraldserafin/slideit
 nix run github:geraldserafin/md-slides -- new my-talk   # nix (a nixpkgs package is planned, see nix/README.md)
+brew install geraldserafin/tap/slideit  # Homebrew
 ```
 
 > Until the package is published, run the CLI from a clone: `node cli/slideit.mjs <command> ...` (it builds the viewer on the fly).
@@ -413,7 +414,7 @@ page whenever a file in the deck folder changes.
 
 ## Editors
 
-`slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes, values and the keys of a `<slide>` block, outline, folding and go to definition for code ids. `editors/vscode` is a VS Code / VSCodium / Cursor extension: highlighting (with the code inside `<code lang=…>` highlighted as that language), the language server bundled (nothing to install for completion), snippets, auto-closing tags, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor, following the cursor to the slide and section you are editing. `editors/vim` has the filetype, syntax and the Neovim LSP setup. See the README in each folder.
+`slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes, values and the keys of a `<slide>` block, outline, folding and go to definition for code ids. `editors/vscode` is a VS Code / VSCodium / Cursor extension: highlighting (with the code inside `<code lang=…>` highlighted as that language), the language server bundled (nothing to install for completion), snippets, auto-closing tags, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor, following the cursor to the slide and section you are editing. `editors/vim` has the filetype, syntax and the Neovim LSP setup, and `editors/tree-sitter-slide` is a tree-sitter grammar (highlighting with the code in `<code lang=…>` injected as that language). See the README in each folder.
 ## GitHub Action and template
 
 `geraldserafin/md-slides@action-v1` checks a deck, builds the site (and a PDF) and uploads it for GitHub Pages:
