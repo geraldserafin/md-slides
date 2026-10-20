@@ -4,7 +4,7 @@
   <p>
     Alignment: <c>halign=</c> and <c>valign=</c> (<c>start</c> | <c>center</c> | <c>end</c>), or the classes <c>left</c> <c>center</c> <c>right</c> and <c>top</c> <c>middle</c> <c>bottom</c> in <c>class=</c>.
     Without them the code follows its slide: <c>start</c>, unless the slide says otherwise.
-    Other options: <c>id</c> (the animation), classes <c>lines</c> and <c>panel</c>, <c>title=</c>, <c>size=</c>, <c>fit=none</c>, <c>focus=</c>, <c>transition=</c> (see the next slides).
+    Other options: <c>id</c> (the animation), classes <c>lines</c> and <c>panel</c>, <c>title=</c>, <c>size=</c>, <c>fit=none</c>, <c>focus=</c>, <c>transition=</c> (see the next slides), and <c>autoplay=1</c> with <c>loop</c>: the frames play by themselves, as on the diff slides.
   </p>
   <code lang=typescript id=g1 class=left>
     <frame>

@@ -12,7 +12,7 @@
   <h2><c>rename</c></h2>
 
   <p>Only the identifiers change; every other token stays exactly where it is.</p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function area(r: number) {
         return Math.PI * r * r;
@@ -30,7 +30,7 @@
   <h2><c>insert</c></h2>
 
   <p>New lines fade in; the lines below glide down to make room.</p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function greet(name: string) {
         return "Hello, " + name;
@@ -51,7 +51,7 @@
   <h2><c>delete</c></h2>
 
   <p>Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion.</p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function connect(url: string) {
         console.log("connecting to", url);
@@ -75,7 +75,7 @@
   <p>
     Statements swap places; every token glides to its new position instead of disappearing and reappearing.
   </p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function init() {
         connect();
@@ -97,7 +97,7 @@
   <h2><c>wrap</c></h2>
 
   <p>Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in.</p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function save(data: Data) {
         write(data);
@@ -121,7 +121,7 @@
   <h2><c>extract</c></h2>
 
   <p>The moved lines keep their identity inside the new function.</p>
-  <code lang=typescript>
+  <code lang=typescript autoplay=1 loop>
     <frame>
       function report(order: Order) {
         const total = order.items.reduce((s, i) => s + i.price, 0);

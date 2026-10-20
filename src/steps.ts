@@ -123,3 +123,21 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
   }
   return steps;
 }
+
+/**
+ * `<code autoplay=1 loop>`: the frames of the block play by themselves, `autoplay` seconds apart (a bare `autoplay` is 2 s); with
+ * `loop` they go forth and back without end. Returns the plan for the step `i`: the first and last step of the block's frames.
+ */
+export function blockLoop(steps: Step[], i: number): { sec: number; loop: boolean; first: number; last: number } | undefined {
+  const step = steps[i];
+  for (const bs of step?.blocks ?? []) {
+    const o = bs.block.opts;
+    if (o.autoplay === undefined) continue;
+    const mine = steps.map((s, k) => (s.section === step.section && s.blocks.some((b) => b.block === bs.block) ? k : -1)).filter((k) => k >= 0);
+    const final = bs.block.frames[bs.block.frames.length - 1];
+    const last = mine.find((k) => steps[k].blocks.find((b) => b.block === bs.block)!.frame === final);
+    if (last === undefined || last <= mine[0]) continue;
+    return { sec: parseFloat(o.autoplay) > 0 ? parseFloat(o.autoplay) : 2, loop: o.loop !== undefined, first: mine[0], last };
+  }
+  return undefined;
+}
