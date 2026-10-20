@@ -4,14 +4,14 @@
   "description": "Presentations with code transitions animated by an AST diff (GumTree), written in a small tag markup.",
   "license": "BSD-3-Clause",
   "type": "module",
-  "private": true,
   "bin": {
     "slides": "cli/slideit.mjs",
     "slideit": "cli/slideit.mjs"
   },
   "files": [
     "cli",
-    "src",
+    "lib",
+    "src/tags.json",
     "viewer",
     "docs/llms.txt"
   ],
@@ -26,7 +26,8 @@
     "llms": "node scripts/llms.mjs dist",
     "test": "vitest run",
     "build:viewer": "node scripts/build-viewer.mjs",
-    "prepublishOnly": "npm test && npm run build:viewer"
+    "prepublishOnly": "npm test && npm run build:package",
+    "build:package": "node scripts/build-lib.mjs && node scripts/build-viewer.mjs"
   },
   "dependencies": {
     "postject": "^1.0.0-alpha.6",
@@ -42,5 +43,19 @@
     "vite": "^8.3.4",
     "vitest": "^5.0.5",
     "web-tree-sitter": "^0.22.6"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geraldserafin/md-slides.git"
+  },
+  "homepage": "https://geraldserafin.github.io/md-slides/",
+  "keywords": [
+    "slides",
+    "presentation",
+    "code",
+    "animation",
+    "diff",
+    "tree-sitter",
+    "gumtree"
+  ]
 }

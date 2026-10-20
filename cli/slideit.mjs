@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { stageDecks } from './decks.mjs';
-import { buildViewer, hasViewer, rootDir, viewerDir } from './viewer.mjs';
+import { buildViewer, hasViewer, loadLib, rootDir, sharedDir, viewerDir } from './viewer.mjs';
 import tags from '../src/tags.json' with { type: 'json' };
 
 const TARGETS = ['static', 'single', 'pdf', 'exe'];
@@ -96,6 +96,7 @@ async function compile(dirs, outDir, { single = false, base = './' } = {}, hubDi
   if (hasViewer(variant) && base === './') {
     rmSync(outDir, { recursive: true, force: true });
     cpSync(viewerDir(variant), outDir, { recursive: true });
+    if (existsSync(sharedDir)) cpSync(sharedDir, outDir, { recursive: true });
     stageDecks(dirs, outDir, hubDir);
     return;
   }
@@ -162,7 +163,7 @@ async function cmdDev(o) {
   let reload;
   if (prebuilt) {
     const { devServer } = await import('./devserver.mjs');
-    const s = devServer([join(publicDir), viewerDir({ single: false, mermaid: true })]);
+    const s = devServer([publicDir, viewerDir({ single: false, mermaid: true }), sharedDir]);
     reload = s.reload;
     const url = await s.listen(o.port);
     console.log(`  ${url}`);
@@ -196,7 +197,7 @@ function openBrowser(url) {
 
 async function cmdCheck(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
-  const { check } = await import('../src/check.ts');
+  const { check } = await loadLib('check');
   let n = 0;
   let files = 0;
   for (const d of expandDecks(o.decks))
@@ -209,7 +210,7 @@ async function cmdCheck(o) {
 }
 
 async function cmdSchema() {
-  const { TAGS } = await import('../src/schema.ts');
+  const { TAGS } = await loadLib('schema');
   console.log(JSON.stringify(TAGS, null, 2));
 }
 

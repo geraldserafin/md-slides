@@ -3,7 +3,7 @@
 // From a clone (no viewer/ yet) the CLI falls back to building it on the fly.
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -14,6 +14,8 @@ export const VARIANTS = [
 ];
 export const variantName = ({ single, mermaid }) => `${single ? 'single' : 'app'}${mermaid ? '-mermaid' : ''}`;
 export const viewerDir = (v) => join(rootDir, 'viewer', variantName(v));
+/** files every variant has (the grammars, fonts): kept once, in viewer/shared, so the package does not carry them four times */
+export const sharedDir = join(rootDir, 'viewer', 'shared');
 export const hasViewer = (v) => existsSync(join(viewerDir(v), 'index.html'));
 
 /** build the viewer with vite into `outDir`; `publicDir` (the staged decks) is copied into it. Needs vite (a dev dependency). */
@@ -32,3 +34,6 @@ export async function buildViewer({ outDir, publicDir = false, mermaid, single =
     define: { __USE_MERMAID__: String(mermaid) },
   });
 }
+
+/** a markup module (schema, markup, check): from lib/ (the published package) or src/ (a clone) */
+export const loadLib = (name) => import(pathToFileURL(existsSync(join(rootDir, 'lib', `${name}.js`)) ? join(rootDir, 'lib', `${name}.js`) : join(rootDir, 'src', `${name}.ts`)).href);

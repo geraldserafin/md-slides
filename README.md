@@ -21,7 +21,14 @@ slides build my-talk/ -t pdf            # PDF
 slides build my-talk/ -t exe            # standalone executable
 ```
 
-> Until the package is published, run the CLI from a clone: `node cli/slideit.mjs <command> ...`.
+Other ways to get it:
+
+```sh
+bunx slideit new my-talk                # bun: bunx / bun add -g slideit
+nix run github:geraldserafin/md-slides -- new my-talk   # nix (a nixpkgs package is planned, see nix/README.md)
+```
+
+> Until the package is published, run the CLI from a clone: `node cli/slideit.mjs <command> ...` (it builds the viewer on the fly).
 
 ## Contents
 
