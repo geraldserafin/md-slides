@@ -3,10 +3,12 @@
   stagger: 0.12
 </slide>
 
-## zoom
+<h2>zoom</h2>
 
-Each block scales up while it fades in.
+<p>Each block scales up while it fades in.</p>
 
-- first
-- second
-- third
+<ul>
+  <li>first</li>
+  <li>second</li>
+  <li>third</li>
+</ul>

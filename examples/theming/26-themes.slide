@@ -1,7 +1,9 @@
-## Themes
+<h2>Themes</h2>
 
-Built in: `dark`, `light`, `paper`. Press **t** to cycle, or open `?theme=light`.
-Your own theme is a set of CSS variables in `deck.json` and joins the cycle:
+<p>
+  Built in: <c>dark</c>, <c>light</c>, <c>paper</c>. Press <b>t</b> to cycle, or open <c>?theme=light</c>.
+  Your own theme is a set of CSS variables in <c>deck.json</c> and joins the cycle:
+</p>
 
 <code lang=jsonc>
   "theme": "ocean",

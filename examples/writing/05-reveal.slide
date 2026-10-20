@@ -1,15 +1,19 @@
-## Reveal: add content on a click
+<h2>Reveal: add content on a click</h2>
 
-Wrap anything in `<step>` and it stays hidden until the next click. Nothing moves when it appears:
-the space is reserved.
+<p>
+  Wrap anything in <c><step></c> and it stays hidden until the next click. Nothing moves when it appears:
+  the space is reserved.
+</p>
 
 <step>
-  This text appeared on the first click.
+  <p>This text appeared on the first click.</p>
 </step>
 
 <step>
-  - and a list
-  - on the second
+  <ul>
+    <li>and a list</li>
+    <li>on the second</li>
+  </ul>
 </step>
 
 <step>
@@ -19,14 +23,14 @@ the space is reserved.
 </step>
 
 <step>
-  A list can appear bullet by bullet: write `<text steps>` around it.
+  <p>A list can appear bullet by bullet: write <c><ul steps></c>.</p>
 </step>
 
-<text steps>
-  - first click
-  - second click
-  - third click
-</text>
+<ul steps>
+  <li>first click</li>
+  <li>second click</li>
+  <li>third click</li>
+</ul>
 
 <notes>
   Works for text, lists, images, video, charts and code blocks. Frames of a code block count as clicks too. `<step at=3>` names the click.

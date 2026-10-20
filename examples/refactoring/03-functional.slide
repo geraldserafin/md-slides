@@ -1,8 +1,6 @@
 <section>
   <row>
-    <text>
-      ## Step 3: functional style
-    </text>
+    <h2>Step 3: functional style</h2>
     <code lang=typescript id=calc>
       interface Item {
         price: number;
@@ -26,9 +24,7 @@
 
 <section>
   <row>
-    <text>
-      ## Step 4: Extract Method
-    </text>
+    <h2>Step 4: Extract Method</h2>
     <code lang=typescript id=calc>
       <frame>
         interface Item {
@@ -81,11 +77,9 @@
 <section>
   <row>
     <col>
-      <text>
-        ## Step 5: .reduce and export
-      </text>
+      <h2>Step 5: .reduce and export</h2>
       <step at=1>
-        The end. Thanks!
+        <p>The end. Thanks!</p>
       </step>
     </col>
     <code lang=typescript id=calc>
@@ -116,7 +110,6 @@
           cartItems.reduce((total, item) => total + itemTotal(item), 0);
       </frame>
     </code>
-
   </row>
 </section>
 

@@ -5,11 +5,11 @@
   --accent: #e07a5f
 </slide>
 
-## A different voice
+<h2>A different voice</h2>
 
-`--font-heading`, `--heading-size` and `--text-size` change typography for one slide.
+<p><c>--font-heading</c>, <c>--heading-size</c> and <c>--text-size</c> change typography for one slide.</p>
 
-Serif headings and bigger body text, straight from the `<slide>` block.
+<p>Serif headings and bigger body text, straight from the <c><slide></c> block.</p>
 
 <notes>
   Deck-wide defaults go in "vars" in deck.json.

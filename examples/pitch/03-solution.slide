@@ -1,19 +1,19 @@
-## Meet Fernly
+<h2>Meet Fernly</h2>
 
 <row>
-  <text>
-    ### 1 · Scan
+  <col>
+    <h3>1 · Scan</h3>
 
-    Point the camera at a plant. Fernly names it and reads its mood.
-  </text>
-  <text>
-    ### 2 · Schedule
+    <p>Point the camera at a plant. Fernly names it and reads its mood.</p>
+  </col>
+  <col>
+    <h3>2 · Schedule</h3>
 
-    A watering and light plan that follows your home and the season.
-  </text>
-  <text>
-    ### 3 · Smile
+    <p>A watering and light plan that follows your home and the season.</p>
+  </col>
+  <col>
+    <h3>3 · Smile</h3>
 
-    One calm reminder a day. No guilt, no spam.
-  </text>
+    <p>One calm reminder a day. No guilt, no spam.</p>
+  </col>
 </row>

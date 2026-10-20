@@ -2,13 +2,15 @@
   text-size: 4vmin
 </slide>
 
-## What's inside
+<h2>What's inside</h2>
 
-1. Controls and the slide drawer
-2. The presenter window and tools
-3. PDF, static site, single file, executable
-4. GitHub Pages
-5. Writing decks with an LLM
+<ol>
+  <li>Controls and the slide drawer</li>
+  <li>The presenter window and tools</li>
+  <li>PDF, static site, single file, executable</li>
+  <li>GitHub Pages</li>
+  <li>Writing decks with an LLM</li>
+</ol>
 
 <notes>
   Press o at any time for the slide drawer, h for help. Every slide in this deck is live: it uses the feature it describes.

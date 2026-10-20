@@ -1,6 +1,8 @@
-## Deck-wide defaults
+<h2>Deck-wide defaults</h2>
 
-`defaults` in `deck.json` is a `<slide>` block applied to **every** slide; `columns` is the same for slides that show two columns and `textOnly` for slides without code. A slide's own settings win.
+<p>
+  <c>defaults</c> in <c>deck.json</c> is a <c><slide></c> block applied to <b>every</b> slide; <c>columns</c> is the same for slides that show two columns and <c>textOnly</c> for slides without code. A slide's own settings win.
+</p>
 
 <code lang=jsonc>
   "defaults": {
@@ -17,8 +19,10 @@
   }
 </code>
 
-Together with `themes`, `vars`, `header`/`footer` and `css` it is enough to build a house style once and
-reuse it for every deck of a school or company.
+<p>
+  Together with <c>themes</c>, <c>vars</c>, <c>header</c>/<c>footer</c> and <c>css</c> it is enough to build a house style once and
+  reuse it for every deck of a school or company.
+</p>
 
 <notes>
   Defaults accept any key a slide accepts: layout, theme, background, transition, --variables.

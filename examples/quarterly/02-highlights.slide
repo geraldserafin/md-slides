@@ -2,13 +2,13 @@
   text-size: 4.2vmin
 </slide>
 
-## Highlights
+<h2>Highlights</h2>
 
-<text steps>
-  - Revenue grew **12%** over Q2, our best quarter
-  - Two new regional partners signed in the Nordics
-  - Support response time halved after the new tooling
-</text>
+<ul steps>
+  <li>Revenue grew <b>12%</b> over Q2, our best quarter</li>
+  <li>Two new regional partners signed in the Nordics</li>
+  <li>Support response time halved after the new tooling</li>
+</ul>
 
 <notes>
   Each bullet appears on its own click.

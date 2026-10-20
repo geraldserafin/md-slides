@@ -2,9 +2,11 @@
   theme: light
 </slide>
 
-## Images
+<h2>Images</h2>
 
-The `<img>` tag: `src` is relative to the `.slide` file; `class` and `width` / `height` size and place it.
+<p>
+  The <c><img></c> tag: <c>src</c> is relative to the <c>.slide</c> file; <c>class</c> and <c>width</c> / <c>height</c> size and place it.
+</p>
 
 <img src=diagram.svg alt=diagram class=small />
 

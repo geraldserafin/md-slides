@@ -3,12 +3,10 @@
   text-size: 4.6vmin
 </slide>
 
-## Your turn
+<h2>Your turn</h2>
 
-Mix your dough now. We fold at 10:00.
+<p>Mix your dough now. We fold at 10:00.</p>
 
 <step>
-  <text anim=fade delay=0.2>
-    *Questions? Ask while the flour is still on your hands.*
-  </text>
+  <p anim=fade delay=0.2><i>Questions? Ask while the flour is still on your hands.</i></p>
 </step>

@@ -1,20 +1,24 @@
-## Risks and responses
+<h2>Risks and responses</h2>
 
 <row>
-  <text>
-    ### Risks
+  <col>
+    <h3>Risks</h3>
 
-    - One supplier provides a third of our stock
-    - Currency swings in the East
-    - Hiring is slower than the plan
-  </text>
+    <ul>
+      <li>One supplier provides a third of our stock</li>
+      <li>Currency swings in the East</li>
+      <li>Hiring is slower than the plan</li>
+    </ul>
+  </col>
   <step>
-    <text>
-      ### Responses
+    <col>
+      <h3>Responses</h3>
 
-      - Qualify a second supplier by December
-      - Invoice in local currency, hedge the rest
-      - Two contractors start in November
-    </text>
+      <ul>
+        <li>Qualify a second supplier by December</li>
+        <li>Invoice in local currency, hedge the rest</li>
+        <li>Two contractors start in November</li>
+      </ul>
+    </col>
   </step>
 </row>

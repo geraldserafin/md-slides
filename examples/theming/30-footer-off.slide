@@ -2,10 +2,12 @@
   footer: off
 </slide>
 
-## This slide has no footer
+<h2>This slide has no footer</h2>
 
-`footer: off` in the `<slide>` block hides the bar for one slide, for example in front of a full-screen demo.
-The bar fades out and the built-in slide counter comes back. The space stays reserved, so nothing on the slide moves when a bar appears or disappears.
+<p>
+  <c>footer: off</c> in the <c><slide></c> block hides the bar for one slide, for example in front of a full-screen demo.
+  The bar fades out and the built-in slide counter comes back. The space stays reserved, so nothing on the slide moves when a bar appears or disappears.
+</p>
 
 <notes>
   Same for header: off.

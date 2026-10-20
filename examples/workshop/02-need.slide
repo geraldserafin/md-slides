@@ -1,37 +1,37 @@
-## What you need
+<h2>What you need</h2>
 
 <row>
-  <text>
-    ### Flour
+  <col>
+    <h3>Flour</h3>
 
-    500 g, bread flour if you can.
-  </text>
-  <text>
-    ### Water
+    <p>500 g, bread flour if you can.</p>
+  </col>
+  <col>
+    <h3>Water</h3>
 
-    375 g, lukewarm.
-  </text>
-  <text>
-    ### Starter
+    <p>375 g, lukewarm.</p>
+  </col>
+  <col>
+    <h3>Starter</h3>
 
-    100 g, bubbly and fed 6 hours ago.
-  </text>
+    <p>100 g, bubbly and fed 6 hours ago.</p>
+  </col>
 </row>
 
 <row>
-  <text>
-    ### Salt
+  <col>
+    <h3>Salt</h3>
 
-    10 g.
-  </text>
-  <text>
-    ### A pot
+    <p>10 g.</p>
+  </col>
+  <col>
+    <h3>A pot</h3>
 
-    A heavy lidded pot that goes in the oven.
-  </text>
-  <text>
-    ### Patience
+    <p>A heavy lidded pot that goes in the oven.</p>
+  </col>
+  <col>
+    <h3>Patience</h3>
 
-    Most of the work is waiting.
-  </text>
+    <p>Most of the work is waiting.</p>
+  </col>
 </row>

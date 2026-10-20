@@ -2,10 +2,12 @@
   layout: cover
 </slide>
 
-# Refactoring: a cart total
+<h1>Refactoring: a cart total</h1>
 
-We'll go from an untyped imperative loop to a typed,
-functional version with an extracted function.
+<p>
+  We'll go from an untyped imperative loop to a typed,
+  functional version with an extracted function.
+</p>
 
 <notes>
   Say this is a live demo of a tool that animates code diffs, not a static slide

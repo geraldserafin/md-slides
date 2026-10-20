@@ -3,9 +3,9 @@
   valign: center
 </slide>
 
-## halign: center, valign: center
+<h2>halign: center, valign: center</h2>
 
-The whole block is centered, both ways. Good for a title, a quote or a closing slide.
+<p>The whole block is centered, both ways. Good for a title, a quote or a closing slide.</p>
 
 <notes>
   Only this slide: the deck default stays start/start.

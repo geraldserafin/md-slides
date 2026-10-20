@@ -1,13 +1,9 @@
-## Energy and amplitude
+<h2>Energy and amplitude</h2>
 
-The energy a wave carries grows with the **square of its amplitude**:
+<p>The energy a wave carries grows with the <b>square of its amplitude</b>:</p>
 
-$$
-E \propto A^2
-$$
+<tex>E \propto A^2</tex>
 
 <step>
-  <text anim=zoom>
-    Twice the amplitude, four times the energy.
-  </text>
+  <p anim=zoom>Twice the amplitude, four times the energy.</p>
 </step>

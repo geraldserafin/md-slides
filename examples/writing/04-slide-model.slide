@@ -2,23 +2,28 @@
   text-size: 2.4vmin
 </slide>
 
-## Slides, sections, blocks and clicks
+<h2>Slides, sections, blocks and clicks</h2>
 
-A **slide** is one `.slide` file. In it you write text (Markdown), images, charts and **code blocks** in reading order.
-A `<code>` is one animated block, and its `<frame>`s are the states it passes through, one click each:
+<p>
+  A <b>slide</b> is one <c>.slide</c> file made of tags: text (<c><h2></c>, <c><p></c>, <c><ul></c>...), images, charts and <b>code blocks</b>, in reading order.
+  A <c><code></c> is one animated block, and its <c><frame></c>s are the states it passes through, one click each:
+</p>
 
 <code lang=text>
-  <code lang=ts>
+  <code lang=ts id=fn>
     <frame>let a = 1;</frame>         <- block "fn", state 1
     <frame>let a = 2;</frame>         <- state 2: the tokens morph 1 -> 2
   \</code>
   <code lang=py>print("independent")\</code>   <- another block, no relation
 
-  <section> ... \</section>         <- a slide can swap whole sections under a shared <head>
+  <h1>Title</h1>                     <- outside the sections: stays on screen
+  <section> ... \</section>          <- a slide can swap whole sections under it
 </code>
 
-Blocks with the **same `id`** are one animation, in the same place, even across sections and slides:
-that is how code keeps morphing while the text around it changes.
+<p>
+  Blocks with the <b>same <c>id</c></b> are one animation, in the same place, even across sections and slides:
+  that is how code keeps morphing while the text around it changes.
+</p>
 
 <notes>
   The most important idea of the tool. Take your time here.

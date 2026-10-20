@@ -1,7 +1,8 @@
-## Troubleshooting
+<h2>Troubleshooting</h2>
 
-| It looks like | Probably | Try |
-| --- | --- | --- |
-| Flat loaf | Over-proofed | Shorter rest, colder fridge |
-| Dense crumb | Weak starter | Feed it twice before baking |
-| Pale crust | Oven too cool | Bake hotter, lid on for 20 min |
+<table>
+  <tr><th>It looks like</th><th>Probably</th><th>Try</th></tr>
+  <tr><td>Flat loaf</td><td>Over-proofed</td><td>Shorter rest, colder fridge</td></tr>
+  <tr><td>Dense crumb</td><td>Weak starter</td><td>Feed it twice before baking</td></tr>
+  <tr><td>Pale crust</td><td>Oven too cool</td><td>Bake hotter, lid on for 20 min</td></tr>
+</table>

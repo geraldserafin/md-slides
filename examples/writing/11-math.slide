@@ -1,15 +1,15 @@
-## Math
+<h2>Math</h2>
 
-Inline math sits in the text: Euler's identity is $e^{i\pi} + 1 = 0$, and a $5 price stays a price.
-Display math goes between double dollars and follows the slide's alignment:
+<p>
+  Inline math sits in the text: Euler's identity is <tex>e^{i\pi} + 1 = 0</tex>.
+  A bare <c><tex></c> in a slide is display math and follows the slide's alignment:
+</p>
 
-$$
-\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+<tex>\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
 \qquad
-\sum_{k=1}^{n} k = \frac{n(n+1)}{2}
-$$
+\sum_{k=1}^{n} k = \frac{n(n+1)}{2}</tex>
 
-Math reveals like any other item: put it in a `<step>`.
+<p>Math reveals like any other item: put it in a <c><step></c>.</p>
 
 <notes>
   KaTeX renders math to plain HTML (no scripts at runtime), so it works in every build target and in the PDF.

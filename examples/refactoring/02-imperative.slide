@@ -1,8 +1,6 @@
 <section>
   <row>
-    <text>
-      ## Step 1: types and basics
-    </text>
+    <h2>Step 1: types and basics</h2>
     <code lang=typescript id=calc>
       <frame>
         function calc(items) {
@@ -84,9 +82,7 @@
 
 <section>
   <row>
-    <text>
-      ## Step 2: naming and a guard clause
-    </text>
+    <h2>Step 2: naming and a guard clause</h2>
     <code lang=typescript id=calc>
       <frame>
         interface Item {

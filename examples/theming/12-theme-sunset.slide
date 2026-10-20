@@ -2,10 +2,12 @@
   theme: sunset
 </slide>
 
-## A custom theme: `sunset`
+<h2>A custom theme: <c>sunset</c></h2>
 
-Defined once under `themes` in this deck's `deck.json` and used here with `theme: sunset`.
-It also joins the **t** key cycle.
+<p>
+  Defined once under <c>themes</c> in this deck's <c>deck.json</c> and used here with <c>theme: sunset</c>.
+  It also joins the <b>t</b> key cycle.
+</p>
 
 <code lang=typescript id=g1 class=left>
   <frame>

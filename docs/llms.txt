@@ -1,7 +1,7 @@
 # slides
 
 > Presentations whose code transitions are animated by an AST diff (GumTree). A deck is a folder of `.slide` files
-> (one file = one slide: tags for structure, Markdown for text) plus an optional deck.json. It compiles to a static
+> (one file = one slide, written in tags) plus an optional deck.json. It compiles to a static
 > website, a single HTML file, a PDF or a standalone executable. Everything you need to write a deck is below; the full
 > manual is in llms-full.txt (same site) and in the README: https://github.com/geraldserafin/md-slides
 
@@ -16,19 +16,19 @@
 
 ## The markup
 
-Tags are strict: an unknown tag or a missing closing tag is an error with the line number. Attributes: `key=value`
-(quote values with spaces), a bare word is a flag (`autoplay`), a tag without content ends with `/>`. The content of
-`<code> <text> <chart> <diagram> <notes> <slide>` is raw (no escaping of `<` or `&`; common indentation removed; write
-`\</code>` for a closing tag as text). Loose text between tags is Markdown, same as `<text>` (a tag inside backticks is text).
+Tags only, no Markdown. Tags are strict: an unknown tag, a missing closing tag or text outside a tag is an error with the line
+number. Attributes: `key=value` (quote values with spaces), a bare word is a flag (`autoplay`), a tag without content ends with
+`/>`. The content of `<code> <c> <tex> <chart> <diagram> <notes> <slide>` is raw (no escaping of `<` or `&`; common indentation
+removed; write `\</code>` for a closing tag as text). In text tags write `&lt;` for `<`.
 
 ```text
 <slide>
   layout: cover          # optional settings, one key: value per line
 </slide>
 
-# Title
-
-Text, **bold**, `code`, lists, tables, $x^2$ math.
+<h1>Title</h1>
+<p>Text, <b>bold</b>, <c>code</c>, <tex>x^2</tex> math.</p>
+<ul><li>a list</li><li>of points</li></ul>
 
 <notes>Presenter notes (press p).</notes>
 ```
@@ -36,12 +36,15 @@ Text, **bold**, `code`, lists, tables, $x^2$ math.
 | Tag | Does |
 | --- | --- |
 | `<slide>` | settings of the slide (below) |
-| `<head>` | content that stays while the `<section>`s swap |
-| `<section>` | one of several parts of a slide, played one after another with → (without any, the slide is one section) |
+| `<section>` | one of several parts of a slide, played one after another with → (whatever is outside the sections stays on screen; without any, the slide is one section) |
 | `<row>` | children side by side, equal shares (`size=2` weight, `size=auto`, `size=40%`); also `halign` `valign` |
 | `<col>` | children stacked (use it to put several things into one part of a row) |
 | `<step at=N>` | content appears on the next click (or on click N) |
-| `<text steps>` | Markdown; `steps` shows a list bullet by bullet |
+| `<h1> <h2> <h3> <p> <quote>` | headings, paragraphs, quotes (each one is an item; `size` `halign` `valign` work as on a col) |
+| `<ul> <ol>` + `<li>` | lists; `steps` shows a list bullet by bullet |
+| `<table>` + `<tr> <th> <td>` | a table |
+| inline: `<b> <i> <s> <c> <a href> <kbd> <mark> <sub> <sup> <br />` | `<c>` is code (raw) |
+| `<tex>` | math (KaTeX): inline in a `<p>`, display on its own |
 | `<code lang=ts id=x>` | animated code, with `<frame>`s (below) |
 | `<img src=a.png class="left" width=40% />`, `<video .../>`, `<audio .../>` | media; `autoplay loop muted` |
 | `<chart type=bar title="T">`CSV`</chart>` | chart from CSV (first row names the series); `type=bar|line|pie`, `width` |
@@ -51,11 +54,11 @@ Text, **bold**, `code`, lists, tables, $x^2$ math.
 Rows and columns nest, and the parts always add up to the whole slide:
 
 ```text
-## Title
+<h2>Title</h2>
 <row>
   <col>
-    ### Left
-    Text
+    <h3>Left</h3>
+    <p>Text</p>
   </col>
   <code lang=ts>...</code>      <!-- a row's children are its parts -->
 </row>

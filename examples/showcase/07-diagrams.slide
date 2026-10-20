@@ -1,6 +1,8 @@
-## Diagrams
+<h2>Diagrams</h2>
 
-A `<diagram>` tag draws a diagram with the slide's colors; press **t** to see it follow the theme.
+<p>
+  A <c><diagram></c> tag draws a diagram with the slide's colors; press <b>t</b> to see it follow the theme.
+</p>
 
 <diagram width=100%>
   flowchart LR

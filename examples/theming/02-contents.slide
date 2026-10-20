@@ -2,13 +2,15 @@
   text-size: 4vmin
 </slide>
 
-## What's inside
+<h2>What's inside</h2>
 
-1. Alignment and spacing
-2. Themes, backgrounds and classes
-3. Motion: transitions and speed
-4. Header, footer and deck-wide defaults
-5. deck.json, fonts and CSS
+<ol>
+  <li>Alignment and spacing</li>
+  <li>Themes, backgrounds and classes</li>
+  <li>Motion: transitions and speed</li>
+  <li>Header, footer and deck-wide defaults</li>
+  <li>deck.json, fonts and CSS</li>
+</ol>
 
 <notes>
   Press o at any time for the slide drawer, h for help. Every slide in this deck is live: it uses the feature it describes.

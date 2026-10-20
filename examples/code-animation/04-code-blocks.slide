@@ -1,19 +1,21 @@
-## Several code blocks on one slide
+<h2>Several code blocks on one slide</h2>
 
-Blocks without an `#id` are independent: each is its own animation, side by side or one below the other.
+<p>
+  Blocks without an <c>#id</c> are independent: each is its own animation, side by side or one below the other.
+</p>
 
 <code lang=typescript>
   const a = 1;
 </code>
 
-Text can sit between the blocks.
+<p>Text can sit between the blocks.</p>
 
 <code lang=python>
   b = 2
 </code>
 
 <step>
-  Blocks with the same `#id` are frames of one block. The second click morphs it:
+  <p>Blocks with the same <c>#id</c> are frames of one block. The second click morphs it:</p>
 </step>
 
 <step at=1>

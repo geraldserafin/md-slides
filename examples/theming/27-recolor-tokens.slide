@@ -7,10 +7,12 @@
   --accent: #4ecdc4
 </slide>
 
-## Recolor syntax per slide
+<h2>Recolor syntax per slide</h2>
 
-The `<slide>` block of this slide sets `--tok-keyword`, `--tok-ident`, `--tok-type`,
-`--tok-builtin` and `--tok-punct`. No theme needed.
+<p>
+  The <c><slide></c> block of this slide sets <c>--tok-keyword</c>, <c>--tok-ident</c>, <c>--tok-type</c>,
+  <c>--tok-builtin</c> and <c>--tok-punct</c>. No theme needed.
+</p>
 
 <code lang=typescript id=g1>
   <frame>

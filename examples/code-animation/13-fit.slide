@@ -1,9 +1,10 @@
 <section>
-  ## Fit: code scales to the available space
+  <h2>Fit: code scales to the available space</h2>
 
-  Code is scaled to fit the slide (between half and 1.6x). The **largest** frame of a section decides,
-  so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size.
-
+  <p>
+    Code is scaled to fit the slide (between half and 1.6x). The <b>largest</b> frame of a section decides,
+    so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size.
+  </p>
   <code lang=typescript id=g1>
     <frame>
       const a = 1;
@@ -30,10 +31,9 @@
 </section>
 
 <section>
-  ## `size=` fixes the font size
+  <h2><c>size=</c> fixes the font size</h2>
 
-  Two frames, `size=30`: the code is big and stays big.
-
+  <p>Two frames, <c>size=30</c>: the code is big and stays big.</p>
   <code lang=typescript id=g2 size=30>
     <frame>
       const big = "size=30";
@@ -46,10 +46,9 @@
 </section>
 
 <section>
-  ## `fit=none`
+  <h2><c>fit=none</c></h2>
 
-  No automatic scaling at all (scale 1). Use it with a fixed `size` when you control the content.
-
+  <p>No automatic scaling at all (scale 1). Use it with a fixed <c>size</c> when you control the content.</p>
   <code lang=typescript fit=none>
     const plain = "scale 1, no fit";
   </code>

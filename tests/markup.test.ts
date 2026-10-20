@@ -38,12 +38,3 @@ describe('dedent', () => {
   });
   it('keeps tabs', () => expect(dedent('\ta\n\t\tb')).toBe('a\n\tb'));
 });
-
-describe('code spans', () => {
-  it('a tag inside backticks is text', () => {
-    expect(parseMarkup('use `<step>` and ``<row>`` here')).toEqual(['use `<step>` and ``<row>`` here']);
-  });
-  it('an unmatched backtick is just a character', () => {
-    expect((parseMarkup('a ` b <row>c</row>')[1] as El).tag).toBe('row');
-  });
-});

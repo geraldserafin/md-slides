@@ -5,11 +5,11 @@
   justify: false
 </slide>
 
-# Code that moves
+<h1>Code that moves</h1>
 
-How the diff animates every edit.
+<p>How the diff animates every edit.</p>
 
-Rename, insert, delete, move, wrap, extract · press **→**
+<p>Rename, insert, delete, move, wrap, extract · press <b>→</b></p>
 
 <notes>
   Code animation: part of the slides manual. Source: examples/code-animation.

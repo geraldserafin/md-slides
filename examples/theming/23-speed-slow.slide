@@ -3,10 +3,12 @@
   --fade-dur: 0.9s
 </slide>
 
-## Slow motion
+<h2>Slow motion</h2>
 
-Every animation knob is a CSS variable, so a slide can override it:
-`--move-dur: 1.6s` and `--fade-dur: 0.9s` in the `<slide>` block.
+<p>
+  Every animation knob is a CSS variable, so a slide can override it:
+  <c>--move-dur: 1.6s</c> and <c>--fade-dur: 0.9s</c> in the <c><slide></c> block.
+</p>
 
 <code lang=typescript id=g1>
   <frame>

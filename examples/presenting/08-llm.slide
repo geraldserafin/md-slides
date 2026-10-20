@@ -1,14 +1,16 @@
-## Write decks with an LLM
+<h2>Write decks with an LLM</h2>
 
-The site serves `llms.txt`, a compact syntax reference written for language models, and `llms-full.txt`, this manual in one file.
-Give a model the URL, describe your talk, and ask for a deck folder:
+<p>
+  The site serves <c>llms.txt</c>, a compact syntax reference written for language models, and <c>llms-full.txt</c>, this manual in one file.
+  Give a model the URL, describe your talk, and ask for a deck folder:
+</p>
 
 <code lang=text>
   Read https://geraldserafin.github.io/md-slides/llms.txt,
   then write me a deck about how Git branches work.
 </code>
 
-Review it with `slides dev`, adjust, and ship it.
+<p>Review it with <c>slides dev</c>, adjust, and ship it.</p>
 
 <notes>
   One .slide file per slide plus a deck.json: easy for a model to produce and easy to diff when you edit its draft.

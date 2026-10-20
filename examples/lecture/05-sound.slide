@@ -1,6 +1,6 @@
-## Sound in air
+<h2>Sound in air</h2>
 
-At about $343\ \mathrm{m/s}$, doubling the frequency halves the wavelength:
+<p>At about <tex>343\ \mathrm{m/s}</tex>, doubling the frequency halves the wavelength:</p>
 
 <chart type=line title="Wavelength (m) of sound at frequency f" width=95%>
   frequency, wavelength

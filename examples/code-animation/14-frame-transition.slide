@@ -1,13 +1,17 @@
-## Frame transitions: `transition=`
+<h2>Frame transitions: <c>transition=</c></h2>
 
-By default a frame **morphs** from the previous one. Put `transition=` on a `<frame>` to change
-how *that* frame is entered:
+<p>
+  By default a frame <b>morphs</b> from the previous one. Put <c>transition=</c> on a <c><frame></c> to change
+  how <i>that</i> frame is entered:
+</p>
 
-- `morph` (default) — the diff animation
-- `fade` — no matching: the old code fades out, the new code fades in
-- `none` — a hard cut, no animation at all
+<ul>
+  <li><c>morph</c> (default) — the diff animation</li>
+  <li><c>fade</c> — no matching: the old code fades out, the new code fades in</li>
+  <li><c>none</c> — a hard cut, no animation at all</li>
+</ul>
 
-Frame 1 is the starting point; the next three use a different mode each.
+<p>Frame 1 is the starting point; the next three use a different mode each.</p>
 
 <code lang=typescript id=g1>
   <frame>

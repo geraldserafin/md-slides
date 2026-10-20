@@ -1,10 +1,11 @@
 <section>
-  ## Code options: alignment
+  <h2>Code options: alignment</h2>
 
-  Alignment: `halign=` and `valign=` (`start` | `center` | `end`), or the classes `left` `center` `right` and `top` `middle` `bottom` in `class=`.
-  Without them the code follows its slide: `start`, unless the slide says otherwise.
-  Other options: `id` (the animation), classes `lines` and `panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides).
-
+  <p>
+    Alignment: <c>halign=</c> and <c>valign=</c> (<c>start</c> | <c>center</c> | <c>end</c>), or the classes <c>left</c> <c>center</c> <c>right</c> and <c>top</c> <c>middle</c> <c>bottom</c> in <c>class=</c>.
+    Without them the code follows its slide: <c>start</c>, unless the slide says otherwise.
+    Other options: <c>id</c> (the animation), classes <c>lines</c> and <c>panel</c>, <c>title=</c>, <c>size=</c>, <c>fit=none</c>, <c>focus=</c>, <c>transition=</c> (see the next slides).
+  </p>
   <code lang=typescript id=g1 class=left>
     <frame>
       const where = "left";
@@ -16,11 +17,12 @@
 </section>
 
 <section>
-  ## Code options: size
+  <h2>Code options: size</h2>
 
-  `size=14` fixes the font size in pixels. Without it the code is scaled to fit,
-  using the largest frame of the section, so the size never jumps between frames.
-
+  <p>
+    <c>size=14</c> fixes the font size in pixels. Without it the code is scaled to fit,
+    using the largest frame of the section, so the size never jumps between frames.
+  </p>
   <code lang=typescript id=g2 size=14>
     <frame>
       const small = "size=14";
@@ -32,8 +34,7 @@
 </section>
 
 <section>
-  ## Code options: `class="right top"`
-
+  <h2>Code options: <c>class="right top"</c></h2>
   <code lang=typescript class="right top">
     const corner = "top right";
   </code>

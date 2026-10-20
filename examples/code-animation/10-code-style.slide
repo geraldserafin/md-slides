@@ -1,7 +1,9 @@
-## Code style: panel, line numbers, title
+<h2>Code style: panel, line numbers, title</h2>
 
-Per block: classes `.panel` (a background box), `.lines` (line numbers) and options `start=10`, `title="cart.ts"`,
-`bg=#16213e`, `radius=14`, `pad="1em 1.4em"`. Deck-wide defaults live under `code` in `deck.json`.
+<p>
+  Per block: classes <c>.panel</c> (a background box), <c>.lines</c> (line numbers) and options <c>start=10</c>, <c>title="cart.ts"</c>,
+  <c>bg=#16213e</c>, <c>radius=14</c>, <c>pad="1em 1.4em"</c>. Deck-wide defaults live under <c>code</c> in <c>deck.json</c>.
+</p>
 
 <code lang=typescript class="panel lines" title=cart.ts start=10>
   export function total(items: Item[]): number {

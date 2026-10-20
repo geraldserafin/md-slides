@@ -1,18 +1,19 @@
 <section>
-  ## Morph anything
+  <h2>Morph anything</h2>
 
-  Not only code: an image, a heading or a diagram with the same `id` in the next section glides from where it was.
-  Images with the same file do it on their own. Press → to see it move.
-
+  <p>
+    Not only code: an image, a heading or a diagram with the same <c>id</c> in the next section glides from where it was.
+    Images with the same file do it on their own. Press → to see it move.
+  </p>
   <img src=diagram.svg class=left width=180px />
 </section>
 
 <section>
-  ## Same picture, bigger
-
+  <h2>Same picture, bigger</h2>
   <img src=diagram.svg class=right width=460px />
-
-  The picture above is the same file, so it grew and moved by itself. Give a heading or a paragraph the same `id` and it glides too.
+  <p>
+    The picture above is the same file, so it grew and moved by itself. Give a heading or a paragraph the same <c>id</c> and it glides too.
+  </p>
 </section>
 
 <notes>

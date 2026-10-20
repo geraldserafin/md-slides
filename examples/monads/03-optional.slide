@@ -1,6 +1,5 @@
 <section>
-  ## std::optional: the error is in the type, not in an out-param
-
+  <h2>std::optional: the error is in the type, not in an out-param</h2>
   <code lang=cpp id=flow>
     std::optional<int> parseInt(const std::string& s) {
       try {
@@ -28,8 +27,7 @@
 </section>
 
 <section>
-  ## Refactor: and_then (monadic bind)
-
+  <h2>Refactor: and_then (monadic bind)</h2>
   <code lang=cpp id=flow>
     std::optional<int> parseInt(const std::string& s) {
       try {

@@ -1,26 +1,33 @@
-## Rows and columns
+<h2>Rows and columns</h2>
 
-A slide is one column by default: **title, text, code**, top left. Two tags change that. A `<row>` puts its children **side by side**
-and divides the width between them; a `<col>` **stacks** its children. Nest them for any layout, and the parts always add up to
-the whole slide.
+<p>
+  A slide is one column by default: <b>title, text, code</b>, top left. Two tags change that. A <c><row></c> puts its children <b>side by side</b>
+  and divides the width between them; a <c><col></c> <b>stacks</b> its children. Nest them for any layout, and the parts always add up to
+  the whole slide.
+</p>
 
 <code lang=text>
-  ## Title                     <- loose text on top
+  <h2>Title</h2>                 <- on top
 
-  <row>                        <- below it, side by side:
-    The text on the left
-    <code lang=ts>...\</code>   <- the code on the right
-  \</row>
+  <row>                          <- below it, side by side:
+    <p>The text on the left</p>
+    <code lang=ts>...\</code>     <- the code on the right
+  </row>
 
   <row>
-    <col>a <img src=x.png />\</col>   <- a col: several things in one part
-    b
-    <text size=2>c\</text>          <- twice as wide
-  \</row>
+    <col>                        <- a col: several things in one part
+      <p>a</p>
+      <img src=x.png />
+    </col>
+    <p>b</p>
+    <p size=2>c</p>              <- twice as wide
+  </row>
 </code>
 
-Every direct child of a row is a part (loose text between tags is one part). `size=2` is a weight, `size=auto` the size of the
-content, `size=40%` a length. Add `halign` or `valign` to align inside a part.
+<p>
+  Every direct child of a row is a part; use a <c><col></c> to put several things into one. <c>size=2</c> is a weight, <c>size=auto</c>
+  the size of the content, <c>size=40%</c> a length. Add <c>halign</c> or <c>valign</c> to align inside a part.
+</p>
 
 <notes>
   Slide settings: layout: cover for a title slide. margin: and gap: in the slide block set the space around and between the parts.

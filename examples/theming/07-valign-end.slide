@@ -2,6 +2,6 @@
   valign: end
 </slide>
 
-## valign: end
+<h2>valign: end</h2>
 
-The text sits at the bottom of the slide, above the footer.
+<p>The text sits at the bottom of the slide, above the footer.</p>

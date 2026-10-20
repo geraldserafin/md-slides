@@ -4,9 +4,9 @@
   background: bg.svg
 </slide>
 
-# `cover`
+<h1><c>cover</c></h1>
 
-Large centered heading, ideal with a background image.
+<p>Large centered heading, ideal with a background image.</p>
 
 <notes>
   background: accepts an image path (relative to the .slide file) or any CSS background value.

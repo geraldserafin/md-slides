@@ -7,11 +7,11 @@
   background: radial-gradient(circle at 20% 0%, #4a2a86 0%, #14111f 62%)
 </slide>
 
-# Fernly
+<h1>Fernly</h1>
 
-Plants that never die.
+<p>Plants that never die.</p>
 
-An app that remembers to water them.
+<p>An app that remembers to water them.</p>
 
 <notes>
   Every number in this example deck is made up.

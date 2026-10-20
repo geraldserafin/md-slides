@@ -3,9 +3,9 @@
   background: linear-gradient(135deg, #f4ecd8, #e3cd9c)
 </slide>
 
-# Pythonic refactorings
+<h1>Pythonic refactorings</h1>
 
-Loops to comprehensions, dicts to `Counter`, classes to dataclasses.
+<p>Loops to comprehensions, dicts to <c>Counter</c>, classes to dataclasses.</p>
 
 <notes>
   Light "paper" theme set in deck.json; press t to cycle themes.

@@ -3,9 +3,9 @@
   theme: midnight
 </slide>
 
-## Backgrounds: solid colors
+<h2>Backgrounds: solid colors</h2>
 
-`background: #2d1b4e` — any CSS color. Backgrounds crossfade between slides.
+<p><c>background: #2d1b4e</c> — any CSS color. Backgrounds crossfade between slides.</p>
 
 <notes>
   Next: radial gradient, stripes, an SVG, and an animated feel via crossfades.

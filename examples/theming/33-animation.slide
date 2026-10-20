@@ -1,16 +1,18 @@
-## Animation knobs
+<h2>Animation knobs</h2>
 
-Under `animation` in `deck.json` (seconds):
+<p>Under <c>animation</c> in <c>deck.json</c> (seconds):</p>
 
-- `move` — how long tokens glide to a new position
-- `fade` — fade in / out of tokens
-- `moveDelay` — moved tokens wait for the fade-out to finish
-- `fadeInDelay` — new tokens wait for the move to finish
-- `ease` — any CSS timing function
-- `slideFade` — background and text crossfade between slides
-- `textDrift` — pixels the text drifts while it fades (default 8; `0` for a pure fade); `textStagger` — delay between a slide's blocks (default 0.06)
+<ul>
+  <li><c>move</c> — how long tokens glide to a new position</li>
+  <li><c>fade</c> — fade in / out of tokens</li>
+  <li><c>moveDelay</c> — moved tokens wait for the fade-out to finish</li>
+  <li><c>fadeInDelay</c> — new tokens wait for the move to finish</li>
+  <li><c>ease</c> — any CSS timing function</li>
+  <li><c>slideFade</c> — background and text crossfade between slides</li>
+  <li><c>textDrift</c> — pixels the text drifts while it fades (default 8; <c>0</c> for a pure fade); <c>textStagger</c> — delay between a slide's blocks (default 0.06)</li>
+</ul>
 
-Users who prefer reduced motion get instant transitions automatically.
+<p>Users who prefer reduced motion get instant transitions automatically.</p>
 
 <notes>
   Try move: 1.2 for a slow-motion demo.

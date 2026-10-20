@@ -1,6 +1,5 @@
 <section>
-  ## The classic approach: error codes
-
+  <h2>The classic approach: error codes</h2>
   <code lang=cpp id=flow>
     bool parseInt(const std::string& s, int& out) {
       try {
@@ -35,8 +34,7 @@
 </section>
 
 <section>
-  ## Or: exceptions
-
+  <h2>Or: exceptions</h2>
   <code lang=cpp id=flow>
     int parseInt(const std::string& s) {
       return std::stoi(s);

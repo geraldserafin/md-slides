@@ -1,9 +1,10 @@
 <section>
-  ## A slide with three sections
+  <h2>A slide with three sections</h2>
 
-  This single slide has three sections. Each one is a heading plus code. Moving between sections
-  fades the text, and the code morphs because all its blocks share the id `cart`.
-
+  <p>
+    This single slide has three sections. Each one is a heading plus code. Moving between sections
+    fades the text, and the code morphs because all its blocks share the id <c>cart</c>.
+  </p>
   <code lang=typescript id=cart>
     <frame>
       const cart = [];
@@ -16,10 +17,9 @@
 </section>
 
 <section>
-  ## Section two: more state
+  <h2>Section two: more state</h2>
 
-  Same slide, new heading. The old text fades out, the new one fades in, the code keeps morphing.
-
+  <p>Same slide, new heading. The old text fades out, the new one fades in, the code keeps morphing.</p>
   <code lang=typescript>
     const cart: Item[] = [];
     cart.push({ sku: "A1", qty: 2 });
@@ -28,10 +28,9 @@
 </section>
 
 <section>
-  ## Section three: derive a value
+  <h2>Section three: derive a value</h2>
 
-  The last section computes something from the state above.
-
+  <p>The last section computes something from the state above.</p>
   <code lang=typescript id=cart>
     <frame>
       const cart: Item[] = [];

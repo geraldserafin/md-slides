@@ -1,6 +1,5 @@
 <section>
-  ## Small edits, one at a time
-
+  <h2>Small edits, one at a time</h2>
   <code lang=typescript id=g1>
     <frame>
       if (count > 10) {
@@ -31,8 +30,7 @@
 </section>
 
 <section>
-  ## Reorder arguments
-
+  <h2>Reorder arguments</h2>
   <code lang=typescript id=g2>
     <frame>
       const point = makePoint(y, x, label, color);
@@ -47,8 +45,7 @@
 </section>
 
 <section>
-  ## if / else to a ternary
-
+  <h2>if / else to a ternary</h2>
   <code lang=typescript>
     <frame>
       let label;
@@ -65,8 +62,7 @@
 </section>
 
 <section>
-  ## Loop to method chain
-
+  <h2>Loop to method chain</h2>
   <code lang=typescript>
     <frame>
       const names = [];

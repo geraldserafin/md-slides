@@ -2,16 +2,15 @@
   section-transition: slide-right
 </slide>
 
-<head>
-  # Across languages
+<h1>Across languages</h1>
 
-  The same function in three languages, one section each under this title, sliding in from the left (`section-transition: slide-right`). The diff can't match different
+<p>
+  The same function in three languages, one section each under this title, sliding in from the left (<c>section-transition: slide-right</c>). The diff can't match different
   grammars, so moving from one to the next is a plain cross-fade.
-</head>
+</p>
 
 <section>
-  ## TypeScript
-
+  <h2>TypeScript</h2>
   <code lang=typescript>
     function clamp(x: number, lo: number, hi: number) {
       return Math.min(Math.max(x, lo), hi);
@@ -20,8 +19,7 @@
 </section>
 
 <section>
-  ## Python
-
+  <h2>Python</h2>
   <code lang=python>
     def clamp(x, lo, hi):
         return min(max(x, lo), hi)
@@ -29,8 +27,7 @@
 </section>
 
 <section>
-  ## Go
-
+  <h2>Go</h2>
   <code lang=go>
     func Clamp(x, lo, hi int) int {
     	return min(max(x, lo), hi)

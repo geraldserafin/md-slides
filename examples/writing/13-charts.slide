@@ -1,6 +1,8 @@
-## Charts
+<h2>Charts</h2>
 
-A `<chart>` tag turns a few CSV lines into a chart in the slide's colors: `type=bar` (default), `line` or `pie`.
+<p>
+  A <c><chart></c> tag turns a few CSV lines into a chart in the slide's colors: <c>type=bar</c> (default), <c>line</c> or <c>pie</c>.
+</p>
 
 <chart type=bar title="Build time (s)" width=85%>
   tool, cold, warm

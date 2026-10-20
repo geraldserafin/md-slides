@@ -2,13 +2,15 @@
   text-size: 4vmin
 </slide>
 
-## What's inside
+<h2>What's inside</h2>
 
-1. What the diff does, edit by edit
-2. Code blocks, groups and frames
-3. Languages
-4. Style, focus lines and fit
-5. How the matching works
+<ol>
+  <li>What the diff does, edit by edit</li>
+  <li>Code blocks, groups and frames</li>
+  <li>Languages</li>
+  <li>Style, focus lines and fit</li>
+  <li>How the matching works</li>
+</ol>
 
 <notes>
   Press o at any time for the slide drawer, h for help. Every slide in this deck is live: it uses the feature it describes.

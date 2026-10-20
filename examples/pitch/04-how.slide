@@ -1,4 +1,4 @@
-## How it works
+<h2>How it works</h2>
 
 <diagram width=100%>
   flowchart LR
@@ -9,4 +9,4 @@
     E --> C
 </diagram>
 
-The loop closes itself: every new photo sharpens the plan.
+<p>The loop closes itself: every new photo sharpens the plan.</p>

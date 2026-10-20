@@ -1,19 +1,19 @@
-## Team
+<h2>Team</h2>
 
 <row>
-  <text>
-    ### Mara Linden
+  <col>
+    <h3>Mara Linden</h3>
 
-    CEO. Ten years in consumer apps.
-  </text>
-  <text>
-    ### Teo Brandt
+    <p>CEO. Ten years in consumer apps.</p>
+  </col>
+  <col>
+    <h3>Teo Brandt</h3>
 
-    CTO. Computer vision, formerly at a satellite imaging company.
-  </text>
-  <text>
-    ### Iris Okafor
+    <p>CTO. Computer vision, formerly at a satellite imaging company.</p>
+  </col>
+  <col>
+    <h3>Iris Okafor</h3>
 
-    Botany lead. The reason the advice is right.
-  </text>
+    <p>Botany lead. The reason the advice is right.</p>
+  </col>
 </row>

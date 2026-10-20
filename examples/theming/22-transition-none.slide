@@ -2,9 +2,9 @@
   transition: none
 </slide>
 
-## none
+<h2>none</h2>
 
-No entrance animation for the text: it appears instantly. Code still animates.
+<p>No entrance animation for the text: it appears instantly. Code still animates.</p>
 
 <code lang=typescript id=g1>
   <frame>

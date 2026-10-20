@@ -1,7 +1,9 @@
-## Video and audio
+<h2>Video and audio</h2>
 
-`<video src=… />` and `<audio src=… />` take `autoplay`, `loop`, `muted` and `controls=false`. Audio gives a player bar.
-A video can also be a slide's background: `background: clip.mp4` in the `<slide>` block.
+<p>
+  <c><video src=… /></c> and <c><audio src=… /></c> take <c>autoplay</c>, <c>loop</c>, <c>muted</c> and <c>controls=false</c>. Audio gives a player bar.
+  A video can also be a slide's background: <c>background: clip.mp4</c> in the <c><slide></c> block.
+</p>
 
 <video src=clip.webm autoplay loop muted />
 

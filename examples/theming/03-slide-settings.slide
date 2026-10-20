@@ -1,6 +1,8 @@
-## Slide settings
+<h2>Slide settings</h2>
 
-An optional `<slide>` block at the top of a slide, one `key: value` per line. Every key applies to that slide only.
+<p>
+  An optional <c><slide></c> block at the top of a slide, one <c>key: value</c> per line. Every key applies to that slide only.
+</p>
 
 <code lang=text>
   <slide>

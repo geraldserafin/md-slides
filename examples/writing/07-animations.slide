@@ -1,24 +1,20 @@
-## Animate one element
+<h2>Animate one element</h2>
 
-Give any tag `anim=zoom`, `delay=0.2`, `dur=0.7` and it comes in that way.
-Together with `<step>` it is a build, like PowerPoint's entrance effects:
+<p>
+  Give any tag <c>anim=zoom</c>, <c>delay=0.2</c>, <c>dur=0.7</c> and it comes in that way.
+  Together with <c><step></c> it is a build, like PowerPoint's entrance effects:
+</p>
 
 <step>
-  <text anim=fade>
-    Fades in on the first click, no movement.
-  </text>
+  <p anim=fade>Fades in on the first click, no movement.</p>
 </step>
 
 <step>
-  <text anim=zoom dur=0.7>
-    Zooms in from a smaller size.
-  </text>
+  <p anim=zoom dur=0.7>Zooms in from a smaller size.</p>
 </step>
 
 <step>
-  <text anim=pop out=4>
-    Pops with a little overshoot, then leaves again on the fourth click.
-  </text>
+  <p anim=pop out=4>Pops with a little overshoot, then leaves again on the fourth click.</p>
 </step>
 
 <notes>

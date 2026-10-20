@@ -2,12 +2,14 @@
   halign: end
 </slide>
 
-## halign: end
+<h2>halign: end</h2>
 
-The heading, the text and the media all sit on the right edge.
+<p>The heading, the text and the media all sit on the right edge.</p>
 
-- lists follow
-- and quotes
-- and images
+<ul>
+  <li>lists follow</li>
+  <li>and quotes</li>
+  <li>and images</li>
+</ul>
 
 <img src=diagram.svg alt=diagram height=70px />

@@ -1,11 +1,11 @@
-## Speed, frequency, wavelength
+<h2>Speed, frequency, wavelength</h2>
 
-One equation ties them together:
+<p>One equation ties them together:</p>
 
-$$
-v = f\,\lambda
-$$
+<tex>v = f\,\lambda</tex>
 
 <step>
-  where $v$ is the speed in m/s, $f$ the frequency in hertz and $\lambda$ the wavelength in metres.
+  <p>
+    where <tex>v</tex> is the speed in m/s, <tex>f</tex> the frequency in hertz and <tex>\lambda</tex> the wavelength in metres.
+  </p>
 </step>

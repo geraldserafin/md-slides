@@ -3,10 +3,12 @@
   background: linear-gradient(135deg, #1a1a2e, #47305f)
 </slide>
 
-# Monads for error handling
+<h1>Monads for error handling</h1>
 
-How to get from classic C++ (error codes, exceptions) to a monadic style
-with `std::optional` and `std::expected` (C++23).
+<p>
+  How to get from classic C++ (error codes, exceptions) to a monadic style
+  with <c>std::optional</c> and <c>std::expected</c> (C++23).
+</p>
 
 <notes>
   Show that this is the same animation engine as the previous deck, just another language

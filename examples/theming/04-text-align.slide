@@ -4,18 +4,24 @@
   valign: start
 </slide>
 
-## Alignment: everything starts at the top left
+<h2>Alignment: everything starts at the top left</h2>
 
-Every box starts at the **start**, both ways: text at the left edge, at the top. Say otherwise with
-`halign` and `valign`, each `start`, `center` or `end`. They work in the `<slide>` block of a slide, on a `<row>`, `<col>` or `<text>`,
-in `defaults` in `deck.json`, and on a `<code>` (`halign=center`, `valign=end`).
+<p>
+  Every box starts at the <b>start</b>, both ways: text at the left edge, at the top. Say otherwise with
+  <c>halign</c> and <c>valign</c>, each <c>start</c>, <c>center</c> or <c>end</c>. They work in the <c><slide></c> block of a slide, on a row, a col or a text tag,
+  in <c>defaults</c> in <c>deck.json</c>, and on a <c><code></c> (<c>halign=center</c>, <c>valign=end</c>).
+</p>
 
-`justify: true` stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start.
-This slide uses it. `defaults` in `deck.json` can switch it on for a whole deck.
+<p>
+  <c>justify: true</c> stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start.
+  This slide uses it. <c>defaults</c> in <c>deck.json</c> can switch it on for a whole deck.
+</p>
 
-`deck.json` can set defaults for the two shapes of slide: `columns` for slides with two columns (text next to code), for
-example `{"valign": "center"}`, and `textOnly` for slides without code, for example `{"halign": "center", "valign": "center"}`.
-This deck centers its text-only slides; this one opts out with `halign: start` and `valign: start`.
+<p>
+  <c>deck.json</c> can set defaults for the two shapes of slide: <c>columns</c> for slides with two columns (text next to code), for
+  example <c>{"valign": "center"}</c>, and <c>textOnly</c> for slides without code, for example <c>{"halign": "center", "valign": "center"}</c>.
+  This deck centers its text-only slides; this one opts out with <c>halign: start</c> and <c>valign: start</c>.
+</p>
 
 <notes>
   start/center/end are also accepted as left/right/top/middle/bottom.

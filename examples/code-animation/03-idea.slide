@@ -1,8 +1,10 @@
-## Code that moves
+<h2>Code that moves</h2>
 
-Write the *before* and the *after* as two code blocks.
-`slides` parses both, matches the syntax trees and animates the difference:
-unchanged tokens stay, moved tokens glide, new ones fade in.
+<p>
+  Write the <i>before</i> and the <i>after</i> as two code blocks.
+  <c>slides</c> parses both, matches the syntax trees and animates the difference:
+  unchanged tokens stay, moved tokens glide, new ones fade in.
+</p>
 
 <code lang=typescript id=g1>
   <frame>

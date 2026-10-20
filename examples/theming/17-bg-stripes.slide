@@ -3,7 +3,9 @@
   background: repeating-linear-gradient(45deg, #14142b 0 24px, #191936 24px 48px)
 </slide>
 
-## Backgrounds: patterns
+<h2>Backgrounds: patterns</h2>
 
-Any CSS works, including `repeating-linear-gradient(...)`. Or point `background:` at an image
-file, as the cover slides of these decks do with `bg.svg`.
+<p>
+  Any CSS works, including <c>repeating-linear-gradient(...)</c>. Or point <c>background:</c> at an image
+  file, as the cover slides of these decks do with <c>bg.svg</c>.
+</p>

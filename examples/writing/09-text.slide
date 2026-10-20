@@ -1,16 +1,21 @@
-## Text
+<h2>Text</h2>
 
-Everything Markdown gives you works: **bold**, *italic*, `inline code`, [links](https://commonmark.org/),
-lists, quotes and headings `#` to `###`.
+<p>
+  Text is made of a few tags: <c><h1></c> to <c><h3></c> for headings, <c><p></c> for paragraphs, with <b>bold</b>, <i>italic</i>,
+  <c>inline code</c> and <a href="https://example.com">links</a> inside.
+</p>
 
-1. numbered lists
-2. nested markup in `list items`
+<ol>
+  <li>numbered lists with <c><ol></c></li>
+  <li>bullets with <c><ul></c>, nested lists inside an <c><li></c></li>
+</ol>
 
-> A quote gets an accent bar.
+<quote>A <c><quote></c> gets an accent bar.</quote>
 
-Text before a code block belongs to its section and fades with it.
-A section **without** code is centered on the screen, like this one.
+<p>
+  A slide without code is centered on the screen, like this one: the deck says so with <c>textOnly</c> in <c>deck.json</c>.
+</p>
 
 <notes>
-  A `<notes>` tag holds the speaker notes. They never show on the slide. Open the presenter window with p.
+  The notes tag holds the speaker notes. They never show on the slide. Open the presenter window with p.
 </notes>

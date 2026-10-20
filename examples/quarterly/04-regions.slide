@@ -1,4 +1,4 @@
-## By region
+<h2>By region</h2>
 
 <chart type=bar title="Q3 revenue by region ($M)" width=95%>
   region, revenue
@@ -9,5 +9,5 @@
 </chart>
 
 <step>
-  North carries the quarter; West is the opportunity.
+  <p>North carries the quarter; West is the opportunity.</p>
 </step>

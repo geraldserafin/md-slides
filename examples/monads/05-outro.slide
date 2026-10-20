@@ -1,6 +1,5 @@
 <section>
-  ## Call site
-
+  <h2>Call site</h2>
   <code lang=cpp id=flow>
     int main() {
       auto result = process("42", 2);
@@ -17,13 +16,15 @@
 </section>
 
 <section>
-  ## Summary
+  <h2>Summary</h2>
 
-  `and_then` is `>>=` / `flatMap`. `transform` is `fmap`/`map`. `std::expected`
-  is `Either`, `std::optional` is `Maybe`. C++23 finally has what Haskell
-  has had all along -- just under different names.
+  <p>
+    <c>and_then</c> is <c>>>=</c> / <c>flatMap</c>. <c>transform</c> is <c>fmap</c>/<c>map</c>. <c>std::expected</c>
+    is <c>Either</c>, <c>std::optional</c> is <c>Maybe</c>. C++23 finally has what Haskell
+    has had all along -- just under different names.
+  </p>
 
-  Thanks!
+  <p>Thanks!</p>
 </section>
 
 <notes>

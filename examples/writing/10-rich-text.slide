@@ -1,20 +1,23 @@
-<text>
-  ## Rich text
+<h2>Rich text</h2>
 
-  Text goes well beyond bold and italics: ~~strikethrough~~, <kbd>Ctrl</kbd> + <kbd>K</kbd>,
-  <mark>highlighted</mark> text, and raw <span style="color: var(--accent)">inline HTML</span>.
+<p>
+  Text goes beyond bold and italics: <s>strikethrough</s>, <kbd>Ctrl</kbd> + <kbd>K</kbd>,
+  <mark>highlighted</mark> text, <sub>sub</sub>script and <sup>super</sup>script.
+</p>
 
-  | Key | Action | Where |
-  | --- | --- | --- |
-  | <kbd>→</kbd> | next step | everywhere |
-  | <kbd>o</kbd> | overview | audience window |
-  | <kbd>p</kbd> | presenter window | audience window |
+<table>
+  <tr><th>Key</th><th>Action</th><th>Where</th></tr>
+  <tr><td><kbd>→</kbd></td><td>next step</td><td>everywhere</td></tr>
+  <tr><td><kbd>o</kbd></td><td>overview</td><td>audience window</td></tr>
+  <tr><td><kbd>p</kbd></td><td>presenter window</td><td>audience window</td></tr>
+</table>
 
-  - [x] tables
-  - [x] task lists
-  - [ ] your idea here
-</text>
+<ul>
+  <li>☑ tables</li>
+  <li>☑ lists</li>
+  <li>☐ your idea here</li>
+</ul>
 
 <notes>
-  GFM tables, task lists, strikethrough, <kbd>, <mark> and raw HTML all pass through marked.
+  Tables are a table with tr, th and td tags. The inline tags are b, i, c, s, a, kbd, mark, sub, sup and tex.
 </notes>

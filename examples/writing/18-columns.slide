@@ -1,9 +1,11 @@
 <row>
-  <text>
-    ## Two columns: `<row>`
+  <col>
+    <h2>Two columns: <c><row></c></h2>
 
-    Text on the left, code on the right. The code is centered vertically in its column; the text starts at the top.
-  </text>
+    <p>
+      Text on the left, code on the right. The code is centered vertically in its column; the text starts at the top.
+    </p>
+  </col>
   <code lang=go id=g1>
     <frame>
       func Sum(xs []int) int {

@@ -1,4 +1,4 @@
-## Build targets
+<h2>Build targets</h2>
 
 <code lang=bash>
   slides dev   my-talk/                       # dev server, live reload

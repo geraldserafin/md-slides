@@ -1,6 +1,6 @@
-## deck.json
+<h2>deck.json</h2>
 
-Optional, next to the slides.
+<p>Optional, next to the slides.</p>
 
 <code lang=jsonc>
   {

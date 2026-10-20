@@ -6,14 +6,16 @@
   accent: #ffb454
 </slide>
 
-## Sizes and spacing
+<h2>Sizes and spacing</h2>
 
-Slide settings: shorthands for the most common knobs:
+<p>Slide settings: shorthands for the most common knobs:</p>
 
-- `heading-size: 72` and `text-size: 28` (plain numbers are pixels)
-- `spacing: 26` — the gap between text blocks
-- `padding: 8vmin 12vmin` — the slide's inner margin
-- `accent: #ffb454`, `heading-color`, `text-color` — colors for this slide
+<ul>
+  <li><c>heading-size: 72</c> and <c>text-size: 28</c> (plain numbers are pixels)</li>
+  <li><c>spacing: 26</c> — the gap between text blocks</li>
+  <li><c>padding: 8vmin 12vmin</c> — the slide's inner margin</li>
+  <li><c>accent: #ffb454</c>, <c>heading-color</c>, <c>text-color</c> — colors for this slide</li>
+</ul>
 
 <notes>
   Any CSS length works: 4vmin, 2rem, 30px. The same keys work in "defaults" in deck.json.

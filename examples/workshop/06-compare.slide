@@ -1,6 +1,6 @@
-## Compare doughs
+<h2>Compare doughs</h2>
 
-Wetter dough, more open crumb, harder to handle:
+<p>Wetter dough, more open crumb, harder to handle:</p>
 
 <chart type=bar title="Typical hydration (%)" width=85%>
   dough, hydration

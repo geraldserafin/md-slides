@@ -3,12 +3,14 @@
   stagger: 0.18
 </slide>
 
-## Text transitions
+<h2>Text transitions</h2>
 
-`transition:` sets how a slide's text enters: `fade` (default), `slide`, `slide-right`, `slide-left`, `zoom`, `none`.
-`stagger:` delays each block after the previous one.
+<p>
+  <c>transition:</c> sets how a slide's text enters: <c>fade</c> (default), <c>slide</c>, <c>slide-right</c>, <c>slide-left</c>, <c>zoom</c>, <c>none</c>.
+  <c>stagger:</c> delays each block after the previous one.
+</p>
 
-This slide: `slide` with a stagger of `0.18`.
+<p>This slide: <c>slide</c> with a stagger of <c>0.18</c>.</p>
 
 <notes>
   Defaults for the whole deck: "animation": { "textTransition": ..., "textStagger": ... } in deck.json.

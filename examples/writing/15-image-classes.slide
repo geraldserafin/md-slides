@@ -1,6 +1,8 @@
-## Image sizes and alignment
+<h2>Image sizes and alignment</h2>
 
-Classes: `.small`, default, `.large`; `.left`, `.right`. Or set `width=` / `height=` yourself.
+<p>
+  Classes: <c>.small</c>, default, <c>.large</c>; <c>.left</c>, <c>.right</c>. Or set <c>width=</c> / <c>height=</c> yourself.
+</p>
 
 <img src=diagram.svg alt=small class=small height=70px />
 

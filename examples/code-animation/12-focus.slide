@@ -1,7 +1,9 @@
-## Focus lines
+<h2>Focus lines</h2>
 
-`focus=2-4` keeps those lines bright and dims the rest. Set it **per frame** — here the code
-never changes, only the focus does, so the lines fade smoothly.
+<p>
+  <c>focus=2-4</c> keeps those lines bright and dims the rest. Set it <b>per frame</b> — here the code
+  never changes, only the focus does, so the lines fade smoothly.
+</p>
 
 <code lang=typescript id=g1>
   <frame focus=1>

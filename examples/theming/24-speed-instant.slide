@@ -3,10 +3,12 @@
   --fade-dur: 0s
 </slide>
 
-## Instant
+<h2>Instant</h2>
 
-`--move-dur: 0s` and `--fade-dur: 0s`: frames switch with no animation at all.
-(Visitors who ask the OS for reduced motion get this automatically.)
+<p>
+  <c>--move-dur: 0s</c> and <c>--fade-dur: 0s</c>: frames switch with no animation at all.
+  (Visitors who ask the OS for reduced motion get this automatically.)
+</p>
 
 <code lang=typescript id=g1>
   <frame>

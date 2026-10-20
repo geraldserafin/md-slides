@@ -1,4 +1,4 @@
-## Traction
+<h2>Traction</h2>
 
 <chart type=bar title="Weekly active households (thousands)" width=95%>
   month, households
@@ -11,7 +11,5 @@
 </chart>
 
 <step>
-  <text anim=rise>
-    Doubling about every two months, without paid acquisition.
-  </text>
+  <p anim=rise>Doubling about every two months, without paid acquisition.</p>
 </step>

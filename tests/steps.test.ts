@@ -40,7 +40,7 @@ describe('steps of code groups', () => {
   });
 
   it('a <step> reveals a block on the next step', async () => {
-    const steps = await buildSteps(deckOf('text\n<step><code lang=ts>let a = 1;</code></step>'));
+    const steps = await buildSteps(deckOf('<p>text</p>\n<step><code lang=ts>let a = 1;</code></step>'));
     expect(steps.map((s) => s.blocks.length)).toEqual([0, 1]);
   });
 
@@ -58,7 +58,7 @@ describe('steps of code groups', () => {
 
 describe('hidden slides', () => {
   it('are left out of the steps', async () => {
-    const d = deckOf('# A', '# B', '# C');
+    const d = deckOf('<h1>A</h1>', '<h1>B</h1>', '<h1>C</h1>');
     d.slides[1].meta = { hidden: 'true' };
     const steps = await buildSteps(d);
     expect(steps.map((s) => s.slide)).toEqual([0, 2]);

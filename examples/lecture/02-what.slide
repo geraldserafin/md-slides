@@ -3,12 +3,10 @@
   text-size: 4.6vmin
 </slide>
 
-## What is a wave?
+<h2>What is a wave?</h2>
 
-A wave carries **energy** from one place to another without carrying the matter along.
+<p>A wave carries <b>energy</b> from one place to another without carrying the matter along.</p>
 
 <step>
-  <text anim=rise>
-    A stadium wave travels around the stadium. Nobody leaves their seat.
-  </text>
+  <p anim=rise>A stadium wave travels around the stadium. Nobody leaves their seat.</p>
 </step>

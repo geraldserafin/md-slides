@@ -2,10 +2,12 @@
   theme: terminal
 </slide>
 
-## A custom theme: `terminal`
+<h2>A custom theme: <c>terminal</c></h2>
 
-Green on black, with token colors to match. Change a theme and the code
-tokens recolor, because they are just CSS variables.
+<p>
+  Green on black, with token colors to match. Change a theme and the code
+  tokens recolor, because they are just CSS variables.
+</p>
 
 <code lang=bash id=g1>
   <frame>

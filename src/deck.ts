@@ -1,9 +1,8 @@
 // .slide markup -> presentation model. One .slide file = one slide (see markup.ts for the syntax). A slide is a list of sections
-// (`<section>`; without one, a single section); a section is a tree of `<row>`s (parts side by side) and `<col>`s (parts
-// stacked) whose leaves are text (Markdown), animated code blocks, images, charts... in reading order. `<step>` makes what is
-// inside appear on the next click. A `<code>` is one animated block, its `<frame>`s are the states it passes through;
-// blocks with the same `id` are one animation across sections and slides.
-import { marked, type Token, type Tokens } from 'marked';
+// (`<section>`; without one, a single section; whatever sits outside the sections stays on screen while they swap); a section is
+// a tree of `<row>`s (parts side by side) and `<col>`s (parts stacked) whose leaves are text (`<h1>`, `<p>`, `<ul>`...), animated
+// code blocks, images, charts... in reading order. `<step>` makes what is inside appear on the next click. A `<code>` is one
+// animated block, its `<frame>`s are the states it passes through; blocks with the same `id` are one animation across sections and slides.
 import katex from 'katex';
 import { renderChart } from './chart';
 import { fileUrl } from './files';
@@ -141,30 +140,7 @@ export interface Deck {
   slides: Slide[];
 }
 
-// math: `$x^2$` inline, `$$ ... $$` as a block (KaTeX). A dollar sign next to a space or a digit stays a dollar sign ("$5 and $6").
 const tex = (src: string, display: boolean) => katex.renderToString(src, { displayMode: display, throwOnError: false, output: 'html' });
-marked.use({
-  extensions: [
-    {
-      name: 'blockMath', level: 'block',
-      start: (s: string) => s.indexOf('$$'),
-      tokenizer(s: string) {
-        const m = /^\$\$[ \t]*\n?([\s\S]+?)\n?[ \t]*\$\$[ \t]*(?:\n|$)/.exec(s);
-        return m ? { type: 'blockMath', raw: m[0], text: m[1].trim() } : undefined;
-      },
-      renderer: (t) => `<div class="math-block">${tex(String((t as unknown as { text: string }).text), true)}</div>\n`,
-    },
-    {
-      name: 'inlineMath', level: 'inline',
-      start: (s: string) => s.indexOf('$'),
-      tokenizer(s: string) {
-        const m = /^\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<![\s\\])\$(?!\d)/.exec(s);
-        return m ? { type: 'inlineMath', raw: m[0], text: m[1] } : undefined;
-      },
-      renderer: (t) => tex(String((t as unknown as { text: string }).text), false),
-    },
-  ],
-});
 
 /** `hidden: true` in the slide settings: the slide is left out of the presentation (and the PDF) but stays in the files */
 export const isHidden = (s: Slide) => /^(true|yes|on|1)$/i.test(s.meta.hidden ?? '');
@@ -185,6 +161,16 @@ const LAYOUT = ['size', 'halign', 'valign', 'justify', 'class'];
 const NOT_OPTS = new Set(['src', 'alt', 'class', 'at', 'id', ...FX]);
 
 const without = (a: Record<string, string>, ...keys: string[]) => Object.fromEntries(Object.entries(a).filter(([k]) => !keys.includes(k)));
+/** text tags -> the HTML they become (block level ones are items of their own) */
+const NAMES: Record<string, string> = { b: 'strong', i: 'em', c: 'code', s: 'del', quote: 'blockquote' };
+const BLOCK_TAGS: Record<string, string> = { h1: 'h1', h2: 'h2', h3: 'h3', p: 'paragraph', ul: 'list', ol: 'list', quote: 'blockquote', table: 'table' };
+const INLINE_TAGS = new Set(['li', 'thead', 'tbody', 'tr', 'th', 'td', 'b', 'i', 'c', 's', 'a', 'kbd', 'mark', 'sub', 'sup', 'br', 'tex']);
+/** attributes that go through to the HTML of a text tag */
+const HTML_ATTRS = ['class', 'href', 'title', 'start', 'colspan', 'rowspan'];
+const TEXT_ONLY = new Set(['steps', 'size', 'halign', 'valign']);
+/** text of a tag as HTML text: `<` and a bare `&` are escaped, entities (`&lt;`, `&#39;`) stay */
+const escText = (s: string) => s.replace(/&(?!#?\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escRaw = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const words = (s: string | undefined) => (s ?? '').split(/\s+/).filter(Boolean);
 
 /** the `<slide>` block: `key: value` lines */
@@ -258,46 +244,42 @@ export function parseSlide(src: string, url: string): Slide {
     opts: Object.fromEntries(Object.entries(attrs).filter(([k]) => !NOT_OPTS.has(k))),
   });
 
-  /** Markdown -> one leaf per block (heading, paragraph, list...) */
-  const textLeaves = (md: string, attrs: Record<string, string>, st: State, line: number): Layout[] => {
-    const tokens = marked.lexer(md);
-    marked.walkTokens(tokens, (t) => {
-      if (t.type === 'image') (t as Tokens.Image).href = resolve((t as Tokens.Image).href, url);
-      if (t.type === 'link') {
-        const l = t as Tokens.Link;
-        if (!/^(#|[a-z]+:)/i.test(l.href)) l.href = resolve(l.href, url);
-      }
-    });
-    const out: Layout[] = [];
-    let first = true;
-    for (const tok of tokens as Token[]) {
-      if (tok.type === 'space') continue;
-      // the first block takes the id (a morph target), the others get it with a number
-      const own = { ...attrs, ...(attrs.id !== undefined && !first ? { id: `${attrs.id}~${out.length}` } : {}) };
-      first = false;
-      if (tok.type === 'heading' && !title) title = (tok as Tokens.Heading).text;
-      if (tok.type === 'list' && attrs.steps !== undefined) {
-        // bullet by bullet, one click each
-        const list = tok as Tokens.List;
-        const base = st.stage;
-        list.items.forEach((li, i) => {
-          const one = { ...list, items: [li], start: list.ordered ? (Number(list.start) || 1) + i : list.start } as Tokens.List;
-          const saved = st.stage;
-          st.stage = base + 1 + i;
-          out.push(leaf(st, { kind: 'html', html: marked.parser([one] as Token[]), tag: 'list' }, without(own, 'id', 'at')));
-          st.stage = saved;
-        });
-        continue;
-      }
-      if (tok.type === 'code') {
-        out.push(leaf(st, { kind: 'code', text: (tok as Tokens.Code).text, lang: (tok as Tokens.Code).lang ?? '' }, own));
-        continue;
-      }
-      const isHeading = tok.type === 'heading';
-      out.push(leaf(st, { kind: 'html', html: marked.parser([tok] as Token[]), tag: isHeading ? `h${(tok as Tokens.Heading).depth}` : tok.type }, own));
+  /** the HTML of a text tag (and what is inside it) */
+  const html = (n: El | string): string => {
+    if (typeof n === 'string') return escText(n);
+    if (n.tag === 'tex') return tex(dedent(rawText(n)), false);
+    if (n.tag === 'c') return `<code>${escRaw(rawText(n))}</code>`;
+    if (!INLINE_TAGS.has(n.tag) && !BLOCK_TAGS[n.tag]) throw new MarkupError(`<${n.tag}> is not allowed inside text`, n.line);
+    const name = NAMES[n.tag] ?? n.tag;
+    if (name === 'br') return '<br>';
+    const attrs = HTML_ATTRS.filter((k) => n.attrs[k] !== undefined).map((k) => {
+      const v = k === 'href' && !/^(#|[a-z]+:)/i.test(n.attrs[k]) ? resolve(n.attrs[k], url) : n.attrs[k];
+      return ` ${k}="${v.replace(/"/g, '&quot;')}"`;
+    }).join('');
+    return `<${name}${attrs}>${n.children.map(html).join('')}</${name}>`;
+  };
+  const textOf = (n: El | string): string => (typeof n === 'string' ? n.trim() : n.tag === 'tex' || n.tag === 'c' ? rawText(n).trim() : n.children.map(textOf).join(' '));
+
+  /** a block of text (<h1>..<h3>, <p>, <ul>, <ol>, <quote>, <table>, display <tex>): one leaf, or one per bullet with `steps` */
+  const textLeaves = (el: El, st: State): Layout[] => {
+    if (el.tag === 'tex') return [leaf(st, { kind: 'html', html: `<div class="math-block">${tex(dedent(rawText(el)), true)}</div>`, tag: 'math' }, el.attrs)];
+    const attrs = Object.fromEntries(Object.entries(el.attrs).filter(([k]) => !TEXT_ONLY.has(k)));
+    if (/^h[1-3]$/.test(el.tag) && !title) title = textOf(el);
+    if ((el.tag === 'ul' || el.tag === 'ol') && el.attrs.steps !== undefined) {
+      // bullet by bullet, one click each
+      const base = st.stage;
+      const lis = el.children.filter((c): c is El => typeof c !== 'string');
+      const start = el.tag === 'ol' ? Number(el.attrs.start) || 1 : 1;
+      return lis.map((li, i) => {
+        const saved = st.stage;
+        st.stage = base + 1 + i;
+        const one: El = { ...el, attrs: { ...(el.tag === 'ol' ? { start: String(start + i) } : {}), ...(el.attrs.class ? { class: el.attrs.class } : {}) }, children: [li] };
+        const l = leaf(st, { kind: 'html', html: html(one), tag: 'list' }, without(attrs, 'id', 'at', 'start', 'class'));
+        st.stage = saved;
+        return l;
+      });
     }
-    void line;
-    return out;
+    return [leaf(st, { kind: 'html', html: html(el), tag: BLOCK_TAGS[el.tag] }, attrs)];
   };
 
   const codeLeaf = (el: El, st: State): Layout => {
@@ -324,21 +306,16 @@ export function parseSlide(src: string, url: string): Slide {
   /** the content of a container, as groups: every content tag (or run of loose text) is one group, i.e. one part of a row */
   const walk = (children: (El | string)[], st: State): Layout[][] => {
     const groups: Layout[][] = [];
-    let run = '';
-    let runLine = 0;
-    const flush = () => {
-      if (run.trim()) groups.push(textLeaves(dedent(run), {}, st, runLine));
-      run = '';
-    };
     for (const n of children) {
-      if (typeof n === 'string') { run += n; continue; }
-      flush();
-      runLine = n.line;
+      if (typeof n === 'string') {
+        if (n.trim()) throw new MarkupError(`text outside a tag: ${JSON.stringify(n.trim().slice(0, 30))} (put it in a <p>)`, 0);
+        continue;
+      }
       const a = n.attrs;
       switch (n.tag) {
-        case 'text': {
-          // size / halign / valign on a <text> belong to its part of the layout
-          const g = textLeaves(dedent(rawText(n)), a, st, n.line);
+        case 'h1': case 'h2': case 'h3': case 'p': case 'ul': case 'ol': case 'quote': case 'table': case 'tex': {
+          // size / halign / valign on a text tag belong to its part of the layout
+          const g = textLeaves(n, st);
           groups.push(a.size || a.halign || a.valign ? [{ kind: 'col', opts: layoutOpts(a), children: g }] : g);
           break;
         }
@@ -379,7 +356,6 @@ export function parseSlide(src: string, url: string): Slide {
         default: throw new MarkupError(`<${n.tag}> is not a tag of the slide markup here`, n.line);
       }
     }
-    flush();
     return groups;
   };
   /** several things in one part of a row = a col */
@@ -392,21 +368,17 @@ export function parseSlide(src: string, url: string): Slide {
   };
 
   const loose: (El | string)[] = [];
-  let explicit = false;
+  const parts: El[] = [];
   for (const n of nodes) {
     if (typeof n !== 'string' && n.tag === 'slide') meta = { ...meta, ...parseSettings(rawText(n)) };
-    else if (typeof n !== 'string' && n.tag === 'head') {
-      const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: true };
-      for (const l of walk(n.children, st).flat()) head.push(...leavesOf(l).map((i) => ({ ...i, at: 0 })));
-    } else if (typeof n !== 'string' && n.tag === 'section') {
-      explicit = true;
-      sections.push(section(n.children));
-    } else loose.push(n);
+    else if (typeof n !== 'string' && n.tag === 'section') parts.push(n);
+    else loose.push(n);
   }
-  if (explicit) {
-    const stray = loose.find((n) => (typeof n === 'string' ? n.trim() : n.tag !== 'notes'));
-    if (stray) throw new MarkupError('content outside a <section> in a slide that has sections', typeof stray === 'string' ? 1 : stray.line);
-    for (const n of loose) if (typeof n !== 'string') notes.push(dedent(rawText(n)));
+  if (parts.length) {
+    // what sits outside the sections stays on screen while they swap
+    const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: true };
+    for (const l of walk(loose, st).flat()) head.push(...leavesOf(l).map((i) => ({ ...i, at: 0 })));
+    for (const p of parts) sections.push(section(p.children));
   } else {
     const s = section(loose);
     if (sectionItems(s).length) sections.push(s);

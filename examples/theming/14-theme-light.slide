@@ -2,9 +2,9 @@
   theme: light
 </slide>
 
-## Built-in `light`
+<h2>Built-in <c>light</c></h2>
 
-Crisp on projectors. Per-slide, so you can mix themes inside one deck.
+<p>Crisp on projectors. Per-slide, so you can mix themes inside one deck.</p>
 
 <code lang=python id=g1>
   <frame>

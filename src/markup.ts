@@ -1,7 +1,7 @@
 // The tag syntax of .slide files: <tag key=value flag key="a b"> ... </tag>, <tag ... /> for tags without content.
-// The content of RAW tags (code, text, chart, diagram, notes, slide) is not parsed: it runs to the closing tag, so
+// The content of RAW tags (code, c, tex, chart, diagram, notes, slide) is not parsed: it runs to the closing tag, so
 // `<` and `&` need no escaping there. `\</code>` writes a closing tag as text inside a raw tag.
-// Anything outside a tag is returned as a string. Inside a Markdown code span (backticks) a tag is just text.
+// Anything outside a tag is returned as a string.
 
 export interface El {
   tag: string;
@@ -16,7 +16,7 @@ export class MarkupError extends Error {
   }
 }
 
-export const RAW = new Set(['slide', 'text', 'code', 'chart', 'diagram', 'notes']);
+export const RAW = new Set(['slide', 'code', 'chart', 'diagram', 'notes', 'tex', 'c']);
 
 const OPEN = /^<([a-z][a-z0-9-]*)(?=[\s/>])/;
 const CLOSE = /^<\/([a-z][a-z0-9-]*)\s*>/;
@@ -33,13 +33,6 @@ export function parseMarkup(src: string): (El | string)[] {
   };
 
   while (i < src.length) {
-    if (src[i] === '`') {
-      // a Markdown code span: tags inside it are text
-      const run = /^`+/.exec(src.slice(i))![0];
-      const end = src.indexOf(run, i + run.length);
-      i = end < 0 ? i + run.length : end + run.length;
-      continue;
-    }
     if (src[i] !== '<') { i++; continue; }
     const rest = src.slice(i, i + 80);
     const close = CLOSE.exec(rest);

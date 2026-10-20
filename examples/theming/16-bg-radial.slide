@@ -3,9 +3,9 @@
   background: radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)
 </slide>
 
-## Backgrounds: gradients
+<h2>Backgrounds: gradients</h2>
 
-`background: radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)`
+<p><c>background: radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)</c></p>
 
 <code lang=typescript id=g1>
   <frame>

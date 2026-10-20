@@ -1,19 +1,18 @@
-## A grid is rows in a col
+<h2>A grid is rows in a col</h2>
 
-Put `<row>`s one under the other and every row is a line of equal parts. `size=` makes a part wider,
-`halign` and `valign` align inside it.
+<p>
+  Put <c><row></c>s one under the other and every row is a line of equal parts. <c>size=</c> makes a part wider,
+  <c>halign</c> and <c>valign</c> align inside it.
+</p>
 
 <row>
-  <text>
-    ### One
-
-    Plain text.
-  </text>
   <col>
-    <text>
-      ### Two
-    </text>
+    <h3>One</h3>
 
+    <p>Plain text.</p>
+  </col>
+  <col>
+    <h3>Two</h3>
     <code lang=python>
       <frame>
         x = 1
@@ -23,26 +22,22 @@ Put `<row>`s one under the other and every row is a line of equal parts. `size=`
       </frame>
     </code>
   </col>
-  <text>
-    ### Three
+  <col>
+    <h3>Three</h3>
 
-    Nothing special.
-  </text>
+    <p>Nothing special.</p>
+  </col>
 </row>
 
 <row>
   <col halign=end>
-    <text>
-      ### Four
+    <h3>Four</h3>
 
-      Right-aligned with `halign=end`.
-    </text>
+    <p>Right-aligned with <c>halign=end</c>.</p>
   </col>
   <col size=2>
-    <text>
-      ### Five (`size=2`)
+    <h3>Five (<c>size=2</c>)</h3>
 
-      This part is twice as wide as a normal one.
-    </text>
+    <p>This part is twice as wide as a normal one.</p>
   </col>
 </row>

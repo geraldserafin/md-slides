@@ -3,12 +3,14 @@
   valign: center
 </slide>
 
-## class: spotlight
+<h2>class: spotlight</h2>
 
-This slide adds the CSS class `spotlight`, defined in the deck's own `deck.css`
-(loaded via `"css": "deck.css"` in `deck.json`).
+<p>
+  This slide adds the CSS class <c>spotlight</c>, defined in the deck's own <c>deck.css</c>
+  (loaded via <c>"css": "deck.css"</c> in <c>deck.json</c>).
+</p>
 
-`valign: center` centers this slide's content vertically.
+<p><c>valign: center</c> centers this slide's content vertically.</p>
 
 <notes>
   deck.css can restyle anything: .stage.spotlight .item h2 { ... }

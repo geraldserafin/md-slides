@@ -1,13 +1,14 @@
 <section>
-  ## The problem with optional: you can't tell WHAT went wrong
+  <h2>The problem with optional: you can't tell WHAT went wrong</h2>
 
-  `std::nullopt` carries no information -- a parse failure and a division by zero
-  look identical from the outside.
+  <p>
+    <c>std::nullopt</c> carries no information -- a parse failure and a division by zero
+    look identical from the outside.
+  </p>
 </section>
 
 <section>
-  ## std::expected: Either for C++
-
+  <h2>std::expected: Either for C++</h2>
   <code lang=cpp id=flow>
     std::expected<int, std::string> parseInt(const std::string& s) {
       try {
@@ -33,8 +34,7 @@
 </section>
 
 <section>
-  ## Adding a step: the chain grows linearly, it doesn't nest
-
+  <h2>Adding a step: the chain grows linearly, it doesn't nest</h2>
   <code lang=cpp id=flow>
     std::expected<int, std::string> parseInt(const std::string& s) {
       try {

@@ -1,6 +1,5 @@
 <section>
-  ## Build a list: loop to comprehension
-
+  <h2>Build a list: loop to comprehension</h2>
   <code lang=python id=g1>
     <frame>
       def squares_of_evens(numbers):
@@ -18,8 +17,7 @@
 </section>
 
 <section>
-  ## Lazily: generator expression
-
+  <h2>Lazily: generator expression</h2>
   <code lang=python id=g2>
     <frame>
       def total_of_squares(numbers):

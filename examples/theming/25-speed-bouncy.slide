@@ -3,9 +3,9 @@
   --ease: cubic-bezier(0.34, 1.56, 0.64, 1)
 </slide>
 
-## Bouncy
+<h2>Bouncy</h2>
 
-`--ease: cubic-bezier(0.34, 1.56, 0.64, 1)` overshoots a little before settling.
+<p><c>--ease: cubic-bezier(0.34, 1.56, 0.64, 1)</c> overshoots a little before settling.</p>
 
 <code lang=typescript id=g1>
   <frame>

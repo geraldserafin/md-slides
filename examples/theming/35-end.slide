@@ -8,11 +8,13 @@
   transition: zoom
 </slide>
 
-# That's all
+<h1>That's all</h1>
 
-More decks in this series: **Showcase**, **Writing slides**, **Code animation**, **Presenting and shipping**.
+<p>
+  More decks in this series: <b>Showcase</b>, <b>Writing slides</b>, <b>Code animation</b>, <b>Presenting and shipping</b>.
+</p>
 
-Start your own: `slides dev my-talk/`
+<p>Start your own: <c>slides dev my-talk/</c></p>
 
 <notes>
   The end.

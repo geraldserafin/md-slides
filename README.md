@@ -1,6 +1,6 @@
 # slides
 
-Presentations where **code transitions are animated by an AST diff**, written in a small tag markup with Markdown for the text.
+Presentations where **code transitions are animated by an AST diff**, written in a small tag markup.
 
 Write each slide as a `.slide` file. When a code block goes through several frames,
 the viewer parses both with [tree-sitter](https://tree-sitter.github.io/), matches the two syntax trees
@@ -114,40 +114,43 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 
 ## Writing slides
 
-A slide is a `.slide` file: **tags** for the structure, **Markdown** for the text. Tags are strict (an unknown tag or a missing
-closing tag is an error with the line number). Attributes are `key=value`, quoted when they contain spaces; a bare word is a flag
-(`autoplay`); a tag without content ends with `/>`. The content of `<code>`, `<chart>`, `<diagram>`, `<text>`, `<notes>` and `<slide>`
-is **raw**: `<` and `&` need no escaping there, and the common indentation is removed. To write a closing tag as text inside one, put
-a backslash before it: `\</code>`. In loose text a tag inside backticks (a Markdown code span) is just text.
+A slide is a `.slide` file made of **tags**. Tags are strict (an unknown tag, a missing closing tag or text outside a tag is an
+error with the line number). Attributes are `key=value`, quoted when they contain spaces; a bare word is a flag (`autoplay`);
+a tag without content ends with `/>`. The content of `<code>`, `<c>`, `<tex>`, `<chart>`, `<diagram>`, `<notes>` and `<slide>` is **raw**:
+`<` and `&` need no escaping there, and the common indentation is removed. To write a closing tag as text inside one, put a
+backslash before it: `\</code>`. In the text tags write `&lt;` for a `<`.
 
 ```text
 <slide>
   theme: light
 </slide>
 
-## Plan                                  <- loose text is Markdown
+<h2>Plan</h2>
 
-<row>                                    <- two parts side by side
-  The first point is there from the start.
+<row>                                    <!-- two parts side by side -->
+  <p>The first point is there from the start.</p>
   <code lang=ts>
-    <frame>let total = 0;</frame>        <- states of one block: a click each
+    <frame>let total = 0;</frame>        <!-- states of one block: a click each -->
     <frame>let total = items.length;</frame>
   </code>
 </row>
 
-<step>The second point appears on a click.</step>
+<step><p>The second point appears on a click.</p></step>
 <notes>Say this out loud.</notes>
 ```
 
 | Tag | Does | Attributes |
 | --- | --- | --- |
 | `<slide>` | settings of this slide, one `key: value` per line (see below) | |
-| `<head>` | content that stays while the `<section>`s below swap | |
-| `<section>` | one of several sub-presentations in a slide: the old one fades out, the next fades in | |
+| `<section>` | one of several sub-presentations in a slide: the old one fades out, the next fades in; whatever is outside the sections stays on screen | |
 | `<row>` | its children side by side, sharing the width | `size` `halign` `valign` `class` |
 | `<col>` | its children one under the other | the same |
 | `<step>` | everything inside appears on the next click | `at=3` (click 3) |
-| `<text>` | Markdown (loose text between tags is the same) | `steps` (a list bullet by bullet), `size` `halign` `valign` (its part of a row), animation attributes |
+| `<h1>` `<h2>` `<h3>` `<p>` `<quote>` | headings, paragraphs, quotes: each is one item | `class`, `size` `halign` `valign` (its part of a row), animation attributes |
+| `<ul>` `<ol>` with `<li>` | lists | `steps` (one bullet per click), `start` |
+| `<table>` with `<tr>` `<th>` `<td>` | a table | |
+| `<b>` `<i>` `<s>` `<c>` `<a href>` `<kbd>` `<mark>` `<sub>` `<sup>` `<br />` | inline: bold, italic, strikethrough, code, link, key, highlight, sub/superscript, line break | |
+| `<tex>` | math (KaTeX): inline inside a `<p>`, display on its own | |
 | `<code>` | one animated code block | `lang` `id` `from` `class` `size` `fit` `start` `title` `halign` `valign` `focus` `transition` `at` |
 | `<frame>` | a state of a `<code>` | `focus` `transition` `at` |
 | `<img>` `<video>` `<audio>` | media, `src` relative to the `.slide` file | `alt` `class` `width` `height` `autoplay` `loop` `muted` `controls=false` |
@@ -200,13 +203,13 @@ Tabs are expanded to four spaces; a `lang` without a grammar is shown as static 
 The font size is fitted to the largest frame of a section and stays constant across its frames.
 
 **Reveal.** `<step>` hides what is inside until the next click, like PowerPoint's build-in animations. It works for anything and
-nothing moves when the content appears (its space is reserved). `<step at=3>` is click 3. `<text steps>` around a list shows it
+nothing moves when the content appears (its space is reserved). `<step at=3>` is click 3. `<ul steps>` (or `<ol steps>`) shows a list
 bullet by bullet. Frames of a `<code>` count as clicks too:
 
 ```text
-The first point is there from the start.
+<p>The first point is there from the start.</p>
 
-<step>The second appears on a click.</step>
+<step><p>The second appears on a click.</p></step>
 
 <step>
   <code lang=ts>const third = "a code block on the last click";</code>
@@ -216,19 +219,19 @@ The first point is there from the start.
 **Rows and columns.** A slide is one column by default (title, text, code, from the top left). A `<row>` puts its children **side by
 side** and gives each an equal share of the width; a `<col>` **stacks** its children. Nest them for any layout: two columns, three, a
 title above two parts, a 2 × 2 grid, a sidebar next to a stack. The parts always add up to the whole slide (minus the margin).
-Every direct child of a row is a part; loose text between tags is one part; use `<col>` to put several things into one part.
+Every direct child of a row is a part; use a `<col>` to put several things into one part.
 In a `<col>` text and images take the height of their content and a `<row>` or `<col>` inside takes the rest.
 
 ```text
-## What the diff does                    <- a title on top, then:
+<h2>What the diff does</h2>              <!-- a title on top, then: -->
 
 <row>
   <col>
-    ### rename
+    <h3>rename</h3>
     <code lang=ts>...</code>
   </col>
-  <col size=2>                           <- twice as wide
-    ### insert
+  <col size=2>                           <!-- twice as wide -->
+    <h3>insert</h3>
     <code lang=ts>...</code>
   </col>
 </row>
@@ -238,23 +241,23 @@ In a `<col>` text and images take the height of their content and a `<row>` or `
 `valign` align the content inside a part. Code blocks in parts next to each other share one font size. `margin` and `gap` in
 the `<slide>` block set the space around and between the parts.
 
-**A slide with a head (a sub-presentation).** A `<head>` stays on screen while the `<section>`s below swap one after another. Use it
+**Sections (a sub-presentation).** Whatever sits outside the `<section>`s stays on screen while they swap one after another. Use it
 for a title with several examples that you present one at a time:
 
 ```text
-<head># What the diff does</head>        <- stays
+<h1>What the diff does</h1>               <!-- outside the sections: stays -->
 
-<section>                                <- section 1 (then → plays its code, → again for the next)
-  ## rename
+<section>                                <!-- section 1 (then → plays its code, → again for the next) -->
+  <h2>rename</h2>
   <code lang=ts>...</code>
 </section>
-<section>                                <- section 2
-  ## insert
+<section>                                <!-- section 2 -->
+  <h2>insert</h2>
   <code lang=ts>...</code>
 </section>
 ```
 
-Without a `<section>` the whole slide is one section; a heading never splits a slide by itself.
+Without a `<section>` the whole slide is one section; a heading never splits a slide by itself. (Outside the sections only text, media and code in a single column are supported.)
 
 **Images and video.** Paths are relative to the `.slide` file. Audio gives a player bar and stops when the slide changes.
 
@@ -268,9 +271,9 @@ Without a `<section>` the whole slide is one section; a heading never splits a s
 section (or slide) that leaves to their place on the one that arrives, scaling as they go; if their content changed it cross-fades
 on the way. Images with the same file match automatically (`morph=none` turns that off).
 
-**Math.** `$x^2$` inline and `$$ ... $$` as a block (in text) are rendered with [KaTeX](https://katex.org) (plain HTML, so it works in every
-target and in the PDF). A dollar sign next to a space or a digit stays a dollar sign (`$5 and $6`). Math follows the slide's alignment
-and reveals like any item.
+**Math.** `<tex>x^2</tex>` inside a `<p>` is inline math, a `<tex>` on its own is display math; both are rendered with
+[KaTeX](https://katex.org) (plain HTML, so it works in every target and in the PDF). Display math follows the slide's alignment and
+reveals like any item.
 
 **Charts.** A `<chart>` turns CSV lines into an SVG chart in the slide's colors. The first row names the series (its first cell is the
 label column); `type` is `bar` (default), `line` or `pie` (the first series), `title` and `width` are optional. Bars grow and lines draw
@@ -286,6 +289,10 @@ themselves when the chart appears.
 
 **Diagrams.** A `<diagram>` draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme
 changes); `width=70%` sizes it. The library is loaded on first use and left out of builds whose decks have no `<diagram>`.
+
+**Text.** Headings `<h1>`–`<h3>`, paragraphs `<p>`, quotes `<quote>`, lists `<ul>`/`<ol>` with `<li>` (nest a list inside an `<li>`), tables
+with `<tr>` `<th>` `<td>`, and inline `<b>` `<i>` `<s>` `<c>` (code, raw) `<a href>` `<kbd>` `<mark>` `<sub>` `<sup>` `<br />`. Every block tag is an
+item of its own, so it can be revealed or animated alone.
 
 **Presenter notes.** `<notes>…</notes>` becomes notes in the presenter window.
 

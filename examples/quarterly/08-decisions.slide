@@ -3,20 +3,20 @@
   text-size: 4vmin
 </slide>
 
-## Decisions we need today
+<h2>Decisions we need today</h2>
 
-<text anim=left>
-  1. Approve the Nordics launch budget
-</text>
+<ol anim=left>
+  <li>Approve the Nordics launch budget</li>
+</ol>
 
 <step>
-  <text anim=left>
-    2. Confirm the second supplier shortlist
-  </text>
+  <ol start=2 anim=left>
+    <li>Confirm the second supplier shortlist</li>
+  </ol>
 </step>
 
 <step>
-  <text anim=left>
-    3. Agree the January pricing review date
-  </text>
+  <ol start=3 anim=left>
+    <li>Agree the January pricing review date</li>
+  </ol>
 </step>

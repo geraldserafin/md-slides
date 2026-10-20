@@ -5,11 +5,11 @@
   justify: false
 </slide>
 
-# Writing slides
+<h1>Writing slides</h1>
 
-Everything the .slide markup can do.
+<p>Everything the .slide markup can do.</p>
 
-One file is one slide · press **→**
+<p>One file is one slide · press <b>→</b></p>
 
 <notes>
   Writing slides: part of the slides manual. Source: examples/writing.

@@ -2,11 +2,11 @@
   text-size: 4.2vmin
 </slide>
 
-## Summary
+<h2>Summary</h2>
 
-<text steps>
-  - A wave moves energy, not matter
-  - Transverse or longitudinal
-  - $v = f\lambda$
-  - Energy goes with $A^2$
-</text>
+<ul steps>
+  <li>A wave moves energy, not matter</li>
+  <li>Transverse or longitudinal</li>
+  <li><tex>v = f\lambda</tex></li>
+  <li>Energy goes with <tex>A^2</tex></li>
+</ul>

@@ -1,6 +1,5 @@
 <section>
-  ## A class that is just data
-
+  <h2>A class that is just data</h2>
   <code lang=python id=g1>
     <frame>
       class Point:
@@ -39,8 +38,7 @@
 </section>
 
 <section>
-  ## Resource handling
-
+  <h2>Resource handling</h2>
   <code lang=python id=g2>
     <frame>
       def read_first_line(path):
