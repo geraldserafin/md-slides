@@ -12,8 +12,10 @@ const MIME = {
 // the page listens: "reload" after a change, "goto:<slide>:<section>" when the editor's cursor moves (an editor's preview follows it)
 const RELOAD = '<script>new EventSource("/__reload").onmessage=(e)=>{if(e.data==="reload")location.reload();else if(e.data.startsWith("goto:")){const[,s,c]=e.data.split(":");window.__slideit?.goTo(+s,c===""?undefined:+c)}}</script>';
 
-/** `roots`: folders searched in order (the staged decks, then the viewer). Returns { listen(port) -> url, reload() }. */
-export function devServer(roots) {
+/** `roots`: folders searched in order (the staged decks, then the viewer). Returns { listen(port) -> url, reload(), setRoots(roots) }:
+ *  after a restage the new folder replaces the old one at once, so a request never meets a deck that is half written. */
+export function devServer(initialRoots) {
+  let roots = initialRoots;
   const clients = new Set();
   const server = createServer((req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
@@ -32,13 +34,14 @@ export function devServer(roots) {
     }
     const rel = path.endsWith('/') ? `${path}index.html` : path;
     const file = roots.map((r) => join(r, rel)).find((p) => existsSync(p) && statSync(p).isFile());
-    if (!file) { res.writeHead(404).end('not found'); return; }
+    if (!file) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end(`not found: ${path}`); return; }
     const type = MIME[extname(file).toLowerCase()] ?? 'application/octet-stream';
     res.writeHead(200, { 'content-type': type, 'cache-control': 'no-cache' });
     res.end(type.startsWith('text/html') ? readFileSync(file, 'utf8').replace('</body>', `${RELOAD}</body>`) : readFileSync(file));
   });
   return {
     reload: () => clients.forEach((c) => c.write('data: reload\n\n')),
+    setRoots: (r) => { roots = r; },
     listen: (port = 5173) => new Promise((ok, fail) => {
       const tryPort = (p) => {
         server.once('error', (e) => (e.code === 'EADDRINUSE' && p < port + 50 ? tryPort(p + 1) : fail(e)));

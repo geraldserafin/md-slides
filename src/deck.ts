@@ -5,7 +5,7 @@
 // animated block, its `<frame>`s are the states it passes through; blocks with the same `id` are one animation across sections and slides.
 import katex from 'katex';
 import { renderChart } from './chart';
-import { fileUrl } from './files';
+import { fetchFile, fetchJson, fileUrl } from './files';
 import type { ChromeBar } from './chrome';
 import { dedent, MarkupError, parseMarkup, rawText, tagAttrs, type El } from './markup';
 import { loadPlugins, pluginThemes } from './plugins';
@@ -413,13 +413,13 @@ export function resolveRefs(slides: Slide[]) {
 
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
   const root = new URL(`${base}/${name}/`, document.baseURI).href;
-  const meta = (await (await fetch(fileUrl(root + 'manifest.json'))).json()) as DeckMeta;
+  const meta = await fetchJson<DeckMeta>(fileUrl(root + 'manifest.json'), `The deck "${name}"`);
   await loadPlugins((meta.plugins ?? []).map((p) => fileUrl(new URL(p, root).href)));
   if (Object.keys(pluginThemes()).length) meta.themes = { ...pluginThemes(), ...(meta.themes ?? {}) };
   const slides = await Promise.all(
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
-      const text = await (await fetch(fileUrl(url))).text();
+      const text = await (await fetchFile(fileUrl(url), `The slide ${f}`)).text();
       let slide: Slide;
       try {
         slide = parseSlide(text, url);

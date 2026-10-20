@@ -2,7 +2,7 @@ import './style.css';
 import 'katex/dist/katex.min.css';
 import { loadDeck } from './deck';
 import { loadIndex, showGallery } from './gallery';
-import { fileUrl } from './files';
+import { fileUrl, LoadError } from './files';
 import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
@@ -54,9 +54,17 @@ const showLoader = (label = '') => {
 };
 
 /** replace the spinner with the error, so a failure never looks like an endless load */
+const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
+const errorScreen = (e: unknown, extra = '') => {
+  const err = e as Error;
+  const slideMistake = /^[\w.-]+\/[^,]+\.slide, line \d+/.test(err?.message ?? '');
+  const title = slideMistake ? 'A slide has a mistake' : e instanceof LoadError ? 'Could not load the deck' : 'Something went wrong';
+  const hint = e instanceof LoadError ? e.hint : slideMistake ? 'Fix it in the file; the page reloads when you save.' : undefined;
+  app.innerHTML = `<div class="error-box"><h2>${title}</h2><p class="msg">${esc(err?.message ?? String(e))}</p>${hint ? `<p class="hint">${esc(hint)}</p>` : ''}${extra}<details><summary>Details</summary><pre>${esc(String(err?.stack ?? e))}</pre></details></div>`;
+};
 const showError = (e: unknown) => {
   if (!app.querySelector('.boot')) return;
-  app.innerHTML = `<pre class="error">${String((e as Error)?.stack ?? e).replace(/</g, '&lt;')}</pre>`;
+  errorScreen(e);
 };
 addEventListener('unhandledrejection', (e) => showError(e.reason));
 addEventListener('error', (e) => showError(e.error ?? e.message));
@@ -264,6 +272,14 @@ async function main() {
   });
 }
 
-main().catch((e) => {
-  app.innerHTML = `<pre class="error">${String(e?.stack ?? e)}</pre>`;
+main().catch(async (e) => {
+  // a deck name that the server does not have: list the ones it has
+  let extra = '';
+  if (e instanceof LoadError && params.get('deck')) {
+    try {
+      const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as { decks: { name: string }[] };
+      extra = `<p class="hint">The decks on this server: ${idx.decks.map((d) => `<a href="?deck=${encodeURIComponent(d.name)}">${esc(d.name)}</a>`).join(', ') || '(none)'}</p>`;
+    } catch { /* the server cannot even list them */ }
+  }
+  errorScreen(e, extra);
 });

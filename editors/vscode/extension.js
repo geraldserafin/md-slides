@@ -11,6 +11,7 @@ const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 let client;
 let preview; // { proc, url, folder }
 let status;
+let output; // the "Slides" output channel: what `slides dev` prints
 
 const cfg = () => vscode.workspace.getConfiguration('slides');
 
@@ -44,14 +45,16 @@ function startServer(folder) {
     const s = cli('dev', folder);
     const proc = spawn(s.command, s.args, { shell: process.platform === 'win32' });
     let out = '';
+    output.appendLine(`$ ${[s.command, ...s.args].join(' ')}`);
     const onData = (d) => {
       out += d;
+      output.append(String(d));
       const m = /(https?:\/\/[\w.:-]+\/)/.exec(out);
       if (m) resolve({ proc, url: m[1], folder });
     };
     proc.stdout.on('data', onData);
     proc.stderr.on('data', onData);
-    proc.on('error', reject);
+    proc.on('error', (e) => { output.appendLine(`could not start: ${e.message}`); reject(new Error(`could not start \`${s.command}\`: ${e.message} (is Node.js installed? npm i -g @geraldserafin/slideit)`)); });
     proc.on('exit', (code) => { if (preview?.proc === proc) preview = undefined; status?.hide(); reject(new Error(`slides dev exited with ${code}: ${out.trim().slice(0, 200)}`)); });
   });
 }
@@ -78,7 +81,7 @@ async function openPreview() {
     setTimeout(syncPreview, 1500);
   } catch (e) {
     preview = undefined;
-    vscode.window.showErrorMessage(`Slides preview: ${e.message}`);
+    vscode.window.showErrorMessage(`Slides preview: ${e.message}`, 'Show output').then((c) => c && output.show());
   }
 }
 
@@ -137,11 +140,13 @@ async function checkDeck() {
 }
 
 exports.activate = (context) => {
+  output = vscode.window.createOutputChannel('Slides');
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 50);
   status.command = 'slides.preview';
   startClient(context);
   context.subscriptions.push(
     status,
+    output,
     vscode.commands.registerCommand('slides.preview', openPreview),
     vscode.commands.registerCommand('slides.stopPreview', stopPreview),
     vscode.commands.registerCommand('slides.check', checkDeck),

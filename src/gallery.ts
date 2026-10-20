@@ -1,7 +1,7 @@
 // Deck gallery (the page shown when several decks are served): a card per deck with a live
 // thumbnail of its first slide, the title below it and a quiet line: author · date · slides.
 import { isHidden, loadDeck, type Deck } from './deck';
-import { fileUrl } from './files';
+import { fetchJson, fileUrl } from './files';
 import { Player } from './player';
 import { buildSteps } from './steps';
 import { applyTheme, colorScheme, initialTheme, loadDeckCss, registerDeckStyle, setColorScheme, setSchemeDefault, themeFor, type Schemes } from './themes';
@@ -157,6 +157,6 @@ async function fillCard(card: HTMLElement, entry: DeckEntry, show: HubMeta['show
 }
 
 export async function loadIndex(): Promise<{ decks: DeckEntry[]; hub: HubMeta }> {
-  const idx = (await (await fetch(fileUrl('decks/index.json'))).json()) as { decks: DeckEntry[]; hub?: HubMeta };
+  const idx = await fetchJson<{ decks: DeckEntry[]; hub?: HubMeta }>(fileUrl('decks/index.json'), 'The list of decks');
   return { decks: idx.decks, hub: idx.hub ?? {} };
 }

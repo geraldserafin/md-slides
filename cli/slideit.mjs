@@ -158,15 +158,26 @@ async function cmdDev(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
   const dirs = expandDecks(o.decks);
   const hubDir = hubFolder(o.decks, o.hub);
-  const publicDir = tmp();
+  let publicDir = tmp();
   await stageDecks(dirs, publicDir, hubDir);
   // the prebuilt viewer when there is one (instant start); vite from a clone
   const prebuilt = !o.vite && hasViewer({ single: false, mermaid: true });
   let reload;
+  let restage = async () => { await stageDecks(dirs, publicDir, hubDir); };
   if (prebuilt) {
     const { devServer } = await import('./devserver.mjs');
-    const s = devServer([publicDir, viewerDir({ single: false, mermaid: true }), sharedDir]);
+    const roots = (staged) => [staged, viewerDir({ single: false, mermaid: true }), sharedDir];
+    const s = devServer(roots(publicDir));
     reload = s.reload;
+    // a new folder each time, swapped in when it is complete
+    restage = async () => {
+      const next = tmp();
+      await stageDecks(dirs, next, hubDir);
+      const old = publicDir;
+      publicDir = next;
+      s.setRoots(roots(next));
+      setTimeout(() => rmSync(old, { recursive: true, force: true }), 5000);
+    };
     const url = await s.listen(o.port);
     console.log(`  ${url}`);
     if (o.open) openBrowser(url);
@@ -187,7 +198,7 @@ async function cmdDev(o) {
       watch(d, { recursive: true }, () => {
         clearTimeout(timer);
         timer = setTimeout(async () => {
-          try { await stageDecks(dirs, publicDir, hubDir); reload(); } catch (e) { console.error(String(e.message ?? e)); }
+          try { await restage(); reload(); } catch (e) { console.error(String(e.message ?? e)); }
         }, 150);
       });
 }
