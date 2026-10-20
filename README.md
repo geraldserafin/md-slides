@@ -11,7 +11,7 @@ moved tokens glide to their new place, removed ones fade out, new ones fade in.
 self-contained HTML file, a PDF, or a standalone executable.
 
 ```sh
-npm i -g slideit                        # installs the `slides` command (`slideit` works too; one-off: npx slideit ...)
+npm i -g @geraldserafin/slideit          # installs the `slides` command (`slideit` works too; one-off: npx @geraldserafin/slideit ...)
 
 slides new my-talk                      # a starter deck: cover, bullets, animated code, ending
 slides dev my-talk/                     # dev server with live reload
@@ -24,7 +24,7 @@ slides build my-talk/ -t exe            # standalone executable
 Other ways to get it:
 
 ```sh
-bunx slideit new my-talk                # bun: bunx / bun add -g slideit
+bunx @geraldserafin/slideit new my-talk   # bun: bunx / bun add -g @geraldserafin/slideit
 nix run github:geraldserafin/md-slides -- new my-talk   # nix (a nixpkgs package is planned, see nix/README.md)
 ```
 
