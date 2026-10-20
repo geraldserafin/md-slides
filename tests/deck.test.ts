@@ -209,3 +209,12 @@ describe('errors say where', () => {
   it('stray closing tag', () => expect(() => parse('<p>a</p></row>')).toThrow(/closes nothing/));
   it('unclosed raw tag', () => expect(() => parse('<code lang=ts>x')).toThrow(/never closed/));
 });
+
+describe('autoplay code', () => {
+  it('the frames of an autoplay block take no clicks', () => {
+    const t = parse('<code lang=ts autoplay=1 loop><frame>1;</frame><frame>2;</frame><frame>3;</frame></code>');
+    expect(t.sections[0].blocks[0].frames.map((f) => f.at)).toEqual([0, 0, 0]);
+    expect(t.sections[0].stages).toBe(1);
+    expect(t.sections[0].blocks[0].opts).toMatchObject({ autoplay: '1', loop: 'true' });
+  });
+});

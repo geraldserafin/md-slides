@@ -131,8 +131,12 @@ export class Player {
   private slideFadeMs: number;
   onChange?: (s: PlayerState) => void;
 
-  /** opts.theme: the theme slides use when their front matter names none (default: the page's theme) */
-  constructor(private root: HTMLElement, private deck: Deck, private steps: Step[], private opts: { theme?: string } = {}) {
+  /** the frame of every autoplay block that is on screen, and which way the loop is going */
+  private cycleIdx = new Map<Block, number>();
+  private cycleDir = 1;
+  private cycleTimer?: number;
+  /** opts.theme: the theme slides use when their front matter names none (default: the page's theme); opts.autoplay: autoplay code blocks play (the viewer, not thumbnails or the PDF) */
+  constructor(private root: HTMLElement, private deck: Deck, private steps: Step[], private opts: { theme?: string; autoplay?: boolean } = {}) {
     const a = deck.meta.animation ?? {};
     this.moveDelay = a.moveDelay ?? 0.04;
     this.fadeInDelay = a.fadeInDelay ?? 0.12;
@@ -220,7 +224,11 @@ export class Player {
     // content that travels (slide-right / slide-left): the old one leaves in that direction, the new one comes in from the other side
     const exitDir = sectionChanged && !first && !instant ? slideDir(exitKind) : 0;
     const enterDir = sectionChanged && !first && !instant ? slideDir(enterKind) : 0;
-    if (sectionChanged) this.leaveText(first || instant || textCut, !sameSlide, exitDir);
+    if (sectionChanged) {
+      this.cycleIdx.clear();
+      this.cycleDir = 1;
+      this.leaveText(first || instant || textCut, !sameSlide, exitDir);
+    }
     this.applySlide(step.slide, first || instant);
     this.enterKind = enterKind;
     this.swapText(step, first || instant);
@@ -228,7 +236,28 @@ export class Player {
     this.applyStage(step, first || instant);
     this.advance(step, first || instant || cut, -enterDir * SLIDE_PX, exitDir * SLIDE_PX);
     this.updateHud();
+    this.scheduleCycle(step);
     this.onChange?.(this.state());
+  }
+
+  /** an autoplay code block: its frames play by themselves, `autoplay` seconds apart (forth and back with `loop`) */
+  private scheduleCycle(step: Step) {
+    clearTimeout(this.cycleTimer);
+    const st = this.opts.autoplay ? step.blocks.find((b) => b.cycle) : undefined;
+    if (!st) return;
+    const sec = parseFloat(st.block.opts.autoplay) > 0 ? parseFloat(st.block.opts.autoplay) : 2;
+    this.cycleTimer = window.setTimeout(() => {
+      const i = this.cycleIdx.get(st.block) ?? 0;
+      let to = i + this.cycleDir;
+      if (to >= st.cycle!.length || to < 0) {
+        if (st.block.opts.loop === undefined) return;
+        this.cycleDir = -this.cycleDir;
+        to = i + this.cycleDir;
+      }
+      this.cycleIdx.set(st.block, to);
+      this.advance(this.steps[this.idx], false);
+      this.scheduleCycle(this.steps[this.idx]);
+    }, sec * 1000);
   }
 
   next() { this.go(this.idx + 1); }
@@ -686,6 +715,7 @@ export class Player {
   }
 
   destroy() {
+    clearTimeout(this.cycleTimer);
     this.ro.disconnect();
     for (const tk of this.tokens.values()) clearTimeout(tk.timer);
     this.bgEl?.remove();
@@ -805,7 +835,8 @@ export class Player {
       }
     };
 
-    for (const st of step.blocks) {
+    for (const base of step.blocks) {
+      const st = base.cycle ? base.cycle[this.cycleIdx.get(base.block) ?? 0] : base; // an autoplay block shows the frame its timer is at
       const v = this.view?.blocks.find((b) => b.block === st.block);
       if (!v) continue;
       const s = v.scale;

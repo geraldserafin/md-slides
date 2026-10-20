@@ -40,7 +40,7 @@ export interface Block {
   explicit: boolean;
   lang: Lang;
   classes: string[]; // `class=` of the code tag (e.g. "left", "lines", "panel")
-  opts: Record<string, string>; // the other attributes (e.g. size=18, start=10, title=cart.ts)
+  opts: Record<string, string>; // the other attributes (e.g. size=18, start=10, title=cart.ts, autoplay=1, loop)
   frames: Frame[];
   /** `<code from=id />`: a copy of the last frame of the block with that id (filled in when the deck is loaded) */
   from?: string;
@@ -292,7 +292,8 @@ export function parseSlide(src: string, url: string): Slide {
     const block: Block = {
       id: a.id ?? `b${autoId++}`, explicit: a.id !== undefined, lang: lang ?? '', classes: words(a.class), opts,
       frames: a.from !== undefined ? [] : frames.map((f, i) => {
-        const fat = i === 0 ? at : /^\d+$/.test(f.attrs.at ?? '') ? parseInt(f.attrs.at, 10) : ++st.clicks;
+        // an autoplay block plays its frames by itself: they take no clicks
+        const fat = i === 0 || a.autoplay !== undefined ? at : /^\d+$/.test(f.attrs.at ?? '') ? parseInt(f.attrs.at, 10) : ++st.clicks;
         st.clicks = Math.max(st.clicks, fat);
         return { code: f.code, focus: f.attrs.focus ?? a.focus, transition: f.attrs.transition ?? a.transition, at: fat };
       }),

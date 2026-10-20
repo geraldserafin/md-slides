@@ -87,7 +87,7 @@ one takes a click, and the code morphs between them (tokens glide, new ones fade
 Blocks are independent unless they share an `id`: the same `id` in another section or slide continues the animation.
 `<code from=cart />` copies the last frame of the earlier block with that id. Attributes of `<code>`: `lang`, `id`,
 `size=18`, `class="lines panel left right top middle bottom"`, `start=10`, `title=cart.ts`, `bg=#16213e`, `radius=12`,
-`pad="1em"`, `halign`/`valign`, `fit=none`, `at=N`, `autoplay=1` (frames play by themselves, seconds apart) with `loop`; of `<frame>`: `focus=2-4,7` (dim the other lines), `transition=morph|fade|none`
+`pad="1em"`, `halign`/`valign`, `fit=none`, `at=N`, `autoplay=1` (frames play by themselves, seconds apart, taking no clicks) with `loop`; of `<frame>`: `focus=2-4,7` (dim the other lines), `transition=morph|fade|none`
 (how this frame is entered), `at=N`. Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json,
 html, css, lua. Between two different languages the code cross-fades. A language without a grammar is a plain static block.
 

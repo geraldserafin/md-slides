@@ -199,7 +199,7 @@ Tabs are expanded to four spaces; a `lang` without a grammar is shown as static 
 | `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; on a `<frame>` to walk through code |
 | `transition=morph\|fade\|none` | how *this frame* is entered from the previous one: the diff animation (default), a plain cross-fade, or a hard cut |
 | `at=3` | the click a frame (or the whole block) appears on |
-| `autoplay=1`, `loop` | the frames play by themselves, 1 s apart (a bare `autoplay` is 2 s); with `loop` they go forth and back without end. The arrow keys still work, and the block stops when you leave the slide |
+| `autoplay=1`, `loop` | the frames play by themselves, 1 s apart (a bare `autoplay` is 2 s); with `loop` they go forth and back without end. They take no clicks and are not steps: → goes on to whatever comes next, and the progress bar ignores them |
 
 The font size is fitted to the largest frame of a section and stays constant across its frames.
 

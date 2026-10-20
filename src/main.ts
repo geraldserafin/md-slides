@@ -6,7 +6,7 @@ import { fileUrl } from './files';
 import { configureGrammars } from './parse';
 import { Player } from './player';
 import { startPresenterView, CHANNEL } from './presenter';
-import { blockLoop, buildSteps } from './steps';
+import { buildSteps } from './steps';
 import { createOverview, type Overview } from './overview';
 import { startPrintView } from './print';
 import { blackScreen, clearDrawing, drawing, startAutoplay, toggleBlack, toggleDraw, toggleLaser, toggleZoom } from './tools';
@@ -90,7 +90,7 @@ async function main() {
   await preloadDeckFonts(deck.meta);
   const steps = await buildSteps(deck);
   if (params.has("print")) return startPrintView(app, deck, steps, params.get("print") || "slides");
-  const player = new Player(app, deck, steps);
+  const player = new Player(app, deck, steps, { autoplay: true });
 
   // ?embed=1: the bare slide, driven by the presenter window's previews (no chrome, no sync channel, no input)
   if (params.has('embed')) {
@@ -104,31 +104,7 @@ async function main() {
 
   const ch = new BroadcastChannel(CHANNEL);
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
-  // `<code autoplay=1 loop>`: the frames of a block play by themselves (forth and back with `loop`); a key or click is the user's
-  let autoplay = false; // the whole deck plays by itself (a)
-  let blockTimer: number | undefined;
-  let blockDir = 1;
-  let byTimer = false;
-  const playBlock = () => {
-    clearTimeout(blockTimer);
-    const plan = autoplay ? undefined : blockLoop(steps, player.state().step);
-    if (!plan) { blockDir = 1; return; }
-    blockTimer = window.setTimeout(() => {
-      const i = player.state().step;
-      let to = i + blockDir;
-      if (to > plan.last || to < plan.first) {
-        if (!plan.loop) return;
-        blockDir = -blockDir;
-        to = i + blockDir;
-      }
-      byTimer = true;
-      player.go(to);
-    }, plan.sec * 1000);
-  };
   player.onChange = (s) => {
-    if (!byTimer) blockDir = 1;
-    byTimer = false;
-    playBlock();
     history.replaceState(null, '', `#${s.step + 1}`);
     overview?.setCurrent(s.slide);
     clearDrawing(); // the ink stays on the slide it was drawn on
@@ -173,6 +149,7 @@ async function main() {
 
   // autoplay: deck.json "autoplay": seconds per step (a slide's own `autoplay:` front matter wins), "loop": true, or ?autoplay=5
   let stopAuto = () => {};
+  let autoplay = false;
   const secondsFor = () => {
     const own = parseFloat(deck.slides[player.state().slide].meta.autoplay ?? '');
     return own > 0 ? own : Number(params.get('autoplay')) || deck.meta.autoplay || 5;

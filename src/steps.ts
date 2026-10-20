@@ -23,6 +23,8 @@ export interface BlockState {
   transition: 'morph' | 'fade' | 'none'; // how this frame is entered
   keys: Map<number, string>; // treeId -> canonical token key (namespaced by the group)
   link?: { to: BlockState; m: Matching | 'same' }; // to the same group in the next step
+  /** an autoplay block: its frames, played by the viewer's timer (the same states in every step of the section; this state is the first) */
+  cycle?: BlockState[];
 }
 
 export interface Step {
@@ -65,14 +67,34 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
 
   const steps: Step[] = [];
   let sectionIndex = 0;
+  const cycles = new Map<Block, BlockState[]>();
   deck.slides.forEach((slide, si) => {
     if (isHidden(slide)) return;
     for (const section of slide.sections) {
+      section.blocks.forEach((block, index) => {
+        if (block.opts.autoplay === undefined || block.frames.length < 2) return;
+        const mt = metrics.get(block)!;
+        const states: BlockState[] = block.frames.map((frame) => {
+          const p = parsed.get(frame)!;
+          return {
+            block, index, groupKey: `c${sectionIndex}:${block.id}`, frame, lang: block.lang, root: p.root, layout: p.layout, cols: mt.cols, rows: mt.rows,
+            focus: frame.focus, transition: parseTransition(frame.transition), keys: new Map(),
+          };
+        });
+        states.forEach((st, k) => {
+          st.cycle = states;
+          const next = states[k + 1];
+          if (next && next.transition === 'morph' && st.lang === next.lang) st.link = { to: next, m: match(st.root, next.root) };
+        });
+        cycles.set(block, states);
+      });
       for (let stage = 0; stage < section.stages; stage++) {
         const blocks: BlockState[] = [];
         section.blocks.forEach((block, index) => {
           const item = blockItem(section, index);
           if (!item || item.at > stage) return; // not revealed yet
+          const cyc = cycles.get(block);
+          if (cyc) { blocks.push(cyc[0]); return; }
           let frameIdx = 0;
           block.frames.forEach((f, k) => { if (f.at <= stage) frameIdx = k; });
           const frame = block.frames[frameIdx];
@@ -96,6 +118,7 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
     const prevStep = steps[i - 1];
     if (!prevStep) return;
     for (const cur of step.blocks) {
+      if (cur.cycle) continue;
       const prev = prevStep.blocks.find((b) => b.groupKey === cur.groupKey);
       if (!prev) continue;
       if (prev.frame === cur.frame) prev.link = { to: cur, m: 'same' };
@@ -110,34 +133,16 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
   });
 
   // keys are computed from the end: a node inherits its partner's key from the next step
-  for (let i = steps.length - 1; i >= 0; i--) {
-    for (const st of steps[i].blocks) {
-      const link = st.link;
-      const collect = (t: Tree) => {
-        const partner = link ? (link.m === 'same' ? t.id : link.m.get(t.id)) : undefined;
-        st.keys.set(t.id, (partner !== undefined && link!.to.keys.get(partner)) || `${st.groupKey}|k${i}_${t.id}`);
-        t.children.forEach(collect);
-      };
-      collect(st.root);
-    }
-  }
+  const assign = (st: BlockState, tag: number) => {
+    const link = st.link;
+    const collect = (t: Tree) => {
+      const partner = link ? (link.m === 'same' ? t.id : link.m.get(t.id)) : undefined;
+      st.keys.set(t.id, (partner !== undefined && link!.to.keys.get(partner)) || `${st.groupKey}|k${tag}_${t.id}`);
+      t.children.forEach(collect);
+    };
+    collect(st.root);
+  };
+  for (let i = steps.length - 1; i >= 0; i--) for (const st of steps[i].blocks) if (!st.cycle) assign(st, i);
+  for (const states of cycles.values()) for (let k = states.length - 1; k >= 0; k--) assign(states[k], k);
   return steps;
-}
-
-/**
- * `<code autoplay=1 loop>`: the frames of the block play by themselves, `autoplay` seconds apart (a bare `autoplay` is 2 s); with
- * `loop` they go forth and back without end. Returns the plan for the step `i`: the first and last step of the block's frames.
- */
-export function blockLoop(steps: Step[], i: number): { sec: number; loop: boolean; first: number; last: number } | undefined {
-  const step = steps[i];
-  for (const bs of step?.blocks ?? []) {
-    const o = bs.block.opts;
-    if (o.autoplay === undefined) continue;
-    const mine = steps.map((s, k) => (s.section === step.section && s.blocks.some((b) => b.block === bs.block) ? k : -1)).filter((k) => k >= 0);
-    const final = bs.block.frames[bs.block.frames.length - 1];
-    const last = mine.find((k) => steps[k].blocks.find((b) => b.block === bs.block)!.frame === final);
-    if (last === undefined || last <= mine[0]) continue;
-    return { sec: parseFloat(o.autoplay) > 0 ? parseFloat(o.autoplay) : 2, loop: o.loop !== undefined, first: mine[0], last };
-  }
-  return undefined;
 }

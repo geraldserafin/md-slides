@@ -64,3 +64,15 @@ describe('hidden slides', () => {
     expect(steps.map((s) => s.slide)).toEqual([0, 2]);
   });
 });
+
+describe('autoplay blocks', () => {
+  it('are one step; the frames are states the viewer plays', async () => {
+    const d = deckOf('<code lang=ts autoplay=1><frame>let a = 1;</frame><frame>let a = 2;</frame></code>');
+    const steps = await buildSteps(d);
+    expect(steps).toHaveLength(1);
+    const st = steps[0].blocks[0];
+    expect(st.cycle).toHaveLength(2);
+    expect(st.cycle![0]).toBe(st);
+    expect(shared(st.cycle![0], st.cycle![1])).toBeGreaterThan(2);
+  });
+});
