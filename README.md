@@ -413,7 +413,7 @@ page whenever a file in the deck folder changes.
 
 ## Editors
 
-`slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes and values. `editors/vscode` is a VS Code extension (highlighting with the code inside `<code lang=…>` highlighted as that language, the language client, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor). `editors/vim` has the filetype, syntax and the Neovim LSP setup. See the README in each folder.
+`slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes and values. `editors/vscode` is a VS Code extension (highlighting with the code inside `<code lang=…>` highlighted as that language, the language client, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor). `editors/vim` has the filetype, syntax and the Neovim LSP setup. See the README in each folder. In this repository's devenv shell (`devenv shell`) `codium .` starts VSCodium with the extension already installed and `slides` runs this checkout's CLI (`nix/vscode-extension.nix` packages the extension for nixpkgs-style `vscode-with-extensions` too).
 
 ## GitHub Action and template
 

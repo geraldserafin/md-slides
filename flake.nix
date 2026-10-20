@@ -12,6 +12,7 @@
     {
       packages = forAll (pkgs: rec {
         slideit = pkgs.callPackage ./nix/package.nix { localSource = self; };
+        vscode-extension = pkgs.callPackage ./nix/vscode-extension.nix { };
         default = slideit;
       });
 
