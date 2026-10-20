@@ -9,3 +9,4 @@ devenv.local.yaml
 .direnv
 viewer
 lib
+*.vsix
