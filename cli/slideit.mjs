@@ -3,7 +3,7 @@
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
 //   slides new   <folder> [--title "My talk"]
-//   slides check <deck...>     slides schema
+//   slides check <deck...>     slides schema     slides import <file.pptx> <folder>
 // A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
 import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -19,6 +19,7 @@ const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] 
 slides dev   <deck...> [--port N] [--open] [--vite]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
 slides check <deck...>                          find mistakes in the .slide files (file:line: message)
+slides import <file.pptx> <folder>               start a deck from a PowerPoint template (backgrounds, logos, colors, margins)
 slides schema                                   the markup as JSON (tags, attributes), for editor tooling
 slides lsp                                      the language server (stdio): diagnostics, completion, hover
 
@@ -218,6 +219,15 @@ async function cmdLsp() {
   (await loadLib('lsp')).serve();
 }
 
+async function cmdImport(o) {
+  if (o.decks.length !== 2) throw new Error(`give the .pptx/.potx file and the folder to create\n${USAGE}`);
+  const { importPptx } = await import('./import.mjs');
+  const r = await importPptx(o.decks[0], resolve(o.decks[1]), { title: o.title });
+  console.log(`imported ${r.slides} slides, ${r.backgrounds} backgrounds -> ${o.decks[1]}`);
+  for (const n of r.notes) console.log(`note: ${n}`);
+  console.log(`next: slides dev ${o.decks[1]}`);
+}
+
 async function cmdSchema() {
   const { TAGS } = await loadLib('schema');
   console.log(JSON.stringify(TAGS, null, 2));
@@ -236,6 +246,7 @@ try {
   else if (cmd === 'dev') await cmdDev(parseArgs(rest));
   else if (cmd === 'new') await cmdNew(parseArgs(rest));
   else if (cmd === 'check') await cmdCheck(parseArgs(rest));
+  else if (cmd === 'import') await cmdImport(parseArgs(rest));
   else if (cmd === 'schema') await cmdSchema();
   else if (cmd === 'lsp') await cmdLsp();
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }

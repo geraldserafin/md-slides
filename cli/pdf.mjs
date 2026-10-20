@@ -24,7 +24,7 @@ export function serveDir(dir) {
   return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok({ server, url: `http://127.0.0.1:${server.address().port}/` })));
 }
 
-function findChromium() {
+export function findChromium() {
   if (process.env.CHROMIUM) return process.env.CHROMIUM;
   for (const c of ['chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome']) {
     try { return execFileSync(process.platform === 'win32' ? 'where' : 'which', [c], { encoding: 'utf8' }).split('\n')[0].trim(); } catch { /* next */ }
