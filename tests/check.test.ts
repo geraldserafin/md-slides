@@ -79,3 +79,11 @@ describe('schema', () => {
     expect(() => structuredClone(s)).not.toThrow(); // plain data: no functions
   });
 });
+
+describe('what is declared twice', () => {
+  it('a layout or a plugin of the same name in two places is an error with a position', () => {
+    expect(msgs('layout "a" { row { col { slot } } }\nlayout "a" { col { slot } }')[0]).toMatch(/layout "a" is defined twice/);
+    const p = 'plugin "ui" { node "x" { body { text "x" } } }';
+    expect(msgs(`${p}\n${p}`)[0]).toMatch(/registered twice/);
+  });
+});

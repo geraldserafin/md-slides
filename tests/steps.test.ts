@@ -90,3 +90,12 @@ describe('swaps that play by themselves', () => {
     expect(shared(st.cycle![0], st.cycle![1])).toBeGreaterThan(2);
   });
 });
+
+describe('a swap that plays by itself inside another swap', () => {
+  it('is on screen only while its alternative is', async () => {
+    const { steps, at } = await run('slide { swap { col { heading "a"; swap autoplay=1 { code "ts" "let a = 1;"; code "ts" "let a = 2;" } }; col { heading "b" } } }');
+    expect(steps).toHaveLength(2);
+    expect(at(0)).toHaveLength(1);
+    expect(at(1)).toHaveLength(0);
+  });
+});

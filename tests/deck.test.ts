@@ -238,3 +238,13 @@ slide { callout "Careful" kind=warn { text "inside" }; text "x" anim=flip }`;
     expect((one(src.replace('kind=warn ', '')).root.children![0].props as { class: string }).class).toBe('callout-info');
   });
 });
+
+describe('layouts and swaps', () => {
+  it('a swap of only code is code to the layouts: text and a code swap sit side by side', () => {
+    expect(one('slide { title "T"; text "x"; swap { code "ts" "a"; code "ts" "b" } }').own.layout).toBe('code-side');
+    expect(one('slide { title "T"; swap { code "ts" "a"; code "ts" "b" } }').own.layout).toBe('code');
+  });
+  it('any other swap is the author\'s own layout', () => {
+    expect(one('slide { title "T"; text "x"; swap { text "a"; text "b" } }').own.layout).toBe('default');
+  });
+});

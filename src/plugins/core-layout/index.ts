@@ -1,5 +1,6 @@
 // The slide and its layout: `slide` (and which layout it gets), `layout` (your own), `row`, `col`, `grid`, `slot`. A layout turns
 // the parts of a slide into rows and columns; without `layout=` one is chosen from what is on the slide.
+import { PluginError } from '../../kernel/registry.ts';
 import { layoutProps, str, strs } from '../../kernel/util.ts';
 import type { Element, KNode, LayoutDef, LayoutRule, LowerCtx, NodeDef, Plugin, PropDef, TopCtx } from '../../kernel/types.ts';
 import { builtinLayouts, builtinRules, HEADS } from './layouts.ts';
@@ -123,7 +124,12 @@ export const coreLayout: Plugin = {
         compile(n, top) {
           const name = str(n.args[0]);
           if (!name) top.fail(n, '`layout` needs a name: layout "sidebar" { … }');
-          top.registry.use({ name: `layout:${name}`, replaces: [name!], layouts: { [name!]: layoutFromNode(n) } });
+          try {
+            top.registry.use({ name: `layout:${name}`, replaces: [name!], layouts: { [name!]: layoutFromNode(n) } });
+          } catch (e) {
+            if (e instanceof PluginError) top.fail(n, `the layout "${name}" is defined twice`);
+            throw e;
+          }
         },
       },
     },

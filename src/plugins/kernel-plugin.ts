@@ -1,6 +1,7 @@
 // `plugin "name" { … }`: a plugin written in the language itself (see kernel/kdlplugin.ts). It is the one node the compiler needs
 // before it can read anything else, so it is a plugin of its own that always comes first.
 import { pluginFromKdl } from '../kernel/kdlplugin.ts';
+import { PluginError } from '../kernel/registry.ts';
 import type { Plugin } from '../kernel/types.ts';
 
 export const kernelPlugin: Plugin = {
@@ -11,7 +12,17 @@ export const kernelPlugin: Plugin = {
       doc: 'A plugin written in the language: new nodes (`node "callout" { body { … } }`), effects and themes.',
       args: [{ name: 'name', doc: 'the name of the plugin' }],
       children: ['node', 'effect', 'theme'],
-      top: { phase: 0, compile: (n, top) => { top.registry.use(pluginFromKdl(n)); } },
+      top: {
+        phase: 0,
+        compile(n, top) {
+          try {
+            top.registry.use(pluginFromKdl(n));
+          } catch (e) {
+            if (e instanceof PluginError) top.fail(n, e.message);
+            throw e;
+          }
+        },
+      },
     },
     node: {
       doc: 'A node of your own: `arg`s, `prop`s and `flag`s it takes, and a `body` it stands for (`{text}` and `{prop}` are replaced, `slot` is its children).',

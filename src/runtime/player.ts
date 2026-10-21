@@ -314,7 +314,8 @@ export class Player {
       let into = host;
       let ph = h;
       let pv = v;
-      if (leaf && (inRow || ownH || ownV)) {
+      // (a swap is one thing to its row: it takes the place of what it shows)
+      if ((leaf || element.kind === 'stack') && (inRow || ownH || ownV)) {
         into = document.createElement('div');
         into.className = 'cell text';
         into.style.flex = '1 1 0';

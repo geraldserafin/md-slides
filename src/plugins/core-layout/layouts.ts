@@ -6,8 +6,17 @@ const el = (kind: 'row' | 'col', children: Element[], props: Record<string, unkn
 const col = (children: Element[], props: Record<string, unknown> = {}) => el('col', children, props);
 const row = (children: Element[], props: Record<string, unknown> = {}) => el('row', children, props);
 
-/** what a part counts as for the layouts: a static block of code is text */
-const role = (e: Element) => (e.kind === 'code' && e.props.animated !== true ? 'text' : e.kind);
+const leavesOf = (e: Element): Element[] => (e.children ? e.children.flatMap(leavesOf) : [e]);
+
+/**
+ * What a part counts as for the layouts: a static block of code is text, and a `swap` of nothing but code (the states of one block)
+ * is code. Any other `swap` is the author's own layout.
+ */
+const role = (e: Element) => {
+  if (e.kind === 'code') return e.props.animated !== true ? 'text' : 'code';
+  if (e.kind === 'stack' && leavesOf(e).every((x) => x.kind === 'code' && x.props.animated === true)) return 'code';
+  return e.kind;
+};
 const isMedia = (e: Element) => e.kind === 'image' || e.kind === 'video';
 export const HEADS = ['title', 'heading'];
 const isHead = (e: Element) => HEADS.includes(e.kind);
@@ -94,7 +103,7 @@ export const builtinRules: LayoutRule[] = [{
   name: 'content',
   infer(parts, { first }) {
     if (!parts.length) return 'default';
-    if (parts.some((p) => p.kind === 'row' || p.kind === 'col' || p.kind === 'stack')) return 'default'; // the author laid it out
+    if (parts.some((p) => ['row', 'col', 'stack'].includes(role(p)))) return 'default'; // the author laid it out
     const kinds = parts.map(role);
     const has = (...k: string[]) => kinds.some((x) => k.includes(x));
     const only = (...k: string[]) => kinds.every((x) => k.includes(x));

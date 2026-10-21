@@ -134,7 +134,7 @@ const service: Service = {
       const out: CodeState[] = [];
       for (const [key, els] of slideGroups[step.slide]) {
         const cyc = cycles.get(`${step.slide}:${key}`);
-        if (cyc) { if (cyc[0].element.at <= step.stage) out.push(cyc[0]); continue; }
+        if (cyc) { const e0 = cyc[0].element; if (e0.at <= step.stage && (e0.out === undefined || step.stage < e0.out)) out.push(cyc[0]); continue; }
         const shown = els.filter((e) => e.at <= step.stage && (e.out === undefined || step.stage < e.out));
         const e = shown[shown.length - 1];
         const s = e && states.get(e);

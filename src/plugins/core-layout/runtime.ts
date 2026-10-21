@@ -46,7 +46,7 @@ export const runtime: PluginRuntime = {
     stack(ctx) {
       const { h, v } = aligned(ctx);
       ctx.el.className = 'stack';
-      setSize(ctx.el, word(ctx.element.props.size), true);
+      setSize(ctx.el, word(ctx.element.props.size), false); // as big as what it shows, like the item it stands for
       decorate(ctx);
       ctx.children(ctx.el, undefined, { h, v, cells: ctx.cells, inRow: false });
     },

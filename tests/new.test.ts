@@ -16,7 +16,7 @@ it('slides new makes a deck that parses and passes the check', () => {
   const src = readFileSync(join(dir, files[0]), 'utf8');
   const { program } = compileText(src, stockRegistry(), 'http://x/talk.slides');
   expect(program.slides).toHaveLength(4);
-  expect(program.slides.map((s) => s.own.layout)).toEqual(['cover', 'default', 'default', 'cover']);
+  expect(program.slides.map((s) => s.own.layout)).toEqual(['cover', 'default', 'code-side', 'cover']);
   expect(program.meta.title).toBe('Talk');
   expect(check(src, stockRegistry())).toEqual([]);
   expect(() => newDeck(dir, 'Talk')).toThrow(/not empty/);
