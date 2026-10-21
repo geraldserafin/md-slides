@@ -337,6 +337,11 @@ export interface TransitionCtx {
 export interface TransitionDef {
   doc: string;
   props?: Record<string, PropDef>;
+  /**
+   * Things with the same key on both sides glide (the `morph` transition pairs them) whatever the transition is; it only does the rest.
+   * A transition that wants no pairing (`none`, a cut) says `pairs: false`.
+   */
+  pairs?: boolean;
   /** applied to the entering and leaving views of a step (or of a slide change); returns how long (ms) a ghost must stay */
   run(ctx: TransitionCtx): number | void;
 }

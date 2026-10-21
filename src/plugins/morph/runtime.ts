@@ -41,7 +41,7 @@ export const runtime: PluginRuntime = {
         }
       } else restEnter.push(...ctx.entering);
       // the rest goes the plain way
-      return ctx.delegate('fade', restEnter, ctx.leaving);
+      return ctx.delegate(ctx.props.rest ?? 'fade', restEnter, ctx.leaving);
     },
   },
 };

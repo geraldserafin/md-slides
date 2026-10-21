@@ -96,7 +96,7 @@ const slideNode: NodeDef = {
     ...ALIGN,
     theme: { doc: 'the theme for this slide only', valuesFrom: 'themes' },
     background: { doc: 'an image or looping video (relative to the file), or any CSS background: `linear-gradient(…)`, `#123`' },
-    transition: { doc: 'how the content comes in', valuesFrom: 'transitions' },
+    transition: { doc: 'how the content comes in and the old one leaves (what is on both slides glides whatever it is, except for `none`)', valuesFrom: 'transitions', default: 'fade' },
     hidden: { doc: 'left out of the show and the PDF (stays in the file)', values: ['#true', '#false'] },
     autoplay: { doc: 'seconds per step when the deck plays itself', type: 'number' },
     header: { doc: '`off` hides the deck\'s header here', values: ['off', 'on'] },

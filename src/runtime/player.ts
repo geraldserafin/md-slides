@@ -400,6 +400,19 @@ export class Player {
     return ctx;
   }
 
+  /**
+   * Run a transition. Views with the same key on both sides are paired first (by the `morph` transition, which is a plugin): they glide,
+   * and the named transition does the rest. A transition that says `pairs: false` (`none`) gets everything.
+   */
+  private runTransition(name: string, ctx: TransitionCtx): number | void {
+    const rt = this.deck.runtime;
+    const def = rt.registry.transition(name);
+    const keyed = (vs: View[]) => vs.some((v) => v.element.key && !v.element.key.startsWith('code:'));
+    const pair = name !== 'morph' && def?.pairs !== false ? rt.transition('morph') : undefined;
+    if (pair && !ctx.instant && keyed(ctx.entering) && keyed(ctx.leaving)) return pair({ ...ctx, props: { ...ctx.props, rest: name } });
+    return (rt.transition(name) ?? rt.transition('fade'))?.(ctx);
+  }
+
   /** a step on the same slide: what comes on and what goes off goes through the transition it asks for */
   private changeStage(step: Step, instant: boolean, dir: 1 | -1) {
     const cur = this.cur;
@@ -431,8 +444,7 @@ export class Player {
     for (const [key, g] of groups) {
       const name = key.split('|')[0];
       enter ??= name;
-      const run = this.deck.runtime.transition(name) ?? this.deck.runtime.transition('fade');
-      run?.(this.ctxFor({ ...g, scope: 'step', instant, dir, props: {} }));
+      this.runTransition(name, this.ctxFor({ ...g, scope: 'step', instant, dir, props: {} }));
     }
     for (const s of this.services) s.step?.({ step, slide: cur.slide, entering, leaving, instant, views: cur.views, enter, exit: enter, slideChanged: false });
   }
@@ -469,8 +481,7 @@ export class Player {
     }
     let keep = LEAVE_S * 1000 + 50;
     if (!instant) {
-      const run = this.deck.runtime.transition(transition) ?? this.deck.runtime.transition('fade');
-      const ms = run?.(this.ctxFor({ entering, leaving, scope: 'slide', instant: false, dir, ghost, from: oldTransition, props: {} }));
+      const ms = this.runTransition(transition, this.ctxFor({ entering, leaving, scope: 'slide', instant: false, dir, ghost, from: oldTransition, props: {} }));
       if (typeof ms === 'number') keep = ms;
     }
     if (ghost) {

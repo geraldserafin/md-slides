@@ -27,7 +27,7 @@ export const coreTransitions: Plugin = {
     'slide-right': { doc: 'The content travels to the right: the old leaves that way, the new comes in from the left.' },
     'slide-left': { doc: 'The content travels to the left: the old leaves that way, the new comes in from the right.' },
     zoom: { doc: 'The new content scales up while it fades in.' },
-    none: { doc: 'A hard cut.' },
+    none: { doc: 'A hard cut.', pairs: false },
   },
   runtime: () => import('./runtime.ts').then((m) => m.runtime),
 };

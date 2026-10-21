@@ -248,3 +248,14 @@ describe('layouts and swaps', () => {
     expect(one('slide { title "T"; text "x"; swap { text "a"; text "b" } }').own.layout).toBe('default');
   });
 });
+
+describe('the id of a block in a swap', () => {
+  it('one state saying its id makes the others that block too', () => {
+    const keys = leaves(one('slide { swap { code "ts" "a" id=g; code "ts" "b"; code "ts" "c" } }')).map((e) => e.key);
+    expect(new Set(keys)).toEqual(new Set(['code:@g']));
+  });
+  it('two different ids in one swap stay two blocks', () => {
+    const keys = leaves(one('slide { swap { code "ts" "a" id=g; code "ts" "b" id=h } }')).map((e) => e.key);
+    expect(keys).toEqual(['code:@g', 'code:@h']);
+  });
+});

@@ -6,7 +6,7 @@ export const morph: Plugin = {
   name: 'morph',
   api: 1,
   transitions: {
-    morph: { doc: 'Elements with the same key (an `id`, a picture file) glide from their old place to the new one; the rest fades. Code in a swap morphs by the diff of its syntax trees (the code plugin).' },
+    morph: { doc: 'Elements with the same key (an `id`, a picture file) glide from their old place to the new one. Every transition but `none` does this first and then does its own thing for the rest; `transition=morph` is the same with a fade for the rest. Code in a swap morphs by the diff of its syntax trees (the code plugin).' },
   },
   runtime: () => import('./runtime.ts').then((m) => m.runtime),
 };

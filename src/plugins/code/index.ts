@@ -3,7 +3,7 @@
 // The same `id` in another `swap`, or on another slide, continues the animation. The drawing is in runtime.ts.
 import { flagsOf, str, strs } from '../../kernel/util.ts';
 import { walk } from '../../kernel/lower.ts';
-import type { KNode, LowerCtx, Plugin, PropDef } from '../../kernel/types.ts';
+import type { Element, KNode, LowerCtx, Plugin, PropDef } from '../../kernel/types.ts';
 import { LANGUAGES } from './languages.ts';
 
 const FLAGS: Record<string, string> = { lines: 'line numbers', nolines: 'no line numbers', nopanel: 'no panel behind the code' };
@@ -59,6 +59,18 @@ export const code: Plugin = {
     },
   },
   passes: [
+    // the states of one swap are one block: when one of them says its `id`, the others are that block too
+    (program) => {
+      for (const slide of program.slides) {
+        const byRegion = new Map<string, Element[]>();
+        for (const e of walk(slide.root)) if (e.kind === 'code' && e.region) (byRegion.get(e.region) ?? byRegion.set(e.region, []).get(e.region)!).push(e);
+        for (const els of byRegion.values()) {
+          const ids = new Set(els.filter((e) => e.key?.startsWith('code:@')).map((e) => e.key!));
+          if (ids.size !== 1) continue;
+          for (const e of els) if (e.key && !e.key.startsWith('code:@') && /^code:r/.test(e.key)) e.key = [...ids][0];
+        }
+      }
+    },
     // `code from="id"`: a copy of the last state of the earlier block with that id
     (program) => {
       const last = new Map<string, { lang: string; text: string; animated: boolean }>();
