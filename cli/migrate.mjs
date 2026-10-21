@@ -200,6 +200,7 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
               else note(`code class "${c}" dropped`);
             }
           } else if (k === 'loop') flags.push('loop');
+          else if (k === 'transition') continue; // a transition belongs to the swap now (below)
           else if (k === 'halign') props.push(prop('align', ALIGN[v] ?? v));
           else if (k === 'valign') props.push(prop('valign', VALIGN[v] ?? v));
           else props.push(prop(k, v));
@@ -211,19 +212,23 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
           for (const f of parseMarkup(content)) if (typeof f !== 'string') frames.push({ attrs: f.attrs, code: dedent(raw(f)) });
         } else frames.push({ attrs: {}, code: dedent(content) });
         for (const f of frames) if (f.attrs.at !== undefined) note('frame `at` is gone (the states of a swap take a click each)');
+        // the transition of a swap is one for all its states: the one the old frames asked for (a mix is reported)
+        const asked = [...new Set([a.transition, ...frames.map((f) => f.attrs.transition)].filter((t) => t && t !== 'morph'))];
+        if (asked.length > 1) note(`the frames of a code block ask for different transitions (${asked.join(', ')}): the swap has one, ${asked[0]}`);
+        const trans = asked[0] ? ` transition=${asked[0]}` : '';
         const lang = a.lang ? ` ${q(a.lang)}` : '';
         if (frames.length === 1) {
-          const own = ['focus', 'transition'].filter((k) => frames[0].attrs[k] !== undefined).map((k) => ` ${prop(k, frames[0].attrs[k])}`).join('');
+          const own = ['focus'].filter((k) => frames[0].attrs[k] !== undefined).map((k) => ` ${prop(k, frames[0].attrs[k])}`).join('');
           out(indent, `code${lang}${flags.map((f) => ` ${f}`).join('')}${props.map((p) => ` ${p}`).join('')}${own} ${rawStr(frames[0].code, indent)}`);
           break;
         }
         // several frames: the states of one block, the code children of a swap (autoplay and loop are the swap's)
         const timing = props.filter((p) => p.startsWith('autoplay=')).join(' ');
         const loop = flags.includes('loop');
-        out(indent, `swap${timing ? ` ${timing}` : ''}${loop ? ' loop' : ''} {`);
+        out(indent, `swap${timing ? ` ${timing}` : ''}${trans}${loop ? ' loop' : ''} {`);
         frames.forEach((f, i) => {
           const first = i === 0 ? `${flags.filter((x) => x !== 'loop').map((x) => ` ${x}`).join('')}${props.filter((p) => !p.startsWith('autoplay=')).map((p) => ` ${p}`).join('')}` : '';
-          const own = ['focus', 'transition'].filter((k) => f.attrs[k] !== undefined).map((k) => ` ${prop(k, f.attrs[k])}`).join('');
+          const own = ['focus'].filter((k) => f.attrs[k] !== undefined).map((k) => ` ${prop(k, f.attrs[k])}`).join('');
           out(`${indent}  `, `code${lang}${first}${own} ${rawStr(f.code, `${indent}  `)}`);
         });
         out(indent, '}');

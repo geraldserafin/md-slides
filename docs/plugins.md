@@ -16,7 +16,7 @@ plugin "ui" {
     arg "text" doc="what it says"
     prop "kind" values="info warn" default="info" doc="its color"
     body {
-      col class="callout-{kind}" {
+      col size=auto class="callout-{kind}" {
         text "{text}"
         slot                       // the children of the use go here
       }

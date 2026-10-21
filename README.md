@@ -349,7 +349,7 @@ PDF export is also available from any browser: open `?print=slides` or `?print=s
 `slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
-`slides check <deck...>` validates every `.slides` file against the schema (unknown nodes and properties, nodes in the wrong place, bad values, missing texts; with a "did you mean") and prints `file:line:col: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema` prints the schema (`src/schema.ts`: every node, its arguments, flags and properties, and what may sit inside it; the layouts) as JSON, the same data the editor tooling uses. `slides migrate <deck>` converts an old tag-markup deck.
+`slides check <deck...>` validates every `.slides` file against the schema (unknown nodes and properties, nodes in the wrong place, bad values, missing texts; with a "did you mean") and prints `file:line:col: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema [deck]` prints the registry as JSON (every node with its arguments, flags and properties and the plugin it came from, the layouts, transitions, effects, languages, themes; with a deck folder, its plugins too), the same data the editor tooling uses. `slides migrate <deck>` converts an old tag-markup deck.
 
 ## Starting from a PowerPoint template
 
@@ -431,17 +431,19 @@ Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<
 
 ## Adding a language
 
-1. Add the language tags (the `lang=` values) to `src/tags.json` (`"kt": "kotlin"`).
+1. Add the language tags (what `code "kt"` takes) to `src/plugins/code/languages.ts` (`kt: 'kotlin'`).
 2. Add the grammar name to the glob in `src/main.ts` (grammars come from the
    [`tree-sitter-wasms`](https://www.npmjs.com/package/tree-sitter-wasms) package).
-3. Optionally map node types to token classes in `src/tokens.ts`.
+3. Optionally map node types to token classes in `src/plugins/code/tokens.ts`.
+
+Or add a language without touching the source, with a plugin: `languages: [{ name: 'zig', tags: ['zig'], wasm: './tree-sitter-zig.wasm' }]` (see [docs/plugins.md](docs/plugins.md)).
 
 Built in: TypeScript, TSX, JavaScript, C, C++, Python, Rust, Go, Java, Bash, JSON, HTML, CSS, Lua. (YAML is excluded: the grammar in `tree-sitter-wasms` crashes with this runtime.)
 
 ## How the diff works
 
-For every pair of consecutive frames of a code group the viewer matches the two syntax trees and renders the match.
-The matcher (`src/gumtree.ts`) is GumTree plus a few extra cues that reduce false matches:
+For every pair of consecutive states of a code block the viewer matches the two syntax trees and renders the match.
+The matcher (`src/plugins/code/gumtree.ts`) is GumTree plus a few extra cues that reduce false matches:
 
 1. **Top-down** (height ≥ 2): identical subtrees, tallest first. Identical pairs sitting in *different
    slots* are deferred when one side has its own same-slot partner (e.g. a function body vs. an identical
