@@ -1,9 +1,9 @@
 // The slide and its layout: `slide` (and which layout it gets), `layout` (your own), `row`, `col`, `grid`, `slot`. A layout turns
-// the parts of a slide into rows and columns; without `layout=` one is chosen from what is on the slide.
+// the parts of a slide into rows and columns; without `layout=` the slide is one column, as written.
 import { PluginError } from '../../kernel/registry.ts';
-import { layoutProps, str, strs } from '../../kernel/util.ts';
-import type { Element, KNode, LayoutDef, LayoutRule, LowerCtx, NodeDef, Plugin, PropDef, TopCtx } from '../../kernel/types.ts';
-import { builtinLayouts, builtinRules, HEADS } from './layouts.ts';
+import { layoutProps, str } from '../../kernel/util.ts';
+import type { Element, KNode, LayoutDef, LowerCtx, NodeDef, Plugin, PropDef, TopCtx } from '../../kernel/types.ts';
+import { builtinLayouts } from './layouts.ts';
 
 const HALIGN = ['left', 'center', 'right'];
 const VALIGN = ['top', 'middle', 'bottom'];
@@ -74,11 +74,7 @@ function compileSlide(node: KNode, top: TopCtx) {
     else pending.push(c);
   }
   flush();
-  if (!name) {
-    for (const rule of reg.layoutRules()) { name = rule.infer(main, { first: top.index === 0 }); if (name) break; }
-    name ??= 'default';
-    layout = reg.layout(name)!;
-  }
+  if (!name) { name = 'default'; layout = reg.layout(name)!; }
   const root = layout!.build(main, slots, { columns: p.columns !== undefined ? String(p.columns) : undefined, first: top.index === 0 });
   const fixed: Record<string, string> = { ...(layout!.defaults ?? {}), ...own, layout: name };
   const r = ctx.result();
@@ -89,9 +85,9 @@ function compileSlide(node: KNode, top: TopCtx) {
 }
 
 const slideNode: NodeDef = {
-  doc: 'One slide. Its content is laid out by its layout, chosen from what is in it unless `layout=` says otherwise.',
+  doc: 'One slide: a column of what you write, top to bottom. A `row` or `col` takes the height that is left (several share it); `layout=` names another layout.',
   props: {
-    layout: { doc: 'a built-in or own layout (default: chosen from the content)', valuesFrom: 'layouts' },
+    layout: { doc: 'a built-in or own layout (default: one column, as written)', valuesFrom: 'layouts' },
     columns: { doc: 'proportions of the columns, e.g. "1 2"' },
     ...ALIGN,
     theme: { doc: 'the theme for this slide only', valuesFrom: 'themes' },
@@ -150,10 +146,6 @@ export const coreLayout: Plugin = {
     },
   },
   layouts: builtinLayouts,
-  layoutRules: builtinRules,
   runtime: () => import('./runtime.ts').then((m) => m.runtime),
 };
 
-void strs;
-void HEADS;
-export type { LayoutRule };

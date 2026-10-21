@@ -21,7 +21,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Code that moves"
   text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
   swap {
@@ -53,7 +53,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Several code blocks on one slide"
   text "Blocks without an `#id` are independent: each is its own animation, side by side or one below the other."
   code "typescript" #"""
@@ -204,7 +204,7 @@ slide {
   }
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Each edit changes exactly one token or a tiny region; everything else must stay still.
     """#
@@ -237,7 +237,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "Reorder arguments"
   swap {
     code "typescript" id=g2 #"""
@@ -251,7 +251,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "if / else to a ternary"
   swap {
     code "typescript" #"""
@@ -267,7 +267,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "Loop to method chain"
   swap {
     code "typescript" #"""
@@ -286,7 +286,7 @@ slide {
   }
 }
 
-slide {
+slide layout="code-side" {
   heading "A longer story: growing a class"
   text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
   swap {
@@ -412,7 +412,7 @@ slide {
   }
 }
 
-slide {
+slide layout="code-side" {
   heading "Languages"
   text "Fence tags map to [tree-sitter](https://tree-sitter.github.io/) grammars, loaded lazily and only for the languages a deck uses. Every language animates the same way; here is Rust."
   list {
@@ -445,7 +445,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Code style: panel, line numbers, title"
   text "Per block: classes `.panel` (a background box), `.lines` (line numbers) and options `start=10`, `title=\"cart.ts\"`, `bg=#16213e`, `radius=14`, `pad=\"1em 1.4em\"`. Deck-wide defaults live under `code` in `deck.json`."
   code "typescript" lines title="cart.ts" start=10 #"""
@@ -460,7 +460,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   notes #"""
     Options are attributes of the tag: <code lang=ts class=left size=18>
     """#
@@ -478,7 +478,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code-side" {
   heading "Code options: size"
   text "`size=14` fixes the font size in pixels. Without it the code is scaled to fit, using the largest frame of the block, so the size never jumps between frames."
   swap {
@@ -490,14 +490,14 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "Code options: `class=\"right top\"`"
   code "typescript" align=right valign=top #"""
     const corner = "top right";
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Focus lines"
   text "`focus=2-4` keeps those lines bright and dims the rest. Set it **per frame** — here the code never changes, only the focus does, so the lines fade smoothly."
   swap {
@@ -561,7 +561,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   notes #"""
     The largest frame of a block decides the scale, so the font size is constant across frames.
     """#
@@ -591,7 +591,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code-side" {
   heading "`size=` fixes the font size"
   text "Two frames, `size=30`: the code is big and stays big."
   swap {
@@ -604,7 +604,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code-side" {
   heading "`fit=none`"
   text "No automatic scaling at all (scale 1). Use it with a fixed `size` when you control the content."
   code "typescript" fit=none #"""
@@ -623,7 +623,7 @@ slide {
   text "Three clicks, one swap each, in this order."
   row {
     col {
-      subheading "morph"
+      heading size=3 "morph"
         swap transition=morph {
           code "typescript" #"""
             function area(w: number, h: number) {
@@ -638,7 +638,7 @@ slide {
         }
     }
     col {
-      subheading "fade"
+      heading size=3 "fade"
         swap transition=fade {
           code "typescript" #"""
             function area(w: number, h: number) {
@@ -653,7 +653,7 @@ slide {
         }
     }
     col {
-      subheading "none"
+      heading size=3 "none"
         swap transition=none {
           code "typescript" #"""
             function area(w: number, h: number) {

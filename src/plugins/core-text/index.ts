@@ -60,8 +60,10 @@ export const coreText: Plugin = {
   api: 1,
   nodes: {
     title: textNode('title', 'The big heading of the slide (also its name in the drawer).', {}, true),
-    heading: textNode('heading', 'A heading.', {}, true),
-    subheading: textNode('subheading', 'A smaller heading.'),
+    heading: {
+      ...textNode('heading', 'A heading: `size=1` (biggest) to `6`.', {}, true),
+      props: { size: { doc: 'the level: 1 is the biggest, 6 the smallest', values: ['1', '2', '3', '4', '5', '6'], default: '2' }, ...ALIGN, ...FX },
+    },
     text: textNode('text', 'A paragraph.'),
     quote: textNode('quote', 'A quote with an accent bar.', { by: { doc: 'who said it' } }),
     list: {

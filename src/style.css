@@ -78,20 +78,23 @@ body.drawer-open #app { left: 316px; }
 .item { margin: var(--item-gap, 0.3em) 0; }
 .item > :first-child { margin-top: 0; }
 .item > :last-child { margin-bottom: 0; }
-.item h1, .item h2, .item h3 { font-family: var(--font-heading); color: var(--heading); margin: 0.2em 0; line-height: 1.2; }
+.item :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-heading); color: var(--heading); margin: 0.2em 0; line-height: 1.2; }
 .item h1 { font-size: calc(var(--heading-size) * 1.3); }
 .item h2 { font-size: var(--heading-size); }
 .item h3 { font-size: calc(var(--heading-size) * 0.75); }
+.item h4 { font-size: calc(var(--heading-size) * 0.6); }
+.item h5 { font-size: calc(var(--heading-size) * 0.5); }
+.item h6 { font-size: calc(var(--heading-size) * 0.42); }
 .item p { margin: 0.4em 0; line-height: 1.45; color: var(--muted); }
 .item a { color: var(--accent); }
 .item code { font-family: var(--font-code); font-size: 0.92em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
-.item h1 code, .item h2 code, .item h3 code { background: none; padding: 0; font-size: 0.9em; font-weight: 600; color: var(--accent); }
+.item :is(h1, h2, h3, h4, h5, h6) code { background: none; padding: 0; font-size: 0.9em; font-weight: 600; color: var(--accent); }
 .item ul, .item ol { color: var(--muted); line-height: 1.5; }
 .item blockquote { margin: 0.5em 0; padding-left: 1em; border-left: 3px solid var(--accent); color: var(--muted); }
 .item-code pre { text-align: left; margin: 0; padding: 0.8em 1em; background: var(--code-bg); border-radius: 8px; font-family: var(--font-code); font-size: 0.85em; overflow: auto; }
 .item.left { text-align: left; } .item.center { text-align: center; } .item.right { text-align: right; }
-.item.left h1, .item.left h2, .item.left h3 { text-align: left; }
-.item.right h1, .item.right h2, .item.right h3 { text-align: right; }
+.item.left :is(h1, h2, h3, h4, h5, h6) { text-align: left; }
+.item.right :is(h1, h2, h3, h4, h5, h6) { text-align: right; }
 
 .item-media { display: flex; justify-content: center; margin: 0.6em 0; }
 .item-media.left { justify-content: flex-start; } .item-media.right { justify-content: flex-end; }
@@ -358,13 +361,14 @@ body.print-mode #app { position: static; }
 
 /* Space around headings scales with the heading: a little under a small heading, more under a big one. It is set in
    em of the heading itself (below) and in the heading size (above, between blocks). */
-.item-h1, .item-h2, .item-h3 { margin-bottom: 0; }
+:is(.item-h1, .item-h2, .item-h3, .item-h4, .item-h5, .item-h6) { margin-bottom: 0; }
 .item.item-h1 > h1 { margin-bottom: 0.3em; }
 .item.item-h2 > h2 { margin-bottom: 0.1em; }
 .item.item-h3 > h3 { margin-bottom: 0; }
 .item + .item-h1 { margin-top: calc(var(--heading-size) * 1.1); }
 .item + .item-h2 { margin-top: calc(var(--heading-size) * 0.8); }
 .item + .item-h3 { margin-top: calc(var(--heading-size) * 0.55); }
+.item + :is(.item-h4, .item-h5, .item-h6) { margin-top: calc(var(--heading-size) * 0.4); }
 /* a centered hub: the cards wrap and sit in the middle too */
 .gallery.align-center .cards { display: flex; flex-wrap: wrap; justify-content: center; }
 .gallery.align-center .card { flex: 0 1 var(--card-w, 380px); }

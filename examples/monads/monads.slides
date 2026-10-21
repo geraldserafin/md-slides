@@ -9,7 +9,7 @@ slide layout=cover background="linear-gradient(135deg, #1a1a2e, #47305f)" {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Show the pain: every return must be checked separately, out-params instead of return values
     """#
@@ -49,7 +49,7 @@ slide {
     }
     """#
 }
-slide {
+slide layout="code" {
   heading "Or: exceptions"
   code "cpp" id=flow #"""
     int parseInt(const std::string& s) {
@@ -71,7 +71,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Now the error comes back as a value, not through a reference -- but manual checking remains
     """#
@@ -107,7 +107,7 @@ slide {
     }
     """#
 }
-slide {
+slide layout="code" {
   heading "Refactor: and_then (monadic bind)"
   code "cpp" id=flow #"""
     std::optional<int> parseInt(const std::string& s) {
@@ -143,7 +143,7 @@ slide {
   heading "The problem with optional: you can't tell WHAT went wrong"
   text "`std::nullopt` carries no information -- a parse failure and a division by zero look identical from the outside."
 }
-slide {
+slide layout="code" {
   heading "std::expected: Either for C++"
   code "cpp" id=flow #"""
     std::expected<int, std::string> parseInt(const std::string& s) {
@@ -168,7 +168,7 @@ slide {
     }
     """#
 }
-slide {
+slide layout="code" {
   heading "Adding a step: the chain grows linearly, it doesn't nest"
   code "cpp" id=flow #"""
     std::expected<int, std::string> parseInt(const std::string& s) {
@@ -201,7 +201,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Ask for questions
     """#

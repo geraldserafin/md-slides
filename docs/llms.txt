@@ -12,8 +12,8 @@
 2. Install with `npm i -g @geraldserafin/slideit` (the command is `slides`; one-off: `npx @geraldserafin/slideit ...`), check the
    file with `slides check my-talk/` (fix what it prints), then `slides dev my-talk/` (live reload) or `slides build my-talk/ -o dist`
    (static site), `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
-3. Write for the audience: one idea per slide, short text, code that changes in small steps. Do not position anything: the layout of a
-   slide follows from what is on it.
+3. Write for the audience: one idea per slide, short text, code that changes in small steps. Position with `row`/`col`: a slide is a
+   column; `heading`/`text` take their height, `row`/`col` share the rest. No layout is guessed from the content.
 
 ## The language
 
@@ -46,7 +46,7 @@ slide {
 | `deck` | settings of the deck (once): `title author date theme autoplay loop`; children `vars themes fonts google-fonts header footer plugins defaults animation code-style css` |
 | `slide` | one slide; properties below |
 | `layout "name"` | an own layout: rows and columns with `slot "name"` (and `slot` for the rest) |
-| `title heading subheading text` | headings and a paragraph: `text "..."`; `size="small"\|"large"`, `align`, `valign`, `anim`, `id` |
+| `title heading text` | headings and a paragraph: `text "..."`; `heading size=1..6`; text `size="small"\|"large"`, `align`, `valign`, `anim`, `id` |
 | `list` + `- "item"` | a list (nest a `list` inside an item); flags `numbered`, `steps` (one item per click); `start=3` |
 | `quote "..." by="who"` | a quote |
 | `table` | `head "A" "B"` then `- "1" "2"` per row |
@@ -63,10 +63,9 @@ slide {
 Any shown node takes `anim` (fade|rise|zoom|left|right|down|blur|pop|none) and `id=name` (morph: the same id on the next slide
 glides between the two; same-file images do it automatically).
 
-## Layouts (chosen from the content unless `layout=` says otherwise)
+## Layouts (none is guessed: without `layout=` the slide is one column)
 
-Only a `title` (+ `text`) on the first slide: `cover`; only a `title`: `section`; text and one image: `image-right`; several images:
-`gallery`; text and animated code: `code-side`; only a `quote`: `quote`; otherwise `default`. Built in: `default cover section center quote
+A slide is a column: `heading`/`text` take their height, `row`/`col` share the rest. Built in (name with `layout=`): `default cover section center quote
 full two-cols three-cols image-left image-right gallery code code-side`. `two-cols` takes the slots `left` and `right`
 (`slide layout=two-cols columns="1 2" { title "T"; left { text "a" }; right { code "ts" "x" } }`), `three-cols` also `middle`.
 Own layout: `layout "side" { row { col size="25%" { slot "s" }; col { slot } } }` then `slide layout=side { s { text "narrow" }; text "wide" }`.

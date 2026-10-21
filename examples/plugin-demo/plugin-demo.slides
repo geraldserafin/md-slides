@@ -34,11 +34,11 @@ slide {
   }
   swap transition=wipe {
     col {
-      subheading "one"
+      heading size=3 "one"
       text "The next click uncovers the other from the left."
     }
     col {
-      subheading "two"
+      heading size=3 "two"
       text "A transition is a function of the things that come and go."
     }
   }
@@ -53,7 +53,7 @@ slide {
   callout "Info is the default kind."
 }
 
-slide {
+slide layout="code-side" {
   heading "What a plugin is"
   text "An ES module that default-exports an object. The viewer imports it before it reads the slides:"
   code "js" #"""

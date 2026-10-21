@@ -156,17 +156,9 @@ Where a node has several children write them on separate lines, or on one line w
 lines with `"""`, and a raw string `#"…"#` has no escapes (good for code and LaTeX). `//` starts a comment and `/-` in front of a node
 switches the whole node off. A syntax error is reported with its line (`slides check`, the editor, the viewer's error screen).
 
-**Layouts.** You write what is on the slide; its layout follows from the content, or you name one:
-
-| On the slide | Layout |
-| --- | --- |
-| only a `title` (and `text`), the first slide | `cover` |
-| only a `title` | `section` |
-| `title`, `text`, `list`… | `default` |
-| text and one image | `image-right` |
-| several images | `gallery` |
-| text and animated code | `code-side` |
-| only a `quote` | `quote` |
+**Layouts.** What you write is the layout: a slide is a column, top to bottom. `heading` and `text` take the height they need; a `row` or `col` takes
+what is left of the height, and two of them share it equally (`size=2` weights, `size=auto`). Nothing is guessed from the content. To
+place things differently, name a layout:
 
 Built in: `default` `cover` `section` `center` `quote` `full` `two-cols` (`left`, `right`) `three-cols` (`left`, `middle`, `right`)
 `image-left` `image-right` `gallery` `code` `code-side`. Name one with `slide layout=two-cols`, then put content in the slots:
@@ -202,7 +194,7 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 | Node | Does | Arguments, flags, properties |
 | --- | --- | --- |
 | `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
-| `title` `heading` `subheading` `text` | a heading, a paragraph; one item each | the text; `size="small"\|"large"` `align` `valign` `anim` `id` |
+| `title` `heading` `text` | a heading (`size=1`…`6`), a paragraph; one item each | the text; `size="small"\|"large"` (not on headings) `align` `valign` `anim` `id` |
 | `list` with `-` items | a list, nested by putting a `list` in an item | `numbered` `steps` `start=3` |
 | `quote` | a quote with an accent bar | the text, `by="who"` |
 | `table` with `head` and `-` | a table | the cells as arguments |
@@ -260,7 +252,7 @@ is loaded on first use and left out of builds whose decks have no `diagram`.
 
 | Property | Meaning |
 | --- | --- |
-| `layout=cover` | a built-in or own layout (default: chosen from the content) |
+| `layout=cover` | a built-in or own layout (default: one column, as written) |
 | `columns="1 2"` | proportions of the columns of a column layout |
 | `theme=light` | the theme for this slide only |
 | `background="img.jpg"` | an image or a looping muted video relative to the file, or any CSS: `"linear-gradient(…)"`, `"#123"` |

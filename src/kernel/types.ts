@@ -74,12 +74,6 @@ export interface LayoutCtx {
   first: boolean;
 }
 
-/** a rule that picks a layout from the content of a slide when it names none; the first that answers wins */
-export interface LayoutRule {
-  name: string;
-  infer(parts: Element[], ctx: { first: boolean }): string | undefined;
-}
-
 // ---------------------------------------------------------------------------------------------------------------------
 // The program: what the compiler makes of the source
 
@@ -410,7 +404,6 @@ export interface Plugin {
   /** the language */
   nodes?: Record<string, NodeDef>;
   layouts?: Record<string, LayoutDef>;
-  layoutRules?: LayoutRule[];
   /** the names of transitions and effects (their implementations are in `runtime`) */
   transitions?: Record<string, Omit<TransitionDef, 'run'> & { run?: TransitionDef['run'] }>;
   effects?: Record<string, EffectDef>;
@@ -438,7 +431,6 @@ export interface Registry {
   childrenOf(name: string): string[];
   layout(name: string): LayoutDef | undefined;
   layouts(): Record<string, LayoutDef>;
-  layoutRules(): LayoutRule[];
   effect(name: string): EffectDef | undefined;
   effects(): Record<string, EffectDef>;
   transition(name: string): (Omit<TransitionDef, 'run'> & { run?: TransitionDef['run'] }) | undefined;

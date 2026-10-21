@@ -171,7 +171,7 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
     };
     switch (n.tag) {
       case 'h1': case 'h2': case 'h3': case 'p': case 'quote': {
-        const kw = { h1: 'title', h2: 'heading', h3: 'subheading', p: 'text', quote: 'quote' }[n.tag];
+        const kw = { h1: 'title', h2: 'heading', h3: 'heading size=3', p: 'text', quote: 'quote' }[n.tag];
         wrap((ind) => out(ind, `${kw} ${strArg(inline(n.children), ind)}${fxProps(a).map((x) => ` ${x}`).join('')}`));
         break;
       }

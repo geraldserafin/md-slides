@@ -6,7 +6,7 @@ slide layout=cover background="linear-gradient(135deg, #f4ecd8, #e3cd9c)" {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     append in a loop -> list comprehension. Note how `if` moves inside.
     """#
@@ -26,7 +26,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "Lazily: generator expression"
   swap {
     code "python" id=g2 #"""
@@ -40,7 +40,7 @@ slide {
   }
 }
 
-slide {
+slide layout="code" {
   heading "Counting words"
   swap {
     code "python" id=g1 #"""
@@ -80,7 +80,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     ~15 lines of boilerplate shrink to a decorator and annotated fields.
     """#
@@ -121,7 +121,7 @@ slide {
       """#
   }
 }
-slide {
+slide layout="code" {
   heading "Resource handling"
   swap {
     code "python" id=g2 #"""

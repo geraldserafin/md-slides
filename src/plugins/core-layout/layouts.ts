@@ -1,6 +1,6 @@
-// The built-in layouts and the rule that chooses among them. A layout gets the parts of a slide (its elements, in reading order) and
+// The built-in layouts, which a slide names with `layout=`. A layout gets the parts of a slide (its elements, in reading order) and
 // the contents of its slots, and returns the root column.
-import type { Element, LayoutDef, LayoutRule } from '../../kernel/types.ts';
+import type { Element, LayoutDef } from '../../kernel/types.ts';
 
 const el = (kind: 'row' | 'col', children: Element[], props: Record<string, unknown> = {}): Element => ({ kind, props, at: 0, children });
 const col = (children: Element[], props: Record<string, unknown> = {}) => el('col', children, props);
@@ -98,22 +98,3 @@ export const builtinLayouts: Record<string, LayoutDef> = {
   },
 };
 
-/** which layout a slide with this content gets when it names none */
-export const builtinRules: LayoutRule[] = [{
-  name: 'content',
-  infer(parts, { first }) {
-    if (!parts.length) return 'default';
-    if (parts.some((p) => ['row', 'col', 'stack'].includes(role(p)))) return 'default'; // the author laid it out
-    const kinds = parts.map(role);
-    const has = (...k: string[]) => kinds.some((x) => k.includes(x));
-    const only = (...k: string[]) => kinds.every((x) => k.includes(x));
-    const media = parts.filter(isMedia);
-    if (only('title', 'text', 'heading') && has('title')) return first ? 'cover' : kinds.length === 1 ? 'section' : 'default';
-    if (only('quote')) return 'quote';
-    if (only('image', 'video')) return media.length === 1 ? 'full' : 'gallery';
-    if (has('code')) return has('text', 'list') ? 'code-side' : 'code';
-    if (media.length === 1 && !has('code', 'table', 'chart', 'diagram', 'audio') && has('text', 'list')) return 'image-right';
-    if (media.length >= 2 && only('title', 'heading', 'image', 'video')) return 'gallery';
-    return undefined;
-  },
-}];

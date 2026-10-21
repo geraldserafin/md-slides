@@ -8,31 +8,42 @@ slide layout=cover align=center valign=middle justify=#false {
 }
 
 slide {
-  heading "Code that moves"
-  text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
-  swap {
-    code "typescript" id=g1 #"""
-      function total(items: number[]) {
-        let sum = 0;
-        for (const x of items) {
-          sum += x;
+  col {
+    heading "Code that moves"
+    text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
+    swap {
+      code "typescript" id=g1 #"""
+        function total(items: number[]) {
+          let sum = 0;
+          for (const x of items) {
+            sum += x;
+          }
+          return sum;
         }
-        return sum;
-      }
-      """#
-    code "typescript" #"""
-      function total(items: number[]) {
-        const sum = items.reduce(
-          (acc, x) => acc + x,
-          0,
-        );
-        return sum;
-      }
-      """#
-    code "typescript" #"""
-      const total = (items: number[]) =>
-        items.reduce((acc, x) => acc + x, 0);
-      """#
+        """#
+      code "typescript" id=g1 #"""
+        function total(items: number[]) {
+          const sum = 0;
+          for (const x of items) {
+            sum += x;
+          }
+          return sum;
+        }
+        """#
+      code "typescript" #"""
+        function total(items: number[]) {
+          const sum = items.reduce(
+            (acc, x) => acc + x,
+            0,
+          );
+          return sum;
+        }
+        """#
+      code "typescript" #"""
+        const total = (items: number[]) =>
+          items.reduce((acc, x) => acc + x, 0);
+        """#
+    }
   }
   notes #"""
     Press the right arrow slowly and watch `total`, `items` and `return` keep their identity.
@@ -40,12 +51,11 @@ slide {
 }
 
 slide {
-  title "What the diff does"
+  heading "What the diff does"
   text "Six kinds of edit, one at a time. Each one is a child of a `swap` under this title and slides in from the left: press → to play it, → again for the next."
-  swap anim=left {
+  swap anim=right {
     col {
-      heading "`rename`"
-      text "Only the identifiers change; every other token stays exactly where it is."
+      text "`rename` - Only the identifiers change; every other token stays exactly where it is."
       swap autoplay=1 loop {
         code "typescript" #"""
           function area(r: number) {
@@ -166,6 +176,7 @@ slide {
 }
 
 slide {
+  col {
   heading "A longer story: growing a class"
   text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
   swap {
@@ -173,11 +184,13 @@ slide {
       class Stack:
           pass
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
               self.items = []
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -186,6 +199,7 @@ slide {
           def push(self, item):
               self.items.append(item)
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -197,6 +211,7 @@ slide {
           def pop(self):
               return self.items.pop()
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -210,6 +225,7 @@ slide {
                   raise IndexError("empty")
               return self.items.pop()
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -223,6 +239,7 @@ slide {
                   raise IndexError("empty")
               return self._items.pop()
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -239,6 +256,7 @@ slide {
           def __len__(self):
               return len(self._items)
       """#
+
     code "python" #"""
       class Stack:
           def __init__(self):
@@ -255,6 +273,7 @@ slide {
           def __len__(self):
               return len(self._items)
       """#
+  }
   }
 }
 
@@ -301,14 +320,16 @@ slide {
 }
 
 slide {
+  col {
+  heading "Morph anything"
+  text "Not only code: an image, a heading or a diagram with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
+  image "diagram.svg" align=left width="230px"
+  }
   notes #"""
     Morph pairs items by id between two slides. Text that changes cross-fades while it moves.
     """#
-  heading "Morph anything"
-  text "Not only code: an image, a heading or a diagram with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
-  image "diagram.svg" align=left width="180px"
 }
-slide {
+slide layout="image-right" {
   heading "Same picture, bigger"
   image "diagram.svg" align=right width="460px"
   text "The picture above is the same file, so it grew and moved by itself. Give a heading or a paragraph the same `id` and it glides too."

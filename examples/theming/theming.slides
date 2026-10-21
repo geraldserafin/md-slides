@@ -52,7 +52,7 @@ slide justify=#true align=left valign=top {
     """#
 }
 
-slide align=right {
+slide layout="image-right" align=right {
   heading "align=right"
   text "The heading, the text and the media all sit on the right edge."
   list {
@@ -123,7 +123,7 @@ slide theme=paper background="linear-gradient(160deg, #f4ecd8, #e8d9b5)" {
     """#
 }
 
-slide theme=sunset {
+slide layout="code-side" theme=sunset {
   heading "A custom theme: `sunset`"
   text "Defined once under `themes` in this deck's `deck.json` and used here with `theme: sunset`. It also joins the **t** key cycle."
   swap {
@@ -143,7 +143,7 @@ slide theme=sunset {
   }
 }
 
-slide theme=terminal {
+slide layout="code-side" theme=terminal {
   heading "A custom theme: `terminal`"
   text "Green on black, with token colors to match. Change a theme and the code tokens recolor, because they are just CSS variables."
   swap {
@@ -158,7 +158,7 @@ slide theme=terminal {
   }
 }
 
-slide theme=light {
+slide layout="code-side" theme=light {
   heading "Built-in `light`"
   text "Crisp on projectors. Per-slide, so you can mix themes inside one deck."
   swap {
@@ -182,7 +182,7 @@ slide background="#2d1b4e" theme=midnight {
     """#
 }
 
-slide theme=midnight background="radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)" {
+slide layout="code-side" theme=midnight background="radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)" {
   heading "Backgrounds: gradients"
   text "`background: radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)`"
   swap {
@@ -234,7 +234,7 @@ slide transition=slide-left {
   text "The content travels to the left: the new slide comes in from the right, the old one leaves to the left. `slide-right` is the mirror image, and it moves the code along with the text."
 }
 
-slide transition=none {
+slide layout="code-side" transition=none {
   heading "none"
   text "No entrance animation for the text: it appears instantly. Code still animates."
   swap {
@@ -248,7 +248,7 @@ slide transition=none {
   }
 }
 
-slide --move-dur="1.6s" --fade-dur="0.9s" {
+slide layout="code-side" --move-dur="1.6s" --fade-dur="0.9s" {
   heading "Slow motion"
   text "Every animation knob is a CSS variable, so a slide can override it: `--move-dur=\"1.6s\"` and `--fade-dur=\"0.9s\"` on the `slide`."
   swap {
@@ -272,7 +272,7 @@ slide --move-dur="1.6s" --fade-dur="0.9s" {
     """#
 }
 
-slide --move-dur="0s" --fade-dur="0s" {
+slide layout="code-side" --move-dur="0s" --fade-dur="0s" {
   heading "Instant"
   text "`--move-dur: 0s` and `--fade-dur: 0s`: frames switch with no animation at all. (Visitors who ask the OS for reduced motion get this automatically.)"
   swap {
@@ -286,7 +286,7 @@ slide --move-dur="0s" --fade-dur="0s" {
   }
 }
 
-slide --move-dur="0.8s" --ease="cubic-bezier(0.34, 1.56, 0.64, 1)" {
+slide layout="code-side" --move-dur="0.8s" --ease="cubic-bezier(0.34, 1.56, 0.64, 1)" {
   heading "Bouncy"
   text "`--ease: cubic-bezier(0.34, 1.56, 0.64, 1)` overshoots a little before settling."
   swap {
@@ -325,7 +325,7 @@ slide {
     """#
 }
 
-slide --tok-keyword="#ff5d8f" --tok-ident="#ffe66d" --tok-type="#4ecdc4" --tok-builtin="#ff9f1c" --tok-punct="#8d99ae" --accent="#4ecdc4" {
+slide layout="code-side" --tok-keyword="#ff5d8f" --tok-ident="#ffe66d" --tok-type="#4ecdc4" --tok-builtin="#ff9f1c" --tok-punct="#8d99ae" --accent="#4ecdc4" {
   heading "Recolor syntax per slide"
   text "This `slide` sets `--tok-keyword`, `--tok-ident`, `--tok-type`, `--tok-builtin` and `--tok-punct` as properties. No theme needed."
   swap {

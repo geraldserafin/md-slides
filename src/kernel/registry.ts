@@ -1,6 +1,6 @@
 // The registry: everything the plugins said about the language, the layouts, the transitions, the languages and the themes, in
 // one place. The compiler, `slides check`, the language server and the viewer all read it; nothing else knows what a node is.
-import type { EffectDef, LanguageDef, LayoutDef, LayoutRule, NodeDef, Plugin, Registry, TransitionDef } from './types.ts';
+import type { EffectDef, LanguageDef, LayoutDef, NodeDef, Plugin, Registry, TransitionDef } from './types.ts';
 
 type TransitionEntry = Omit<TransitionDef, 'run'> & { run?: TransitionDef['run'] };
 
@@ -13,7 +13,6 @@ class RegistryImpl implements Registry {
   plugins: Plugin[] = [];
   private nodeDefs: Record<string, NodeDef> = {};
   private layoutDefs: Record<string, LayoutDef> = {};
-  private rules: LayoutRule[] = [];
   private effectDefs: Record<string, EffectDef> = {};
   private transitionDefs: Record<string, TransitionEntry> = {};
   private tags: Record<string, string> = {};
@@ -32,7 +31,6 @@ class RegistryImpl implements Registry {
   }
   layout(name: string) { return this.layoutDefs[name]; }
   layouts() { return this.layoutDefs; }
-  layoutRules() { return this.rules; }
   effect(name: string) { return this.effectDefs[name]; }
   effects() { return this.effectDefs; }
   transition(name: string) { return this.transitionDefs[name]; }
@@ -62,7 +60,6 @@ class RegistryImpl implements Registry {
       this.claim('layout', name, plugin, def);
       this.layoutDefs[name] = def;
     }
-    this.rules.push(...(plugin.layoutRules ?? []));
     for (const [name, def] of Object.entries(plugin.effects ?? {})) {
       this.claim('effect', name, plugin, def);
       this.effectDefs[name] = def;
@@ -81,7 +78,6 @@ class RegistryImpl implements Registry {
     r.plugins = [...this.plugins];
     r.nodeDefs = { ...this.nodeDefs };
     r.layoutDefs = { ...this.layoutDefs };
-    r.rules = [...this.rules];
     r.effectDefs = { ...this.effectDefs };
     r.transitionDefs = { ...this.transitionDefs };
     r.tags = { ...this.tags };

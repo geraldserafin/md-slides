@@ -89,10 +89,13 @@ describe('reveal', () => {
 });
 
 describe('layouts', () => {
-  it('the layout follows from the content', () => {
-    expect(one('slide { title "T"; text "x" }').own.layout).toBe('cover'); // the first slide
-    const ss = slides('slide { title "A" }\nslide { title "Sec" }\nslide { title "T"; list { - "a" } }\nslide { title "T"; text "x"; image "a.png" }\nslide { image "a.png"; image "b.png" }\nslide { title "T"; code "ts" "let a = 1" }');
-    expect(ss.map((s) => s.own.layout)).toEqual(['cover', 'section', 'default', 'image-right', 'gallery', 'code']);
+  it('no layout is guessed from the content: a slide is one column, as written', () => {
+    const ss = slides('slide { title "T"; text "x" }\nslide { image "a.png"; image "b.png" }\nslide { title "T"; code "ts" "let a = 1" }');
+    expect(ss.map((s) => s.own.layout)).toEqual(['default', 'default', 'default']);
+    expect(shape(one('slide { heading "H"; text "t"; row { text "a"; text "b" } }').root)).toEqual({ col: ['heading', 'text', { row: ['text', 'text'] }] });
+  });
+  it('heading size 1 to 6', () => {
+    expect(leaves(one('slide { heading size=4 "H"; heading "G" }')).map((e) => e.props.size)).toEqual(['4', undefined]);
   });
   it('two columns from slots', () => {
     const s = one('slide layout=two-cols columns="1 2" { title "T"; left { text "l" }; right { text "r" } }');
@@ -241,8 +244,7 @@ slide { callout "Careful" kind=warn { text "inside" }; text "x" anim=flip }`;
 
 describe('layouts and swaps', () => {
   it('a swap of only code is code to the layouts: text and a code swap sit side by side', () => {
-    expect(one('slide { title "T"; text "x"; swap { code "ts" "a"; code "ts" "b" } }').own.layout).toBe('code-side');
-    expect(one('slide { title "T"; swap { code "ts" "a"; code "ts" "b" } }').own.layout).toBe('code');
+    expect(shape(one('slide layout=code-side { title "T"; text "x"; swap { code "ts" "a"; code "ts" "b" } }').root)).toEqual({ col: [{ row: [{ col: ['title', 'text'] }, { col: [{ stack: ['code', 'code'] }] }] }] });
   });
   it('any other swap is the author\'s own layout', () => {
     expect(one('slide { title "T"; text "x"; swap { text "a"; text "b" } }').own.layout).toBe('default');

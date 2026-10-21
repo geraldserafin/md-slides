@@ -25,9 +25,12 @@ const listHtml = (ctx: RenderCtx, spec: ListSpec): string => {
 
 export const runtime: PluginRuntime = {
   render: {
-    title: tagged('item-h1', (c) => `<h1${sized(c.element.props)}>${inline(c, String(c.element.props.text))}</h1>`),
-    heading: tagged('item-h2', (c) => `<h2${sized(c.element.props)}>${inline(c, String(c.element.props.text))}</h2>`),
-    subheading: tagged('item-h3', (c) => `<h3${sized(c.element.props)}>${inline(c, String(c.element.props.text))}</h3>`),
+    title: tagged('item-h1', (c) => `<h1>${inline(c, String(c.element.props.text))}</h1>`),
+    heading: (c) => {
+      const n = Math.min(6, Math.max(1, Math.round(Number(c.element.props.size) || 2)));
+      c.el.classList.add(`item-h${n}`);
+      return `<h${n}>${inline(c, String(c.element.props.text))}</h${n}>`;
+    },
     text: tagged('item-paragraph', (c) => `<p${sized(c.element.props)}>${inline(c, String(c.element.props.text))}</p>`),
     quote: tagged('item-blockquote', (c) => {
       const p = c.element.props;

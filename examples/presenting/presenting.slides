@@ -34,7 +34,7 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Presenter window, notes and tools"
   text "Press **p**: a second window shows your notes (the `notes` nodes), the next slide and a timer. It stays in sync with the audience window, both ways — you can drive from either."
   text "On the slide itself: **l** a laser pointer, **d** draw (**c** clears, **Esc** stops), **z** a 2× magnifier, **a** autoplay (or `autoplay=5` on the `deck`, `?autoplay=5` in the URL). A slide with `hidden=#true` is skipped in the show and the PDF."
@@ -56,7 +56,7 @@ slide {
   }
 }
 
-slide {
+slide layout="code" {
   heading "Build targets"
   code "bash" #"""
     slides dev   my-talk/                       # dev server, live reload

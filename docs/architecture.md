@@ -61,8 +61,8 @@ interface Element {
 runtime keeps which child is on, and each element knows its `phase`.
 
 **Layout is a tree of containers.** `row`, `col` and `stack` (a swap) are elements with children; everything else is a leaf. A layout
-(`two-cols`, `gallery`, yours) is a function from the parts of a slide to such a tree. Without `layout=`, rules (`layoutRules`) pick
-one from the content.
+(`two-cols`, `gallery`, yours) is a function from the parts of a slide to such a tree. Without `layout=` there is no guessing: a slide is
+one column of what is written, and what is written decides the rest.
 
 ## Plugins
 
@@ -73,7 +73,6 @@ interface Plugin {
   name: string;  api?: number;  replaces?: string[];
   nodes?:       Record<string, NodeDef>;      // the language
   layouts?:     Record<string, LayoutDef>;    // where parts go
-  layoutRules?: LayoutRule[];                 // which layout, when none is named
   effects?:     Record<string, EffectDef>;    // `anim=`: the pose of a thing that is not there yet (CSS)
   transitions?: Record<string, TransitionDef>;// `transition=`: what happens to what comes and goes
   themes?:      Record<string, Record<string, string>>;
@@ -116,7 +115,7 @@ Loaded automatically, in this order; a deck's own plugins come after and may tak
 | `kernel` | `plugin` (a plugin written in the language) and the nodes inside it |
 | `core-deck` | `deck` and its children (vars, themes, fonts, header, footer, plugins, defaults, animation, code-style, css) |
 | `core-layout` | `slide`, `layout`, `row`, `col`, `grid`, `slot`; the built-in layouts and the rule that chooses among them |
-| `core-text` | `title`, `heading`, `subheading`, `text`, `quote`, `list`, `table`, `math`, `notes`; the inline markup |
+| `core-text` | `title`, `heading`, `text`, `quote`, `list`, `table`, `math`, `notes`; the inline markup |
 | `core-media` | `image`, `video`, `audio`, `chart`, `diagram` |
 | `core-timeline` | `pause`, `step`, `swap` |
 | `core-transitions` | the effects (`fade`, `rise`, `zoom`, `left`, `right`, `down`, `blur`, `pop`, `none`) and the transitions `fade`, `slide`, `slide-right`, `slide-left`, `zoom`, `none` |

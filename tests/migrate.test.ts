@@ -31,7 +31,7 @@ it('an old tag deck becomes a deck that checks and compiles', () => {
   expect(s.own).toMatchObject({ layout: 'cover', halign: 'center', '--heading-size': '56px' });
   expect(s.notes).toEqual(['Say this.']);
   const els = leaves(s);
-  expect(els.map((e) => e.kind)).toEqual(['title', 'text', 'list', 'list', 'subheading', 'text', 'code', 'code', 'table']);
+  expect(els.map((e) => e.kind)).toEqual(['title', 'text', 'list', 'list', 'heading', 'text', 'code', 'code', 'table']);
   expect(els.find((e) => e.kind === 'text')!.props.text).toBe('Use `x < y` and [a link](https://x.dev), 5 \\* 3 and snake_case.');
   // the frames are the states of one block, the transition is the swap's
   const codes = els.filter((e) => e.kind === 'code');
