@@ -287,6 +287,13 @@ const service: Service = {
     const advance = (c: NonNullable<typeof last>, instant: boolean, enterDx = 0, exitDx = 0) => {
       layoutBlocks(); // the geometry may have changed (resize, a late image, a font)
       const dying = dyingFor();
+      // a step that hands over (a swap) moves the code like the text around it: the new comes from where the pose of the block is, the old goes the other way
+      if (!c.slideChanged && !instant && c.entering.length && c.leaving.length) {
+        const incoming = cvs.find((x) => c.entering.includes(x.view));
+        const dx = incoming ? translation(incoming.box).dx : 0;
+        enterDx ||= dx;
+        exitDx ||= -dx;
+      }
       if (instant) layer.classList.add('no-anim'); // a cut: no transitions at all
       const sr = host.stage.getBoundingClientRect();
       const k = sr.width / (host.stage.offsetWidth || 1) || 1; // a scaled parent (thumbnails)

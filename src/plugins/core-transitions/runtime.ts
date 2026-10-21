@@ -40,13 +40,28 @@ function leaveGhost(ctx: TransitionCtx, kind: string) {
 
 /** the views of a step: they come and go by the CSS transition of their pose */
 function reveal(ctx: TransitionCtx) {
-  // a handover (a swap): the old one goes quickly and the new one comes when it is gone, so the two are not on top of each other
+  // a handover (a swap): the content moves as a whole. The new one comes from where its pose is, the old one goes the other way
+  // (to the pose mirrored), so it looks like one move in one direction and not two pieces crossing
   const handover = ctx.leaving.length > 0 && ctx.entering.length > 0 && !ctx.instant;
+  const t = handover ? getComputedStyle(ctx.entering[0].el).transform : 'none';
+  const pose = t && t !== 'none' ? new DOMMatrixReadOnly(t) : undefined;
   for (const v of ctx.leaving) {
     ctx.hide(v);
-    if (handover) v.el.style.transition = `opacity ${ctx.timing.leave}s ease-out, transform ${ctx.timing.leave}s ease-out`;
+    if (pose) v.el.style.transform = `translate(${-pose.m41}px, ${-pose.m42}px)`;
   }
-  for (const v of ctx.entering) ctx.show(v, { delay: handover ? ctx.timing.leave * 1.1 : 0 });
+  for (const v of ctx.entering) ctx.show(v);
+  if (pose) {
+    // once it is gone, the old one goes back to its pose (so that it comes in from the right side next time)
+    setTimeout(() => {
+      for (const v of ctx.leaving) {
+        if (!v.el.classList.contains('pending')) continue;
+        v.el.style.transition = 'none';
+        v.el.style.transform = '';
+        void v.el.offsetWidth;
+        v.el.style.transition = '';
+      }
+    }, ctx.timing.move * 1000 + 60);
+  }
 }
 
 const entrance = (kind: string) => (ctx: TransitionCtx): number | void => {
