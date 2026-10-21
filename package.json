@@ -19,7 +19,7 @@
   },
   "scripts": {
     "slideit": "node cli/slideit.mjs",
-    "dev": "node cli/slideit.mjs dev examples",
+    "dev": "node cli/slideit.mjs dev examples --vite",
     "build": "tsc --noEmit && node cli/slideit.mjs build examples -o dist",
     "typecheck": "tsc --noEmit",
     "llms": "node scripts/llms.mjs dist",
