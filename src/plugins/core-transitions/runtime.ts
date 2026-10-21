@@ -47,9 +47,13 @@ function reveal(ctx: TransitionCtx) {
   const pose = t && t !== 'none' ? new DOMMatrixReadOnly(t) : undefined;
   for (const v of ctx.leaving) {
     ctx.hide(v);
-    if (pose) v.el.style.transform = `translate(${-pose.m41}px, ${-pose.m42}px)`;
+    if (pose) {
+      // quick, so it is gone before the new one is there
+      v.el.style.transition = `opacity ${ctx.timing.leave}s ease-out, transform ${ctx.timing.leave}s ease-out`;
+      v.el.style.transform = `translate(${-pose.m41}px, ${-pose.m42}px)`;
+    }
   }
-  for (const v of ctx.entering) ctx.show(v);
+  for (const v of ctx.entering) ctx.show(v, { delay: pose ? ctx.timing.leave : 0 });
   if (pose) {
     // once it is gone, the old one goes back to its pose (so that it comes in from the right side next time)
     setTimeout(() => {

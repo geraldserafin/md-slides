@@ -287,11 +287,13 @@ const service: Service = {
     const advance = (c: NonNullable<typeof last>, instant: boolean, enterDx = 0, exitDx = 0) => {
       layoutBlocks(); // the geometry may have changed (resize, a late image, a font)
       const dying = dyingFor();
+      let enterDelay = SYNC_DELAY;
       // a step that hands over (a swap) moves the code like the text around it: the new comes from where the pose of the block is, the old goes the other way
       if (!c.slideChanged && !instant && c.entering.length && c.leaving.length) {
         const incoming = cvs.find((x) => c.entering.includes(x.view));
         const dx = incoming ? translation(incoming.box).dx : 0;
         enterDx ||= dx;
+        if (dx) enterDelay = LEAVE_S; // the new code comes when the old is gone, like the text
         exitDx ||= -dx;
       }
       if (instant) layer.classList.add('no-anim'); // a cut: no transitions at all
@@ -325,7 +327,7 @@ const service: Service = {
           tokens.set(key, tk);
           void el.offsetWidth;
           el.style.transition = '';
-          el.style.setProperty('--d', instant ? '0s' : `${enterDx ? SYNC_DELAY : fadeInDelay}s`);
+          el.style.setProperty('--d', instant ? '0s' : `${enterDx ? enterDelay : fadeInDelay}s`);
           if (enterDx) setTransform(el, x, y, scale);
           el.style.opacity = opacity;
         }
