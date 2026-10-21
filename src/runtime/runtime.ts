@@ -23,7 +23,10 @@ export function effectsCss(registry: Registry): string {
 let styleEl: HTMLStyleElement | undefined;
 const installCss = (css: string) => {
   if (!css || typeof document === 'undefined') return;
-  styleEl ??= Object.assign(document.createElement('style'), { dataset: { slidesPlugins: '' } });
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.dataset.slidesPlugins = '';
+  }
   if (!styleEl.isConnected) document.head.append(styleEl);
   if (!styleEl.textContent?.includes(css)) styleEl.textContent += `${css}\n`;
 };

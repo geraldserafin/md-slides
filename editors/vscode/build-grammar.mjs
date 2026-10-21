@@ -1,11 +1,11 @@
 // Generates syntaxes/slides.tmLanguage.json: KDL with our nodes, and the code inside `code "lang" #"""…"""#` highlighted by
-// the editor's own grammar for that language (the languages come from src/tags.json). Run: node editors/vscode/build-grammar.mjs
+// the editor's own grammar for that language (the languages come from src/plugins/code/languages.ts). Run: node editors/vscode/build-grammar.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const tags = JSON.parse(readFileSync(join(here, '../../src/tags.json'), 'utf8'));
+const { LANGUAGE_TAGS: tags } = await import(pathToFileURL(join(here, '../../src/plugins/code/languages.ts')).href);
 const SCOPES = {
   typescript: 'source.ts', tsx: 'source.tsx', javascript: 'source.js', cpp: 'source.cpp', c: 'source.c', python: 'source.python',
   rust: 'source.rust', go: 'source.go', java: 'source.java', bash: 'source.shell', json: 'source.json', html: 'text.html.basic',

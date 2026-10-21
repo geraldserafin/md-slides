@@ -1,10 +1,22 @@
-slide layout=cover align=center valign=middle {
+// A plugin written in the language itself: no JS. `callout` is a node of its own, made of nodes that exist already.
+plugin "ui" {
+  node "callout" doc="A box with a kind" {
+    arg "text" doc="what it says"
+    prop "kind" values="info warn" default="info" doc="its color"
+    body {
+      col class="callout-{kind}" {
+        text "{text}"
+        slot
+      }
+    }
+  }
+}
+
+slide layout=cover {
   title "Plugins"
-  text "New nodes, a theme and a button, from one file"
+  text "New nodes, effects, transitions, a theme and a button, from one file"
   badge "demo.js" color=green
-  notes #"""
-    This deck loads demo.js, listed in `deck` under `plugins`.
-    """#
+  notes "This deck loads demo.js, listed in `deck` under `plugins`."
 }
 
 slide {
@@ -15,15 +27,44 @@ slide {
 }
 
 slide {
+  heading "Effects and transitions"
+  text "The plugin adds the effect `flip` for `anim=` and the transition `wipe` for `transition=`."
+  step {
+    text "This text turned in with `anim=flip`." anim=flip
+  }
+  swap transition=wipe {
+    col {
+      subheading "one"
+      text "The next click uncovers the other from the left."
+    }
+    col {
+      subheading "two"
+      text "A transition is a function of the things that come and go."
+    }
+  }
+}
+
+slide {
+  heading "A plugin in the language"
+  text "`callout` is defined at the top of this file with `plugin \"ui\" { node … }`: its body is made of other nodes."
+  callout "Careful with the nodes you define: they are checked like the built-in ones." kind=warn {
+    text "Anything inside the use goes where `slot` is."
+  }
+  callout "Info is the default kind."
+}
+
+slide {
   heading "What a plugin is"
-  text "An ES module that default-exports an object. The viewer imports it before it parses the slides:"
+  text "An ES module that default-exports an object. The viewer imports it before it reads the slides:"
   code "js" #"""
     export default {
       name: 'demo',
-      tags: { badge: { doc: 'A label.', render: ({ attrs, text }) => `<b>${text}</b>` } }, // a node: badge "text" color=red
+      api: 1,
+      nodes: { badge: { doc: 'A label.', part: true, render: ({ element }) => `<b>${element.props.text}</b>` } },
+      effects: { flip: { doc: 'Turned away.', pose: 'transform: rotateY(80deg)' } },
+      transitions: { wipe: { doc: 'Uncovered.', run: (ctx) => { /* … */ } } },
       themes: { sepia: { '--bg': '#f4ecd8' } },
       tools: [{ title: 'Hi', icon: '<svg …/>', run: (api) => api.player.next() }],
-      hooks: { step: (api, { slide }) => console.log(slide) },
     }
     """#
   text "Plugins are listed in the `deck` node: `plugins \"./demo.js\" \"@someone/slideit-plugin-qr\"` (or in `deck.json`)."

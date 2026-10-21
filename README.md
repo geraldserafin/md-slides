@@ -107,7 +107,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | --- | --- |
 | `showcase` | a short tour: code morphing, the diff, math, charts, diagrams, morph, themes |
 | `writing` | the language: nodes and strings, layouts, clicks, text and media, math, charts, diagrams, own layouts, per-element animation |
-| `code-animation` | the AST diff: every kind of edit, frames, languages, code options, focus, fit, frame transitions, how matching works |
+| `code-animation` | the AST diff: every kind of edit, states of a block, languages, code options, focus, fit, transitions, how matching works |
 | `theming` | alignment, themes, backgrounds, motion, header/footer, `deck.json`, fonts, CSS |
 | `presenting` | controls, presenter view and tools, export, build targets, GitHub Pages, writing decks with an LLM |
 
@@ -201,7 +201,7 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 
 | Node | Does | Arguments, flags, properties |
 | --- | --- | --- |
-| `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `animate` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
+| `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
 | `title` `heading` `subheading` `text` | a heading, a paragraph; one item each | the text; `size="small"\|"large"` `align` `valign` `anim` `id` |
 | `list` with `-` items | a list, nested by putting a `list` in an item | `numbered` `steps` `start=3` |
 | `quote` | a quote with an accent bar | the text, `by="who"` |
@@ -212,7 +212,7 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 | `chart` | CSV as an SVG chart | `"bar"` `"line"` `"pie"`, the CSV, `title` `width` |
 | `diagram` | a Mermaid diagram | the source, `width` |
 | `row` `col` `grid` | layout | `size` `gap` `align` `valign` `class` `columns` |
-| `swap` | shows one child at a time, all in one place; a click brings the next | `anim` `size` `align` `valign`; for code: `autoplay=2`, flag `loop` |
+| `swap` | shows one child at a time, all in one place; a click brings the next | `transition` (default `morph`) `anim` `size` `align` `valign`; `autoplay=2` and the flag `loop` make the children take turns by themselves |
 | `step` `pause` | reveal on a click | `anim` |
 | `notes` | presenter notes | the text |
 
@@ -222,7 +222,7 @@ stay as they are.
 
 **Animated code.** `code "ts" "let a = 1;"` is a block of code. Put several in a `swap` and they are the states of one animated
 block: the first is there with the block, each next one takes a click, and the diff between two states is what moves (the options
-of the block are the first `code`'s; `focus` and `transition` are each state's own). Blocks are **independent** unless they share an `id`:
+of the block are the first `code`'s; `focus` is each state's own). Blocks are **independent** unless they share an `id`:
 the same `id` on another slide, or in another child of a `swap`, continues the animation from the last state it showed.
 `code from="total"` shows a copy of the last state of the earlier block with that id. Tabs are expanded to four spaces; a language
 without a grammar is shown as static code.
@@ -237,7 +237,7 @@ without a grammar is shown as static code.
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
 | `focus="2-4,7"` | keep these lines bright and dim the rest; on each `code` of a swap to walk through code |
-| `transition=morph\|fade\|none` | how *this state* is entered: the diff animation (default), a cross-fade, or a cut |
+| `swap transition=morph\|fade\|none` | how the states change: the diff animation (default), a cross-fade, or a cut |
 | `swap autoplay=1 loop` | the states play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
 
 **Reveal.** `pause` holds back everything after it (in the same container) until the next click; `step { … }` does it for what is
@@ -396,10 +396,13 @@ deck and this workflow. *Use this template*, then *Settings → Pages → Source
 
 ## Plugins
 
-A deck can load plugins (`plugins "./demo.js" "@someone/slideit-plugin-qr"` in the `deck` node): ES modules that add **nodes**, **themes**,
-**tree-sitter languages**, **toolbox buttons** and **step hooks**. The viewer loads them before it reads the slides, and `slides check`
-and the editor tooling know their nodes. `examples/plugin-demo` is a working example and [docs/plugins.md](docs/plugins.md) is the guide
-for authors (the format, packaging for npm, describing the nodes to editors).
+Everything the tool does is a plugin: the nodes, the layouts, the transitions (`fade`, `morph`…), the code animation. They are loaded
+automatically; yours use the same API and come in three sizes. In the language itself (no JS): `plugin "ui" { node "callout" { body { … } } effect … theme … }`
+makes new nodes out of existing ones. One JS file (`plugins "./demo.js"` in the `deck` node): nodes with a `render`, effects, **transitions**, themes,
+**tree-sitter languages**, toolbox buttons and step hooks. An npm package: the same module, described as data so the tools know its nodes.
+The viewer loads plugins before it reads the slides, and `slides check`, the language server and the editor know their nodes.
+`examples/plugin-demo` is a working deck with all three, [docs/plugins.md](docs/plugins.md) is the guide for authors and
+[docs/architecture.md](docs/architecture.md) says how the compiler, the program, the player and the plugins fit together.
 
 ## Viewer controls
 
@@ -473,8 +476,12 @@ A Nix/devenv shell with Node and Chromium is provided (`devenv shell`).
 Layout:
 
 ```
-cli/        the `slides` command (new, dev, build, check, schema), the prebuilt-viewer dev server
-src/        the markup (markup.ts, schema.ts, check.ts), the viewer (browser): parsing, GumTree, layout, renderer, themes, drawer, chrome (header/footer), presenter
+cli/        the `slides` command (new, dev, build, check, schema, migrate, import), the prebuilt-viewer dev server
+src/kernel/    the compiler: KDL parser, registry, compile, lowering, check, schema (runs in node and in the browser)
+src/plugins/   the stock plugins: core-deck, core-layout, core-text, core-media, core-timeline, core-transitions, morph, code (each with a `runtime.ts`, its DOM side)
+src/runtime/   the viewer's core: loading a deck, the steps, the player (draws elements with the plugins' renderers, moves with their transitions)
+src/node/      what the node tools know of a deck folder (plugins, settings), the language server
+src/           the rest of the viewer: themes, drawer, gallery, presenter, chrome (header/footer), tools
 tests/      vitest suites; tests/fixtures/ has matcher regression cases (old.*, new.*, expect.txt)
 examples/   demo decks used for development and GitHub Pages
 ```

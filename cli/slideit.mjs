@@ -11,7 +11,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { stageDecks } from './decks.mjs';
 import { buildViewer, hasViewer, loadLib, rootDir, sharedDir, viewerDir } from './viewer.mjs';
-import { LANGUAGE_TAGS as tags } from '../src/plugins/code/languages.ts';
+const { LANGUAGE_TAGS: tags } = await loadLib('plugins/code/languages');
 
 const TARGETS = ['static', 'single', 'pdf', 'exe'];
 
