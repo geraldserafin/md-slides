@@ -107,8 +107,9 @@ run(ctx) {
 }
 ```
 
-`morph` is such a transition: it pairs entering and leaving views by `element.key` and animates the old rectangle to the new one.
-You can replace it (`replaces: ['morph']`) or write another that pairs differently.
+`morph` is such a transition: it pairs entering and leaving views by `element.key` and animates the old rectangle to the new one. The player runs it
+first for every transition that does not say `pairs: false` (a hard cut does), and `morph` hands what it did not pair to the transition that was
+asked for (`ctx.props.rest`). You can replace it (`replaces: ['morph']`) to pair differently.
 
 ### Themes, tools, hooks
 

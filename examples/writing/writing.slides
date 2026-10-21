@@ -186,7 +186,7 @@ slide {
 
 slide {
   heading "Swap: one place, many things"
-  text "A `swap` shows one child at a time, all in the same place; a click brings the next one. What is outside it stays. A child with several things is a `col`; `code` with the same `id` morphs from one child to the next."
+  text "A `swap` shows one child at a time, all in the same place; a click brings the next one. What is outside it stays. A child with several things is a `col`; `code` with the same `id` morphs from one child to the next. `transition=` says how they change, `autoplay=2` (and `loop`) lets them take turns by themselves."
   swap anim=left {
     col {
       subheading "rename"
@@ -210,7 +210,7 @@ slide {
     }
   }
   notes #"""
-    swap takes anim (how the next child comes in), size, align and valign. Only code inside it: the states of one block, and autoplay and loop work.
+    swap takes transition (morph by default), anim (how the next child comes in), autoplay and loop, size, align and valign. Code directly in a swap is the states of one block.
     """#
 }
 
@@ -223,6 +223,22 @@ slide {
   heading "Same picture, bigger"
   image "diagram.svg" align=right width="460px"
   text "The picture above is the same file, so it grew and moved by itself." id=note
+}
+
+slide {
+  heading "Transitions and effects"
+  text "Two things move content. A **transition** (`transition=` on a slide or a `swap`) says what happens to everything that comes and goes at once; an **effect** (`anim=` on a node) is how one thing comes in."
+  table {
+    head "Transition" "What it does"
+    - "`fade` (default)" "the old content leaves while it lifts away, the new rises into place"
+    - "`slide` `slide-right` `slide-left` `zoom`" "the same, travelling or scaling"
+    - "`none`" "a hard cut"
+    - "`morph`" "what is on both sides (the same `id`, the same picture) glides; every transition but `none` does this first"
+  }
+  text "Effects: `fade` `rise` `zoom` `left` `right` `down` `blur` `pop` `none`. A plugin adds its own transitions and effects: they are checked and completed in the editor like these."
+  notes #"""
+    Transitions and effects are plugins too: core-transitions and morph. docs/plugins.md shows how to write one.
+    """#
 }
 
 slide {
@@ -392,7 +408,7 @@ slide layout=sidebar {
 
 slide {
   heading "The deck node"
-  text "Settings of the whole deck go in a `deck` node at the top (or in `deck.json`):"
+  text "Settings of the whole deck go in a `deck` node at the top (or in `deck.json`). A `plugin` node (or a JS file listed in `plugins`) adds nodes, effects, transitions and themes:"
   code "text" ##"""
     deck title="My talk" author="Me" theme=dark {
       vars --accent="#d82838"

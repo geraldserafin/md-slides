@@ -99,6 +99,11 @@ run(ctx: { entering: View[]; leaving: View[]; scope: 'slide' | 'step'; ghost?: H
 rectangle they had). On a slide change the old slide is a `ghost`, pinned over the stage until the transition lets it go.
 `show` and `hide` do the plain thing: the CSS transition of the pose. `delegate` hands part of the work to another transition.
 
+**Pairing comes first.** Before a transition runs, the player offers what enters and what leaves to the `morph` transition: views with the same key
+(an `id`, a picture's file) glide from their old place to the new one, and `morph` hands the rest to the transition that was asked for
+(`ctx.props.rest`). A transition that wants no pairing says `pairs: false` (`none` does). So the transition says what happens to everything
+else, and anyone can replace pairing by replacing `morph`.
+
 A **service** is what a plugin keeps going while a show runs. The code plugin is one: it parses the code of all steps beforehand
 (`prepare`), and while the show runs it draws tokens on a layer of the stage (`create` → `slide`, `step`, `layout`).
 
@@ -118,7 +123,7 @@ Loaded automatically, in this order; a deck's own plugins come after and may tak
 | `morph` | the transition `morph`: elements with the same key glide from their old place to the new one |
 | `code` | `code`, the languages, the GumTree matching of the states of a block and the drawing of its tokens |
 
-`morph` knows nothing about what it moves: it pairs views by key. The code plugin gives its tokens keys from the diff, so code morphs
+`morph` knows nothing about what it moves: it pairs views by key (and the player runs it first for every transition but `none`). The code plugin gives its tokens keys from the diff, so code morphs
 by the same idea as a picture does; GumTree lives in `code`, not in `morph`.
 
 ## Extending
