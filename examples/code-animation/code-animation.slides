@@ -7,7 +7,7 @@ slide layout=cover align=center valign=middle justify=#false {
     """#
 }
 
-slide --text-size="4vmin" {
+slide {
   heading "What's inside"
   list numbered {
     - "What the diff does, edit by edit"

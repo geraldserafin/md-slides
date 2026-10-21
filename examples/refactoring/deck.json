@@ -82,9 +82,7 @@
   ],
   "vars": {
     "--font-text": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
-    "--font-heading": "\"Libertinus Serif\", Georgia, serif",
-    "--text-size": "clamp(18px, 2.55vmin, 33px)",
-    "--heading-size": "clamp(26px, 4.1vmin, 52px)"
+    "--font-heading": "\"Libertinus Serif\", Georgia, serif"
   },
   "footer": {
     "left": "Refactoring: a cart total",

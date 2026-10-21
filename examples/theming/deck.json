@@ -125,9 +125,7 @@
   ],
   "vars": {
     "--font-text": "\"Source Sans 3\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
-    "--font-heading": "\"Libertinus Serif\", Georgia, serif",
-    "--text-size": "clamp(19px, 3vmin, 40px)",
-    "--heading-size": "clamp(30px, 4.8vmin, 62px)"
+    "--font-heading": "\"Libertinus Serif\", Georgia, serif"
   },
   "defaults": {
     "justify": "true",

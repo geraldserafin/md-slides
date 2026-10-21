@@ -50,7 +50,7 @@ slide {
     """#
 }
 
-slide --text-size="4vmin" {
+slide {
   heading "Step 1: mix"
   list numbered {
     - "Stir flour and water until no dry flour is left"
@@ -98,7 +98,7 @@ slide {
   }
 }
 
-slide valign=middle --text-size="4.6vmin" {
+slide valign=middle {
   heading "Your turn"
   text "Mix your dough now. We fold at 10:00."
   step {

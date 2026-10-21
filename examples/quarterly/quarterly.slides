@@ -6,7 +6,7 @@ slide theme=corporate-dark layout=cover align=center valign=middle justify=#fals
     """#
 }
 
-slide --text-size="4.2vmin" {
+slide {
   heading "Highlights"
   list steps {
     - "Revenue grew **12%** over Q2, our best quarter"
@@ -91,7 +91,7 @@ slide {
     """#
 }
 
-slide valign=middle --text-size="4vmin" {
+slide valign=middle {
   heading "Decisions we need today"
   list numbered anim=left {
     - "Approve the Nordics launch budget"

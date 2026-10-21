@@ -6,7 +6,7 @@ slide theme=chalk layout=cover align=center valign=middle justify=#false backgro
     """#
 }
 
-slide valign=middle --text-size="4.6vmin" {
+slide valign=middle {
   heading "What is a wave?"
   text "A wave carries **energy** from one place to another without carrying the matter along."
   step {
@@ -58,7 +58,7 @@ slide {
   }
 }
 
-slide valign=middle --text-size="4.2vmin" {
+slide valign=middle {
   heading "Quick check"
   text "A note vibrates at $440\\ \\mathrm{Hz}$. What is the wavelength in air?"
   step {
@@ -66,7 +66,7 @@ slide valign=middle --text-size="4.2vmin" {
   }
 }
 
-slide --text-size="4.2vmin" {
+slide {
   heading "Summary"
   list steps {
     - "A wave moves energy, not matter"

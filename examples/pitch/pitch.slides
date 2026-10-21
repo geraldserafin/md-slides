@@ -7,7 +7,7 @@ slide theme=launch layout=cover align=center valign=middle justify=#false backgr
     """#
 }
 
-slide valign=middle --text-size="4.6vmin" {
+slide valign=middle {
   heading "Plants die. Not because of you."
   text "Most people do not forget to care. They forget *when*, and they never learned *what*."
   step {

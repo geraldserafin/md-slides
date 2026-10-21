@@ -17,7 +17,7 @@ slide layout=cover {
     """#
 }
 
-slide --text-size="4vmin" {
+slide {
   heading "What's inside"
   list numbered {
     - "The language: nodes, strings, flags"
@@ -55,7 +55,7 @@ slide {
     """#
 }
 
-slide --text-size="3.1vmin" {
+slide {
   heading "The language"
   text "A `.slides` file is [KDL](https://kdl.dev): **nodes** with arguments, `key=value` properties and children in braces. Text goes in quotes."
   code "text" {
@@ -170,7 +170,7 @@ slide {
     """#
 }
 
-slide --text-size="3.2vmin" {
+slide {
   heading "Code that moves"
   text "A `code` node is one animated block; its `frame`s are the states it passes through, one click each. Between two frames what stayed stays and what moved glides."
   code "typescript" id=fn {

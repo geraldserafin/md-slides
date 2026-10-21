@@ -7,7 +7,7 @@ slide layout=cover align=center valign=middle justify=#false {
     """#
 }
 
-slide --text-size="4vmin" {
+slide {
   heading "What's inside"
   list numbered {
     - "Controls and the slide drawer"
@@ -21,7 +21,7 @@ slide --text-size="4vmin" {
     """#
 }
 
-slide --text-size="3.8vmin" {
+slide {
   heading "Controls"
   list {
     - "**→ Space PageDown Enter** next step · **← PageUp Backspace** previous"
@@ -49,7 +49,7 @@ slide {
     """#
 }
 
-slide --text-size="3.8vmin" {
+slide {
   heading "Slide drawer and export"
   list {
     - "**o** (or the ☰ button that appears when you move the mouse) opens the drawer: a thumbnail of every slide, the current one highlighted. Click to jump; **Esc** or **o** closes it"
@@ -117,7 +117,7 @@ slide {
     """#
 }
 
-slide --text-size="3.8vmin" {
+slide {
   heading "Tips"
   list {
     - "keep frames **small and incremental**: one idea per step gives the cleanest motion"

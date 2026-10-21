@@ -30,8 +30,8 @@
   --font-text: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-text);
   --font-code: 'Iosevka', ui-monospace, Menlo, Consolas, monospace;
-  --text-size: clamp(16px, 2.3vmin, 30px);
-  --heading-size: clamp(26px, 4.6vmin, 56px);
+  --text-size: clamp(20px, 3.3vmin, 44px);
+  --heading-size: clamp(32px, 5.6vmin, 72px);
   --move-dur: 0.45s;
   --fade-dur: 0.3s;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
