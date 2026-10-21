@@ -15,7 +15,7 @@
 
 buildNpmPackage (finalAttrs: {
   pname = "slideit";
-  version = "0.2.0";
+  version = "0.3.0";
   inherit nodejs;
 
   src =
@@ -29,7 +29,7 @@ buildNpmPackage (finalAttrs: {
         hash = lib.fakeHash; # fill in when v0.1.0 is tagged
       };
 
-  npmDepsHash = "sha256-f/hqiKLUMuaUxg1nzTJWqgQUsQpAdAsm7vVSJOT5OdA=";
+  npmDepsHash = "sha256-eR0iEf/oOZ5WMSBxv1XConDlj1NQFj4GWT8xtuRyJt0=";
 
   nativeBuildInputs = [ makeWrapper ];
 

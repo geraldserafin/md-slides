@@ -15,7 +15,7 @@ let
       src = ../editors/vscode;
       filter = name: _: !(lib.hasSuffix ".vsix" name) && baseNameOf name != "node_modules";
     };
-    npmDepsHash = "sha256-F1hRGwT3j2FedMCNMLIPrfXgWKxr6zjx+rhMyth4dDY=";
+    npmDepsHash = "sha256-n2nkh1/qKW3iKOOODObYa/ZinV1lBm8gfzTWCDRvG+s=";
     dontNpmBuild = true;
     npmFlags = [
       "--omit=dev"

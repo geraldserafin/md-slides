@@ -13,6 +13,12 @@
       packages = forAll (pkgs: rec {
         slideit = pkgs.callPackage ./nix/package.nix { localSource = self; };
         vscode-extension = pkgs.callPackage ./nix/vscode-extension.nix { };
+        # editors/vim as a Vim/Neovim plugin: filetype, syntax, tree-sitter registration and the language server (`slides lsp`)
+        vim-plugin = pkgs.vimUtils.buildVimPlugin {
+          pname = "slideit-nvim";
+          version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
+          src = ./editors/vim;
+        };
         default = slideit;
       });
 
