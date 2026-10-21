@@ -56,12 +56,6 @@ describe('what the tools know of the plugins of a deck', () => {
     const { registry } = await loadRegistry(deck);
     expect(registry.node('qr')?.props).toEqual({ value: { doc: 'v' } });
   });
-  it('reads a plugin of the first format too', async () => {
-    const deck = mkdtempSync(join(tmpdir(), 'slideit-plugin-old-'));
-    writeFileSync(join(deck, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
-    writeFileSync(join(deck, 'p.js'), "export default { name: 'p', tags: { qr: { doc: 'A QR.', attrs: { value: { doc: 'v' } }, render() {} } } };");
-    expect((await loadRegistry(deck)).registry.node('qr')?.doc).toBe('A QR.');
-  });
   it('prefers the package.json description of an npm plugin (no code runs)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-plugin-npm-'));
     mkdirSync(join(dir, 'node_modules', 'slideit-plugin-x'), { recursive: true });

@@ -80,7 +80,7 @@ describe('slides lsp', () => {
   it('knows the nodes of the plugins of the deck a file belongs to', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-lsp-'));
     writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
-    writeFileSync(join(dir, 'p.js'), "export default { tags: { sparkle: { doc: 'Sparkles.' } } };");
+    writeFileSync(join(dir, 'p.js'), "export default { nodes: { sparkle: { doc: 'Sparkles.', part: true } } };");
     const u = pathToFileURL(join(dir, 'a.slides')).href;
     open(u, 'slide {\n  sparkle\n  \n}');
     const diag = await until((x) => x.method === 'textDocument/publishDiagnostics' && x.params.uri === u);
