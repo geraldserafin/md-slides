@@ -2,12 +2,12 @@
 
 Support for `.slides` presentations ([slideit](https://github.com/geraldserafin/md-slides)):
 
-- **Highlighting** of the language (KDL with our nodes), with the code inside `code "ts" { frame #"""…"""# }` highlighted as that language.
+- **Highlighting** of the language (KDL with our nodes), with the code inside `code "ts" #"""…"""#` highlighted as that language.
 - **Completion** for nodes (only the ones allowed where you are, as snippets), properties, flags and values (layout names, `anim`…),
   the slots of the layout of the slide; **hover** documentation; **diagnostics** as you type (the same checks as `slides check`, with
   "did you mean"); **outline** and **folding** of slides, rows, columns and code blocks; **go to definition** from a code `id` / `from` to
   the blocks that share it. Plugin nodes are known too (from `plugins` of the deck).
-- **Snippets**: `slide`, `cover`, `two` (two columns), `cols` (text and code), `code`, `list`, `row`, `col`, `step`, `chart`, `image`, `layout`… (type the name and Tab).
+- **Snippets**: `slide`, `cover`, `two` (two columns), `cols` (text and code), `swapcode`, `swap`, `code`, `list`, `row`, `col`, `step`, `chart`, `image`, `layout`… (type the name and Tab).
 - **Live preview**: *Slides: Open preview to the side* (the preview icon in the editor title, `Ctrl+K V`) runs the dev server for the folder
   and shows it beside the editor. It reloads when you save and **follows the cursor**: it shows the slide you are in.
 

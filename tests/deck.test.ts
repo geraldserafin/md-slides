@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAnimate, parseSlides, resolveRefs, sectionItems, type Layout, type Slide } from '../src/deck';
+import { parseSlides, resolveRefs, sectionItems, type Layout, type Slide } from '../src/deck';
 import { barVisible, expand, isImage, usesSlideNumber } from '../src/chrome';
 
 describe('chrome (header/footer)', () => {
@@ -125,15 +125,15 @@ describe('layouts', () => {
 });
 
 describe('code', () => {
-  it('frames are the states; the first is shown from the start, the others take a click each', () => {
-    const s = one('slide { code "typescript" id=a { frame "let a = 1"; frame "let a = 2" focus="1"; frame "let a = 3" } }');
+  it('the code of a swap are the states of one block; the first is shown from the start, the others take a click each', () => {
+    const s = one('slide { swap { code "typescript" "let a = 1" id=a; code "typescript" "let a = 2" focus="1"; code "typescript" "let a = 3" } }');
     const b = s.sections[0].blocks[0];
     expect(b.id).toBe('a');
     expect(b.explicit).toBe(true);
     expect(b.frames.map((f) => [f.code, f.at, f.focus])).toEqual([['let a = 1', 0, undefined], ['let a = 2', 1, '1'], ['let a = 3', 2, undefined]]);
   });
-  it('autoplay frames take no clicks; loop and lines are flags', () => {
-    const s = one('slide { code "typescript" autoplay=2 loop lines { frame "a"; frame "b" } }');
+  it('autoplay states take no clicks; loop is the swap\'s, lines the first code\'s', () => {
+    const s = one('slide { swap autoplay=2 loop { code "typescript" "a" lines; code "typescript" "b" } }');
     const b = s.sections[0].blocks[0];
     expect(b.frames.map((f) => f.at)).toEqual([0, 0]);
     expect(b.opts).toMatchObject({ autoplay: '2', loop: 'true' });
@@ -143,7 +143,7 @@ describe('code', () => {
     expect(items(one('slide { code "nolang" "x" }'))[0]).toMatchObject({ kind: 'code', lang: 'nolang' });
   });
   it('from= copies the last frame of an earlier block', () => {
-    const ss = slides('slide { code "typescript" id=g { frame "a"; frame "b" } }\nslide { code from="g" }');
+    const ss = slides('slide { swap { code "typescript" "a" id=g; code "typescript" "b" } }\nslide { code from="g" }');
     resolveRefs(ss);
     expect(ss[1].sections[0].blocks[0].frames.map((f) => f.code)).toEqual(['b']);
     expect(() => resolveRefs(slides('slide { code from="nope" }'))).toThrow(/no earlier block/);
@@ -162,12 +162,26 @@ describe('media, charts, diagrams', () => {
   });
 });
 
-describe('animate', () => {
-  it('shared elements of consecutive slides get a morph id', () => {
-    const ss = slides('slide { title "Same"; text "one" }\nslide animate=#true { title "Same"; text "two" }');
-    applyAnimate(ss);
-    const m = (s: Slide) => items(s).map((i) => i.fx?.morph);
-    expect(m(ss[0])[0]).toBeTruthy();
-    expect(m(ss[0])[0]).toBe(m(ss[1])[0]);
+describe('swap', () => {
+  const steps = (src: string) => one(src).sections[0].stages;
+  it('shows one child at a time: each takes a click, the one before leaves', () => {
+    const s = one('slide { title "T"; swap { text "a"; text "b"; text "c" } }');
+    const its = items(s);
+    expect(its.map((i) => [i.at, i.fx?.out])).toEqual([[0, undefined], [0, '1'], [1, '2'], [2, undefined]]);
+    expect(steps('slide { swap { text "a"; text "b"; text "c" } }')).toBe(3);
+    expect(shape(s.sections[0].layout)).toEqual({ col: ['html', { stack: ['html', 'html', 'html'] }] });
+  });
+  it('a child with several things is a col; a swap of code in it takes its own clicks', () => {
+    const s = one('slide { swap { col { heading "a"; swap { code "ts" "1" id=x; code "ts" "2" } }; col { heading "b"; code "ts" "3" id=x } } }');
+    expect(shape(s.sections[0].layout)).toEqual({ col: [{ stack: [{ col: ['html', 'block'] }, { col: ['html', 'block'] }] }] });
+    const blocks = s.sections[0].blocks;
+    expect(blocks.map((b) => b.frames.map((f) => f.at))).toEqual([[0, 1], [2]]);
+    expect(items(s).filter((i) => i.fx?.out).map((i) => i.fx!.out)).toEqual(['2', '2']);
+  });
+  it('anim goes to what swaps in', () => {
+    expect(items(one('slide { swap anim=left { text "a"; text "b" } }')).map((i) => i.fx?.anim)).toEqual(['left', 'left']);
+  });
+  it('stays in its place: what follows the swap is there from the start', () => {
+    expect(items(one('slide { swap { text "a"; text "b" }; text "after" }')).map((i) => i.at)).toEqual([0, 1, 0]);
   });
 });

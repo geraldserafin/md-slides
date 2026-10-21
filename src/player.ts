@@ -601,7 +601,12 @@ export class Player {
       const el = document.createElement('div');
       const ph = parseAlign(l.opts.halign) ?? h;
       const pv = parseAlign(l.opts.valign) ?? v;
-      if (l.kind === 'row') {
+      if (l.kind === 'stack') {
+        // a swap: the children sit in one place, one is shown at a time
+        el.className = 'stack';
+        this.setSize(el, l.opts.size, true);
+        l.children.forEach((c: Layout) => build(c, el, false, cells, ph, pv));
+      } else if (l.kind === 'row') {
         el.className = 'row';
         this.setSize(el, l.opts.size, true);
         l.children.forEach((c: Layout) => build(c, el, true, l.children.length, ph, pv));

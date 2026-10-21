@@ -114,12 +114,12 @@ function nodeItem(name: string) {
   const def = NODES[name];
   const first = def?.args?.find((a) => !a.optional);
   let snippet = name;
-  if (name === 'code') snippet = 'code "${1:ts}" {\n  frame #"""\n    $0\n  """#\n}';
+  if (name === 'code') snippet = 'code "${1:ts}" #"""\n  $0\n  """#';
+  else if (name === 'swap') snippet = 'swap {\n  $0\n}';
   else if (name === 'list') snippet = 'list {\n  - "$0"\n}';
   else if (name === 'table') snippet = 'table {\n  head "$1" "$2"\n  - "$3" "$4"\n}';
   else if (name === 'chart') snippet = 'chart "${1:bar}" #"""\n  $0\n  """#';
   else if (name === 'diagram' || name === 'math' || name === 'notes') snippet = `${name} #"""\n  $0\n  """#`;
-  else if (name === 'frame') snippet = 'frame #"""\n  $0\n  """#';
   else if (name === '-') snippet = '- "$0"';
   else if (name === 'slide' || name === 'layout' || (def?.children && !first)) snippet = `${name}${name === 'layout' ? ' "${1:name}"' : ''} {\n  $0\n}`;
   else if (first) snippet = `${name} "\${1:${first.name}}"`;

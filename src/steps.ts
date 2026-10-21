@@ -93,6 +93,7 @@ export async function buildSteps(deck: Deck): Promise<Step[]> {
         section.blocks.forEach((block, index) => {
           const item = blockItem(section, index);
           if (!item || item.at > stage) return; // not revealed yet
+          if (item.fx?.out !== undefined && stage >= Number(item.fx.out)) return; // already gone (a swap)
           const cyc = cycles.get(block);
           if (cyc) { blocks.push(cyc[0]); return; }
           let frameIdx = 0;

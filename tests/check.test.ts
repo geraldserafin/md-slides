@@ -6,7 +6,7 @@ const msgs = (src: string) => check(src).map((p) => p.message);
 
 describe('slides check', () => {
   it('a good deck has no problems', () => {
-    expect(msgs('deck title="T" { vars --accent="#f00" }\nslide {\n  title "T"\n  row { col { text "a" }; code "ts" { frame "1;" } }\n  step { list steps numbered { - "x" } }\n}')).toEqual([]);
+    expect(msgs('deck title="T" { vars --accent="#f00" }\nslide {\n  title "T"\n  row { col { text "a" }; code "ts" "1;" }; swap { code "ts" "a"; code "ts" "b" }\n  step { list steps numbered { - "x" } }\n}')).toEqual([]);
   });
   it('finds unknown nodes and properties, with a hint', () => {
     expect(msgs('slide { titel "x" }')[0]).toMatch(/unknown node `titel` \(did you mean `title`\?\)/);
@@ -22,7 +22,10 @@ describe('slides check', () => {
   });
   it('finds missing texts, languages and sources', () => {
     expect(msgs('slide { text }')[0]).toMatch(/`text` needs text/);
-    expect(msgs('slide { code { frame "x" } }')[0]).toMatch(/needs a language/);
+    expect(msgs('slide { code "x" }')[0]).toMatch(/has no code/);
+    expect(msgs('slide { code }')[0]).toMatch(/needs a language/);
+    expect(msgs('slide { swap { text "a" } }')[0]).toMatch(/swap. of one thing/);
+    expect(msgs('slide { swap autoplay=2 { text "a"; text "b" } }')[0]).toMatch(/work for code only/);
     expect(msgs('slide { code "ts" }')[0]).toMatch(/has no code/);
     expect(msgs('slide { image }')[0]).toMatch(/`image` needs src/);
   });

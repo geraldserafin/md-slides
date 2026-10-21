@@ -51,7 +51,8 @@ slide {
 | `quote "..." by="who"` | a quote |
 | `table` | `head "A" "B"` then `- "1" "2"` per row |
 | `math "..."` | display math (KaTeX) |
-| `code "ts" { frame ... }` | animated code (below) |
+| `code "ts" "let a = 1;"` | a block of code; several in a `swap` are the states of one animated block (below) |
+| `swap { ... }` | shows one child at a time, in one place; a click brings the next; `anim=left`; a child with several things is a `col` |
 | `image "a.png" alt=".."`, `video "a.mp4" autoplay loop muted nocontrols`, `audio "a.mp3"` | media, relative to the file; `width height align` |
 | `chart "bar" title="T" """csv"""` | chart from CSV (first row names the series); `"bar"\|"line"\|"pie"` |
 | `diagram """mermaid"""` | Mermaid diagram |
@@ -72,36 +73,34 @@ Own layout: `layout "side" { row { col size="25%" { slot "s" }; col { slot } } }
 
 ## Animated code (the point of the tool)
 
-A `code` is one block and its `frame`s are the states it passes through: the first is shown with the block, each next one takes a click,
+Several `code` nodes in a `swap` are the states of one animated block: the first is shown with the block, each next one takes a click,
 and the code morphs between them (tokens glide, new ones fade in, removed ones fade out).
 
 ```kdl
 slide {
   title "Total"
-  code "ts" {
-    frame #"""
-      const total = items.reduce((s, i) => s + i.price, 0);
-      """#
-    frame focus="1" #"""
-      const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  swap {
+    code "ts" "const total = items.reduce((s, i) => s + i.price, 0);"
+    code "ts" focus="1" #"""
+      const total = items.reduce(
+        (s, i) => s + i.price * i.qty, 0);
       """#
   }
 }
 ```
 
-A block with one state: `code "ts" "let a = 1;"`. Blocks are independent unless they share an `id`: the same `id` on another slide
-continues the animation; `code from="cart"` copies the last frame of the earlier block with that id. `animate=#true` on a slide
-continues the previous slide: what is on both (same title, image, code id) stays or glides, the rest swaps. Properties of `code`: `id from
-size=18 start=10 title="cart.ts" bg="#16213e" radius=12 pad="1em" align valign fit=none autoplay=1` and the flags `lines nolines nopanel loop`
-(`autoplay` plays the frames by itself, seconds apart, taking no clicks); of `frame`: `focus="2-4,7"` (dim the other lines),
-`transition=morph|fade|none`. Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
+A block with one state: `code "ts" "let a = 1;"`. Blocks are independent unless they share an `id`: the same `id` on another slide (or in another child
+of a `swap`) continues the animation; `code from="cart"` copies the last state of the earlier block with that id. Properties of
+`code` (of the first one in a swap): `id from size=18 start=10 title="cart.ts" bg="#16213e" radius=12 pad="1em" align valign fit=none` and the
+flags `lines nolines nopanel`; `swap autoplay=1 loop` plays the states by itself, seconds apart, taking no clicks; each `code` of a swap
+takes `focus="2-4,7"` (dim the other lines) and `transition=morph|fade|none` (how this state is entered). Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
 Between two different languages the code cross-fades. A language without a grammar is a plain static block.
 
 ## Slide properties
 
 `layout`, `columns="1 2"`, `theme=light|dark|paper|<yours>`, `background="img.jpg" | "#123" | "linear-gradient(...)" | "clip.mp4"`,
 `align=left|center|right` and `valign=top|middle|bottom` (default left/top), `justify=#true`,
-`transition=fade|slide|slide-right|slide-left|zoom|none`, `animate=#true`, `hidden=#true` (skip the slide), `autoplay=5`,
+`transition=fade|slide|slide-right|slide-left|zoom|none`, `hidden=#true` (skip the slide), `autoplay=5`,
 `header=off`, `footer=off`, `title="Short"`, `class`, any CSS variable `--accent="#f00"`.
 
 ## Plugins

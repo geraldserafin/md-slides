@@ -27,19 +27,19 @@ slide {
   }
 }
 
-// text and code side by side; the code changes frame by frame (press → ) and the difference is animated
+// text and code side by side; a swap shows its code one state at a time (press → ) and the difference is animated
 slide {
   title "Code that moves"
   text "Press → and the code changes: what stays, stays; what moved, glides."
-  code "ts" {
-    frame #"""
+  swap {
+    code "ts" #"""
       function total(items: number[]) {
         let sum = 0;
         for (const x of items) sum += x;
         return sum;
       }
       """#
-    frame #"""
+    code "ts" #"""
       function total(items: number[]) {
         return items.reduce((sum, x) => sum + x, 0);
       }

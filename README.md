@@ -2,7 +2,7 @@
 
 Presentations where **code transitions are animated by an AST diff**, written in a small language (KDL).
 
-Write your slides in a `.slides` file. When a code block goes through several frames,
+Write your slides in a `.slides` file. When a code block goes through several states,
 the viewer parses both with [tree-sitter](https://tree-sitter.github.io/), matches the two syntax trees
 with [GumTree](https://hal.science/hal-01054552), and animates the result: unchanged tokens stay,
 moved tokens glide to their new place, removed ones fade out, new ones fade in.
@@ -145,13 +145,9 @@ slide {
 
 slide {
   title "Code that moves"
-  code "ts" {                  // the frames are the states; the diff between them is what moves
-    frame #"""
-      let total = 0;
-      """#
-    frame #"""
-      let total = items.length;
-      """#
+  swap {                       // one thing at a time; code in a swap: the diff between the states is what moves
+    code "ts" "let total = 0;"
+    code "ts" "let total = items.length;"
   }
 }
 ````
@@ -211,11 +207,12 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 | `quote` | a quote with an accent bar | the text, `by="who"` |
 | `table` with `head` and `-` | a table | the cells as arguments |
 | `math` | display math (KaTeX); inline is `$x^2$` in a text | the formula |
-| `code` with `frame`s | one animated code block | the language, flags `lines` `nolines` `nopanel` `loop`, `id` `from` `title` `start` `size` `fit` `autoplay` `focus` `transition` `bg` `radius` `pad` `align` `valign` |
+| `code` | a block of code; several `code`s in a `swap` are the states of one animated block | the language and the code, flags `lines` `nolines` `nopanel`, `id` `from` `title` `start` `size` `fit` `focus` `transition` `bg` `radius` `pad` `align` `valign` |
 | `image` `video` `audio` | media, relative to the file | the file; `alt` `width` `height` `align`; flags `autoplay` `loop` `muted` `nocontrols` |
 | `chart` | CSV as an SVG chart | `"bar"` `"line"` `"pie"`, the CSV, `title` `width` |
 | `diagram` | a Mermaid diagram | the source, `width` |
 | `row` `col` `grid` | layout | `size` `gap` `align` `valign` `class` `columns` |
+| `swap` | shows one child at a time, all in one place; a click brings the next | `anim` `size` `align` `valign`; for code: `autoplay=2`, flag `loop` |
 | `step` `pause` | reveal on a click | `anim` |
 | `notes` | presenter notes | the text |
 
@@ -223,11 +220,12 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 newline is a line break; a backslash escapes a special character (`\*`). Nothing else is special, so `snake_case`, `a * b` and `<`
 stay as they are.
 
-**Animated code.** A `code` is one block; its `frame`s are the states it passes through. The first one is there with the block,
-each next one takes a click, and the diff between two frames is what moves. A block with a single state needs no `frame`:
-`code "ts" "let a = 1;"`. Blocks are **independent** unless they share an `id`: the same `id` on another slide continues the
-animation from the last frame it showed. `code from="total"` shows a copy of the last frame of the earlier block with that id.
-Tabs are expanded to four spaces; a language without a grammar is shown as static code.
+**Animated code.** `code "ts" "let a = 1;"` is a block of code. Put several in a `swap` and they are the states of one animated
+block: the first is there with the block, each next one takes a click, and the diff between two states is what moves (the options
+of the block are the first `code`'s; `focus` and `transition` are each state's own). Blocks are **independent** unless they share an `id`:
+the same `id` on another slide, or in another child of a `swap`, continues the animation from the last state it showed.
+`code from="total"` shows a copy of the last state of the earlier block with that id. Tabs are expanded to four spaces; a language
+without a grammar is shown as static code.
 
 | Property | Meaning |
 | --- | --- |
@@ -238,17 +236,18 @@ Tabs are expanded to four spaces; a language without a grammar is shown as stati
 | `title="cart.ts"` | a caption above the code |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
-| `focus="2-4,7"` | keep these lines bright and dim the rest; on a `frame` to walk through code |
-| `transition=morph\|fade\|none` | how *this frame* is entered: the diff animation (default), a cross-fade, or a cut |
-| `autoplay=1`, flag `loop` | the frames play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
+| `focus="2-4,7"` | keep these lines bright and dim the rest; on each `code` of a swap to walk through code |
+| `transition=morph\|fade\|none` | how *this state* is entered: the diff animation (default), a cross-fade, or a cut |
+| `swap autoplay=1 loop` | the states play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
 
 **Reveal.** `pause` holds back everything after it (in the same container) until the next click; `step { … }` does it for what is
 inside; `list steps` shows a list bullet by bullet. Nothing moves when the content appears (its space is reserved). `anim=` on any
 node (`fade`, `rise`, `zoom`, `left`, `right`, `down`, `blur`, `pop`, `none`) says how it comes in.
 
-**One story over several slides.** `animate=#true` on a slide continues the one before it: what is on both (the same title, image,
-paragraph or code `id`) stays or glides to its new place, and the rest swaps. Give any node an `id` to pair it by hand. Images with the
-same file match on their own.
+**Swap.** `swap { … }` shows one of its children at a time, all in the same place (the size of the biggest), and what is outside
+it stays: a title with several examples that you present one at a time. A child with several things is a `col`. `anim=left` says how
+the next one comes in. A `swap` can sit in one column of a `row`. Give any node an `id` to glide it from one slide (or child) to
+the next; images with the same file match on their own, and `code` with the same `id` morphs.
 
 **Math, charts, diagrams.** `$x^2$` in a text is inline math and a `math` node is display math, rendered with [KaTeX](https://katex.org)
 (plain HTML: it works in every target and in the PDF). `chart "bar"` turns CSV lines into an SVG chart in the slide's colors (the
@@ -268,7 +267,6 @@ is loaded on first use and left out of builds whose decks have no `diagram`.
 | `align=center` `valign=middle` | where the content sits, and how text is aligned (`left` `center` `right`, `top` `middle` `bottom`) |
 | `justify=#true` | justified paragraphs |
 | `transition=slide` | how the content comes in: `fade` `slide` `slide-right` `slide-left` `zoom` `none` |
-| `animate=#true` | continue the previous slide (see above) |
 | `hidden=#true` | left out of the show, the drawer and the PDF; stays in the file |
 | `autoplay=3` | seconds per step when the deck plays itself |
 | `header=off` `footer=off` | hide the deck's bars here |
@@ -324,8 +322,7 @@ deck title="My talk" author="Me" theme=ocean {
 ## Old decks (the tag markup)
 
 Decks written in the old tag markup (`.slide` files with `<h1>`, `<row>`, `<code><frame>`…) are converted by
-`slides migrate my-deck` (`--split` keeps one file per old file, `--remove` deletes the old files). Each `<section>` becomes a
-slide with `animate=#true`; what has no counterpart any more (`at=`, `delay=`, `margin:` and friends in the slide block) is
+`slides migrate my-deck` (`--split` keeps one file per old file, `--remove` deletes the old files). Each `<section>` becomes a child of a `swap` and the `<frame>`s of a `<code>` become the `code`s of one; what has no counterpart any more (`at=`, `delay=`, `margin:` and friends in the slide block) is
 reported, and the sizes and margins become CSS variables on the slide.
 
 ## Writing decks with an LLM

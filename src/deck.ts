@@ -2,7 +2,7 @@
 // (own layouts) and `slide` nodes. A slide is one section: a tree of rows and columns (chosen by its layout, see layouts.ts)
 // whose leaves are text (`title`, `text`, `list`...), animated code blocks, images, charts... in reading order. `pause` and `step`
 // make what follows appear on the next click. A `code` is one animated block, its `frame`s are the states it passes through;
-// blocks with the same `id` are one animation across slides, and `animate=#true` makes a slide continue the previous one.
+// blocks with the same `id` are one animation across slides. A `swap` shows one of its children at a time (a click swaps them).
 import katex from 'katex';
 import { renderChart } from './chart';
 import { deckFromNode } from './deckmeta';
@@ -57,9 +57,9 @@ export interface Attrs {
   opts: Record<string, string>;
 }
 
-/** the layout of a section: `row` = parts side by side, `col` = parts stacked; the leaves are the items */
+/** the layout of a section: `row` = parts side by side, `col` = parts stacked, `stack` = parts in one place (a `swap`); the leaves are the items */
 export type Layout =
-  | { kind: 'row' | 'col'; opts: Record<string, string>; children: Layout[] } // opts: size, halign, valign, justify, class
+  | { kind: 'row' | 'col' | 'stack'; opts: Record<string, string>; children: Layout[] } // opts: size, halign, valign, justify, class; a stack shows its children in one place
   | { kind: 'item'; item: Item };
 
 export interface Section {
@@ -255,16 +255,28 @@ export function buildSlide(node: KNode, ctx: BuildCtx): Slide {
     return { classes: [], opts };
   };
 
-  const codeLeaf = (n: KNode): Layout => {
-    const a = n.props;
+  /** the code of a `code` node: its first argument after the language that is not a flag */
+  const codeOf = (n: KNode) => n.args.slice(typeof n.args[0] === 'string' && !CODE_FLAGS.has(n.args[0]) ? 1 : 0).find((x) => typeof x === 'string' && !CODE_FLAGS.has(x));
+
+  /**
+   * One animated block from one `code` node, or from the `code` children of a `swap` (its states: the first is there with the block,
+   * each next one takes a click and the diff between two is what moves). The options of the block are the first node's, the
+   * `autoplay` and `loop` of the swap come on top; `focus` and `transition` are the node's own.
+   */
+  const codeLeaf = (nodes: KNode[], swap?: KNode): Layout => {
+    const n = nodes[0];
+    const a: Record<string, KValue> = { ...(swap?.props.autoplay !== undefined ? { autoplay: swap.props.autoplay } : {}), ...n.props };
     const lang0 = typeof n.args[0] === 'string' && !CODE_FLAGS.has(n.args[0]) ? n.args[0] : undefined;
     const rest = n.args.slice(lang0 === undefined ? 0 : 1);
-    const flags = new Set(rest.filter((x) => typeof x === 'string' && CODE_FLAGS.has(x)).map(String));
-    const inline = rest.find((x) => typeof x === 'string' && !CODE_FLAGS.has(x));
-    const frames = n.children.filter((c) => c.name === 'frame');
+    const flags = new Set([...rest.filter((x) => typeof x === 'string' && CODE_FLAGS.has(x)).map(String), ...(swap?.args.includes('loop') ? ['loop'] : [])]);
     const from = a.from === undefined ? undefined : String(a.from);
-    if (from === undefined && !frames.length && inline === undefined) fail(n, '`code` has no code: add `frame`s or the code as a second argument');
-    const srcs = frames.length ? frames.map((f) => ({ code: textOf(f), focus: f.props.focus, transition: f.props.transition })) : [{ code: String(inline ?? ''), focus: undefined, transition: undefined }];
+    if (from !== undefined && nodes.length > 1) fail(n, '`code from=…` is one state: it cannot be in a swap with other code');
+    const srcs = nodes.map((c) => {
+      const code = codeOf(c);
+      if (code === undefined && from === undefined) fail(c, '`code` has no code: write it as the second argument: code "ts" "let a = 1;"');
+      if (nodes.length > 1 && c.args[0] !== n.args[0]) fail(c, `all the code of a swap is in one language (${String(n.args[0])}, not ${String(c.args[0])})`);
+      return { code: String(code ?? ''), focus: c.props.focus, transition: c.props.transition };
+    });
     const lang = from === undefined && lang0 ? langFromTag(lang0) : undefined;
     if (from === undefined && !lang) return leaf({ kind: 'code', text: srcs[0].code, lang: lang0 ?? '' }, a, false);
     const classes = [...flags].filter((f) => f !== 'loop');
@@ -279,7 +291,7 @@ export function buildSlide(node: KNode, ctx: BuildCtx): Slide {
         // an autoplay block plays its frames by itself: they take no clicks
         const fat = i === 0 || a.autoplay !== undefined ? at : ++st.clicks;
         st.clicks = Math.max(st.clicks, fat);
-        return { code: f.code, focus: f.focus !== undefined ? String(f.focus) : a.focus !== undefined ? String(a.focus) : undefined, transition: (f.transition ?? a.transition) as string | undefined, at: fat };
+        return { code: f.code, focus: f.focus !== undefined ? String(f.focus) : undefined, transition: f.transition as string | undefined, at: fat };
       }),
     };
     if (from !== undefined) block.from = from;
@@ -324,7 +336,7 @@ export function buildSlide(node: KNode, ctx: BuildCtx): Slide {
           break;
         }
         case 'code': {
-          const l = codeLeaf(n);
+          const l = codeLeaf([n]);
           // only an animated block is "code" to the layouts; a static block (no grammar) is text
           out.push(part(l.kind === 'item' && l.item.kind === 'block' ? 'code' : 'text', placed(n, [l])));
           break;
@@ -355,6 +367,39 @@ export function buildSlide(node: KNode, ctx: BuildCtx): Slide {
           out.push(...walk(n.children));
           st.stage = saved.stage;
           st.fx = saved.fx;
+          break;
+        }
+        case 'swap': {
+          // one child at a time: the next one comes in on the next click, the one before it leaves
+          if (n.children.length && n.children.every((c) => c.name === 'code' && c.props.from === undefined)) {
+            // only code: the states of one animated block
+            if (n.children.length === 1) fail(n, 'a `swap` of one thing: write the thing');
+            const l = codeLeaf(n.children, n);
+            out.push(part(l.kind === 'item' && l.item.kind === 'block' ? 'code' : 'text', placed(n, [l])));
+            break;
+          }
+          if (n.props.autoplay !== undefined || n.args.includes('loop')) fail(n, '`autoplay` and `loop` of a `swap` work for code only');
+          const alts: Layout[] = [];
+          const starts: number[] = [];
+          const own = (l: Layout): Item[] => (l.kind === 'item' ? [l.item] : l.children.flatMap(own));
+          const saved = st.fx;
+          if (n.props.anim !== undefined) st.fx = { ...st.fx, anim: String(n.props.anim) };
+          n.children.forEach((child, i) => {
+            if (i > 0) st.stage = ++st.clicks;
+            starts.push(st.stage);
+            const parts = walk([child]);
+            alts.push(parts.length === 1 ? parts[0].layout : { kind: 'col', opts: {}, children: parts.map((p) => p.layout) });
+          });
+          st.fx = saved;
+          alts.forEach((l, i) => {
+            if (i + 1 < alts.length) for (const it of own(l)) it.fx = { ...it.fx, out: String(starts[i + 1]) };
+          });
+          const o: Record<string, string> = {};
+          for (const k of ['size', 'class']) if (n.props[k] !== undefined) o[k] = String(n.props[k]);
+          if (n.props.align !== undefined) o.halign = String(n.props.align);
+          if (n.props.valign !== undefined) o.valign = String(n.props.valign);
+          st.stage = base;
+          out.push(part('layout', { kind: 'stack', opts: o, children: alts }));
           break;
         }
         case 'row': case 'col': case 'grid': {
@@ -424,20 +469,6 @@ export function parseSlides(src: string, url: string, index = 0): { slides: Slid
   return { deck: f.deck, slides: f.slides.map((n, i) => buildSlide(n, { url, layouts: f.layouts, index: index + i })) };
 }
 
-/** `animate=#true`: what this slide and the one before have in common (the same title, image, text, code `id`) stays or glides */
-export function applyAnimate(slides: Slide[]) {
-  const key = (it: Item): string | undefined => (it.kind === 'html' ? `${it.tag}:${it.html}` : it.kind === 'image' || it.kind === 'video' ? `${it.kind}:${it.src}` : undefined);
-  const mark = (s: Slide) => {
-    for (const it of sectionItems(s.sections[0])) {
-      const k = key(it);
-      if (k && !it.fx?.morph) it.fx = { ...it.fx, morph: k };
-    }
-  };
-  slides.forEach((s, i) => {
-    if (i > 0 && /^(true|yes|on|1)$/i.test(s.own.animate ?? '')) { mark(slides[i - 1]); mark(s); }
-  });
-}
-
 /** `code from=id`: fill in the copies (the last frame of the nearest earlier block with that id) */
 export function resolveRefs(slides: Slide[]) {
   const seen = new Map<string, Block>();
@@ -485,7 +516,6 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
     }
   }));
   for (const s of slides) s.meta = { ...(meta.defaults ?? {}), ...s.own };
-  applyAnimate(slides);
   resolveRefs(slides);
   return { name, meta, slides };
 }

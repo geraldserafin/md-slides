@@ -70,7 +70,7 @@ const media = (doc: string, props: Record<string, PropDef>, flags: Record<string
 });
 
 /** the groups of nodes a node may hold */
-export const PART_NODES = ['row', 'col', 'grid', 'step', 'pause', 'title', 'heading', 'subheading', 'text', 'list', 'quote', 'table', 'math', 'image', 'video', 'audio', 'code', 'chart', 'diagram', 'notes'];
+export const PART_NODES = ['row', 'col', 'grid', 'swap', 'step', 'pause', 'title', 'heading', 'subheading', 'text', 'list', 'quote', 'table', 'math', 'image', 'video', 'audio', 'code', 'chart', 'diagram', 'notes'];
 export const DECK_NODES = ['vars', 'themes', 'fonts', 'google-fonts', 'header', 'footer', 'plugins', 'defaults', 'animation', 'code-style', 'css'];
 
 export const NODES: Record<string, NodeDef> = {
@@ -106,7 +106,6 @@ export const NODES: Record<string, NodeDef> = {
       theme: { doc: 'the theme for this slide only' },
       background: { doc: 'an image or looping video (relative to the file), or any CSS background: `linear-gradient(…)`, `#123`' },
       transition: { doc: 'how the content comes in', values: TRANSITIONS },
-      animate: { doc: 'continue the previous slide: what is on both (same title, image, code id) stays or glides, the rest swaps', values: ['#true', '#false'] },
       hidden: { doc: 'left out of the show and the PDF (stays in the file)', values: ['#true', '#false'] },
       autoplay: { doc: 'seconds per step when the deck plays itself', type: 'number' },
       header: { doc: '`off` hides the deck\'s header here', values: ['off', 'on'] }, footer: { doc: '`off` hides the deck\'s footer here', values: ['off', 'on'] },
@@ -125,6 +124,8 @@ export const NODES: Record<string, NodeDef> = {
   row: { doc: 'Its children side by side, sharing the width.', props: LAYOUT, children: ['part'] },
   col: { doc: 'Its children one under the other.', props: LAYOUT, children: ['part'] },
   grid: { doc: 'Its children in a grid.', props: { columns: { doc: 'columns', type: 'number' }, gap: LAYOUT.gap, ...ALIGN, class: LAYOUT.class }, children: ['part'] },
+  swap: { doc: 'Shows one of its children at a time, all in the same place: a click swaps it for the next one (use a `col` for several things in one). Only `code` in it: the states of one animated block. `code` with the same `id` in different children morphs into each other.', props: { anim: FX.anim, size: LAYOUT.size, class: LAYOUT.class, autoplay: { doc: 'only with code: the states play by themselves, this many seconds apart', type: 'number' }, ...ALIGN },
+    flags: { loop: 'only with autoplay and code: forth and back without end' }, children: ['part'] },
   step: { doc: 'Everything inside appears on the next click.', props: { anim: FX.anim }, children: ['part'] },
   pause: { doc: 'Everything below it appears on the next click.' },
 
@@ -148,23 +149,18 @@ export const NODES: Record<string, NodeDef> = {
   video: media('A video.', {}, { autoplay: 'play at once (muted)', loop: 'repeat', muted: 'no sound', nocontrols: 'hide the controls' }),
   audio: media('An audio file with a player bar.', {}, { autoplay: 'play at once', loop: 'repeat', nocontrols: 'hide the bar' }),
   code: {
-    doc: 'One animated code block. Its `frame`s are the states it passes through; blocks with the same `id` continue each other.',
-    args: [{ name: 'lang', doc: 'the language (ts, py, rust, go, cpp…)', optional: true }, { name: 'code', doc: 'the code, when there is only one frame', optional: true }],
+    doc: 'A block of code. Several `code`s in a `swap` are the states of one animated block: the diff between two is what moves. Blocks with the same `id` continue each other, also across slides.',
+    args: [{ name: 'lang', doc: 'the language (ts, py, rust, go, cpp…)', optional: true }, { name: 'code', doc: 'the code', optional: true }],
     flags: { lines: 'line numbers', nolines: 'no line numbers', nopanel: 'no panel behind the code', loop: 'with autoplay: forth and back without end' },
     props: {
-      id: FX.id, from: { doc: 'show a copy of the last frame of the earlier block with this id' },
+      id: FX.id, from: { doc: 'show a copy of the last state of the earlier block with this id' },
       title: { doc: 'a caption above the code' }, start: { doc: 'number of the first line', type: 'number' }, size: { doc: 'font size in px', type: 'number' },
       fit: { doc: '`none` turns the automatic scaling off', values: ['none'] },
-      autoplay: { doc: 'the frames play by themselves, this many seconds apart', type: 'number' },
-      focus: { doc: 'lines to keep bright, e.g. "2-4,7"' }, transition: { doc: 'how a frame is entered', values: ['morph', 'fade', 'none'] },
+      autoplay: { doc: 'the states play by themselves, this many seconds apart', type: 'number' },
+      focus: { doc: 'lines to keep bright, e.g. "2-4,7" (in a swap: for this state)' }, transition: { doc: 'how this state is entered from the one before (in a swap)', values: ['morph', 'fade', 'none'] },
       bg: { doc: 'panel background color' }, radius: { doc: 'panel corner radius' }, pad: { doc: 'panel padding (CSS)' },
       ...ALIGN, anim: FX.anim,
     },
-    children: ['frame'],
-  },
-  frame: {
-    doc: 'A state of a `code` block.', args: [{ name: 'code', doc: 'the code' }],
-    props: { focus: { doc: 'lines to keep bright, e.g. "2-4,7"' }, transition: { doc: 'how this frame is entered', values: ['morph', 'fade', 'none'] } },
   },
   chart: {
     doc: 'CSV lines as an SVG chart; the first row names the series.',

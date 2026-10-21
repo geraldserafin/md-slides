@@ -34,21 +34,17 @@ slide {
 
 slide {
   heading "Your first deck"
-  code "text" {
-    frame #"""
-      my-talk/
-        my-talk.slides     the slides, in one file
-        diagram.svg        assets live next to it
-        deck.json          optional configuration
-      """#
-  }
-  code "bash" {
-    frame #"""
-      slides new my-talk                 # a starter deck
-      slides dev my-talk/                # live reload
-      slides build my-talk/ -o dist      # static website
-      """#
-  }
+  code "text" #"""
+    my-talk/
+      my-talk.slides     the slides, in one file
+      diagram.svg        assets live next to it
+      deck.json          optional configuration
+    """#
+  code "bash" #"""
+    slides new my-talk                 # a starter deck
+    slides dev my-talk/                # live reload
+    slides build my-talk/ -o dist      # static website
+    """#
   text "A big deck can be several `.slides` files in the folder: they are read in the order of their names."
   notes #"""
     A deck is a folder with one or more .slides files. The first slide of the first file is slide 1.
@@ -58,21 +54,19 @@ slide {
 slide {
   heading "The language"
   text "A `.slides` file is [KDL](https://kdl.dev): **nodes** with arguments, `key=value` properties and children in braces. Text goes in quotes."
-  code "text" {
-    frame ##"""
-      // a comment
-      slide {                        // a node with children
-        title "Hello"                // a node with one argument
-        text "**bold** and `code`"   // inline markup inside the quotes
-        image "cat.jpg" alt="a cat"  // a property
-        video "a.mp4" loop muted     // bare words are flags
-        notes """
-          a text on several lines
-        """
-      }
-      /-slide { }                    // /- switches a whole node off
-      """##
-  }
+  code "text" ##"""
+    // a comment
+    slide {                        // a node with children
+      title "Hello"                // a node with one argument
+      text "**bold** and `code`"   // inline markup inside the quotes
+      image "cat.jpg" alt="a cat"  // a property
+      video "a.mp4" loop muted     // bare words are flags
+      notes """
+        a text on several lines
+      """
+    }
+    /-slide { }                    // /- switches a whole node off
+    """##
   notes #"""
     One node per line, or several separated with ; . Raw strings #"..."# need no escaping: good for code.
     """#
@@ -137,11 +131,9 @@ slide {
   pause
   text "And this one on the second. A `step` does the same for what is inside it:"
   step {
-    code "typescript" {
-      frame #"""
-        const clicks = 3; // the code block came last
-        """#
-    }
+    code "typescript" #"""
+      const clicks = 3; // the code block came last
+      """#
   }
   list steps {
     - "`list steps` shows one item per click"
@@ -172,37 +164,53 @@ slide {
 
 slide {
   heading "Code that moves"
-  text "A `code` node is one animated block; its `frame`s are the states it passes through, one click each. Between two frames what stayed stays and what moved glides."
-  code "typescript" id=fn {
-    frame #"""
+  text "Several `code` nodes in a `swap` are the states of one animated block: the first is there with the slide, each next one takes a click. Between two states what stayed stays and what moved glides."
+  swap {
+    code "typescript" id=fn #"""
       function total(items: number[]) {
         let sum = 0;
         for (const x of items) sum += x;
         return sum;
       }
       """#
-    frame focus="2-4" #"""
+    code "typescript" focus="2-4" #"""
       function total(items: number[]) {
         return items.reduce((sum, x) => sum + x, 0);
       }
       """#
   }
   notes #"""
-    The most important idea of the tool. `focus` keeps some lines bright, `transition` is morph, fade or none, `autoplay=2` plays the frames by itself.
+    The most important idea of the tool. `focus` keeps some lines bright, `transition` is morph, fade or none, `swap autoplay=2` plays the states by itself.
     """#
 }
 
-slide animate=#true {
-  heading "A slide that continues the last one"
-  text "`animate=#true` makes a slide continue the one before it: what is on both (the same title, image, or code `id`) stays or glides, the rest swaps. This is how one story spans several slides."
-  code "typescript" id=fn {
-    frame #"""
-      const total = (items: number[]) =>
-        items.reduce((sum, x) => sum + x, 0);
-      """#
+slide {
+  heading "Swap: one place, many things"
+  text "A `swap` shows one child at a time, all in the same place; a click brings the next one. What is outside it stays. A child with several things is a `col`; `code` with the same `id` morphs from one child to the next."
+  swap anim=left {
+    col {
+      subheading "rename"
+      code "typescript" id=sw #"""
+        function area(r: number) { return Math.PI * r * r; }
+        """#
+    }
+    col {
+      subheading "extract"
+      code "typescript" id=sw #"""
+        const sq = (x: number) => x * x;
+        function area(r: number) { return Math.PI * sq(r); }
+        """#
+    }
+    col {
+      subheading "arrow"
+      code "typescript" id=sw #"""
+        const sq = (x: number) => x * x;
+        const area = (r: number) => Math.PI * sq(r);
+        """#
+    }
   }
   notes #"""
-    Matching is by content: the same heading text, the same image file, the same code id. Anything else fades out and in.
+    swap takes anim (how the next child comes in), size, align and valign. Only code inside it: the states of one block, and autoplay and loop work.
     """#
 }
 
@@ -211,7 +219,7 @@ slide {
   text "Not only code: an image, a heading or a paragraph with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
   image "diagram.svg" align=left width="180px"
 }
-slide animate=#true {
+slide {
   heading "Same picture, bigger"
   image "diagram.svg" align=right width="460px"
   text "The picture above is the same file, so it grew and moved by itself." id=note
@@ -262,12 +270,10 @@ slide theme=light {
   heading "Images"
   text "`image \"file\"`: the file is relative to the `.slides` file. `alt`, `width`, `height` and `align` size and place it."
   image "diagram.svg" alt="diagram" align=center
-  code "text" {
-    frame #"""
-      image "diagram.svg" align=left width="420px"
-      image "photo.jpg" alt="a wide photo"
-      """#
-  }
+  code "text" #"""
+    image "diagram.svg" align=left width="420px"
+    image "photo.jpg" alt="a wide photo"
+    """#
   notes #"""
     width and height are CSS lengths, so they take a string: width="40%".
     """#
@@ -277,12 +283,10 @@ slide {
   heading "Video and audio"
   text "`video` and `audio` take the flags `autoplay`, `loop`, `muted` and `nocontrols`. Audio gives a player bar. A video can also be a slide's background: `background=\"clip.mp4\"`."
   video "clip.webm" autoplay loop muted
-  code "text" {
-    frame #"""
-      video "clip.webm" autoplay loop muted
-      audio "talk.mp3" autoplay
-      """#
-  }
+  code "text" #"""
+    video "clip.webm" autoplay loop muted
+    audio "talk.mp3" autoplay
+    """#
   notes #"""
     autoplay implies muted (browsers block unmuted autoplay).
     """#
@@ -294,8 +298,8 @@ slide layout=two-cols {
     text "Text on the left, code on the right: `layout=two-cols` and the `left` and `right` slots. `columns=\"1 2\"` changes the proportions."
   }
   right {
-    code "go" id=g1 {
-      frame #"""
+    swap {
+      code "go" id=g1 #"""
         func Sum(xs []int) int {
         	total := 0
         	for _, x := range xs {
@@ -304,7 +308,7 @@ slide layout=two-cols {
         	return total
         }
         """#
-      frame #"""
+      code "go" #"""
         func Sum[T int | float64](xs []T) T {
         	var total T
         	for _, x := range xs {
@@ -332,11 +336,11 @@ slide {
       subheading "Another"
       text "`align` and `valign` align inside a part; `gap` sets the space between."
     }
-    code "python" {
-      frame #"""
+    swap {
+      code "python" #"""
         x = 1
         """#
-      frame #"""
+      code "python" #"""
         x = 2   # on the first click
         """#
     }
@@ -368,21 +372,19 @@ slide layout=sidebar {
     text "A `layout` node at the top of a file, used by name." size="small"
   }
   heading "A layout of your own"
-  code "text" {
-    frame ##"""
-      layout "sidebar" {
-        row {
-          col size="28%" { slot "side" }
-          col { slot }
-        }
+  code "text" ##"""
+    layout "sidebar" {
+      row {
+        col size="28%" { slot "side" }
+        col { slot }
       }
+    }
 
-      slide layout=sidebar {
-        side { text "in the narrow column" }
-        text "in the wide one (the slot without a name)"
-      }
-      """##
-  }
+    slide layout=sidebar {
+      side { text "in the narrow column" }
+      text "in the wide one (the slot without a name)"
+    }
+    """##
   notes #"""
     A layout is rows and columns with slots. Content that is in no slot goes to the unnamed slot. Layouts can live in any .slides file of the deck.
     """#
@@ -391,15 +393,13 @@ slide layout=sidebar {
 slide {
   heading "The deck node"
   text "Settings of the whole deck go in a `deck` node at the top (or in `deck.json`):"
-  code "text" {
-    frame ##"""
-      deck title="My talk" author="Me" theme=dark {
-        vars --accent="#d82838"
-        header left="logo.svg" right="{slide} / {slides}"
-        plugins "./qr.js"
-      }
-      """##
-  }
+  code "text" ##"""
+    deck title="My talk" author="Me" theme=dark {
+      vars --accent="#d82838"
+      header left="logo.svg" right="{slide} / {slides}"
+      plugins "./qr.js"
+    }
+    """##
   notes #"""
     deck takes title author date description theme autoplay loop; children: vars themes fonts google-fonts header footer plugins defaults animation code-style css.
     """#

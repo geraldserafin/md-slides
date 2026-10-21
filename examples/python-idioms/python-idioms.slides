@@ -11,8 +11,8 @@ slide {
     append in a loop -> list comprehension. Note how `if` moves inside.
     """#
   heading "Build a list: loop to comprehension"
-  code "python" id=g1 {
-    frame #"""
+  swap {
+    code "python" id=g1 #"""
       def squares_of_evens(numbers):
           result = []
           for n in numbers:
@@ -20,20 +20,20 @@ slide {
                   result.append(n * n)
           return result
       """#
-    frame #"""
+    code "python" #"""
       def squares_of_evens(numbers):
           return [n * n for n in numbers if n % 2 == 0]
       """#
   }
 }
-slide animate=#true {
+slide {
   heading "Lazily: generator expression"
-  code "python" id=g2 {
-    frame #"""
+  swap {
+    code "python" id=g2 #"""
       def total_of_squares(numbers):
           return sum([n * n for n in numbers if n % 2 == 0])
       """#
-    frame #"""
+    code "python" #"""
       def total_of_squares(numbers):
           return sum(n * n for n in numbers if n % 2 == 0)
       """#
@@ -42,8 +42,8 @@ slide animate=#true {
 
 slide {
   heading "Counting words"
-  code "python" id=g1 {
-    frame #"""
+  swap {
+    code "python" id=g1 #"""
       def word_counts(text):
           counts = {}
           for word in text.split():
@@ -53,21 +53,21 @@ slide {
                   counts[word] = 1
           return counts
       """#
-    frame #"""
+    code "python" #"""
       def word_counts(text):
           counts = {}
           for word in text.split():
               counts[word] = counts.get(word, 0) + 1
           return counts
       """#
-    frame #"""
+    code "python" #"""
       from collections import Counter
 
 
       def word_counts(text):
           return Counter(text.split())
       """#
-    frame #"""
+    code "python" #"""
       from collections import Counter
 
 
@@ -85,8 +85,8 @@ slide {
     ~15 lines of boilerplate shrink to a decorator and annotated fields.
     """#
   heading "A class that is just data"
-  code "python" id=g1 {
-    frame #"""
+  swap {
+    code "python" id=g1 #"""
       class Point:
           def __init__(self, x, y):
               self.x = x
@@ -98,7 +98,7 @@ slide {
           def __eq__(self, other):
               return isinstance(other, Point) and self.x == other.x and self.y == other.y
       """#
-    frame #"""
+    code "python" #"""
       from dataclasses import dataclass
 
 
@@ -107,7 +107,7 @@ slide {
           x: float
           y: float
       """#
-    frame #"""
+    code "python" #"""
       from dataclasses import dataclass
 
 
@@ -121,10 +121,10 @@ slide {
       """#
   }
 }
-slide animate=#true {
+slide {
   heading "Resource handling"
-  code "python" id=g2 {
-    frame #"""
+  swap {
+    code "python" id=g2 #"""
       def read_first_line(path):
           f = open(path)
           try:
@@ -132,7 +132,7 @@ slide animate=#true {
           finally:
               f.close()
       """#
-    frame #"""
+    code "python" #"""
       def read_first_line(path):
           with open(path) as f:
               return f.readline()

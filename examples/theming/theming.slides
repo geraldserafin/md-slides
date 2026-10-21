@@ -24,22 +24,19 @@ slide {
 slide {
   heading "Slide settings"
   text "The properties of a `slide` node. Every one applies to that slide only."
-  code "text" {
-    frame #"""
-      slide layout=cover          cover (a title slide, no header/footer, big heading)
-            theme=light           built-in or custom theme name
-            background="bg.jpg"   image path/URL or any CSS value
-            align=center          left | center | right (default left)
-            valign=middle         top | middle | bottom (default top)
-            justify=#true         justified paragraphs
-            class=spotlight       extra CSS class on the stage
-            title="Short title"   shown in the presenter view
-            transition=slide      fade | slide | slide-right | slide-left | zoom | none
-            animate=#true         continue the previous slide
-            footer=off            hide the deck's footer/header on this slide
-            --accent="#ff9e64"    any CSS variable
-      """#
-  }
+  code "text" #"""
+    slide layout=cover          cover (a title slide, no header/footer, big heading)
+          theme=light           built-in or custom theme name
+          background="bg.jpg"   image path/URL or any CSS value
+          align=center          left | center | right (default left)
+          valign=middle         top | middle | bottom (default top)
+          justify=#true         justified paragraphs
+          class=spotlight       extra CSS class on the stage
+          title="Short title"   shown in the presenter view
+          transition=slide      fade | slide | slide-right | slide-left | zoom | none
+          footer=off            hide the deck's footer/header on this slide
+          --accent="#ff9e64"    any CSS variable
+    """#
   notes #"""
     The next slides demonstrate theme, background, class, valign and transitions.
     """#
@@ -99,11 +96,11 @@ slide {
       heading "Column widths: `size`"
       text "In a `row` every part takes an equal share of the width. `size=34%` makes this one narrower, here for a short note next to wider code. `size=2` would be a weight: twice as wide."
     }
-    code "typescript" {
-      frame #"""
+    swap {
+      code "typescript" #"""
         const columns = { text: "34%", code: "the rest" };
         """#
-      frame #"""
+      code "typescript" #"""
         const columns = { text: "34%", code: "the rest", gap: "4vmin" };
         """#
     }
@@ -129,14 +126,14 @@ slide theme=paper background="linear-gradient(160deg, #f4ecd8, #e8d9b5)" {
 slide theme=sunset {
   heading "A custom theme: `sunset`"
   text "Defined once under `themes` in this deck's `deck.json` and used here with `theme: sunset`. It also joins the **t** key cycle."
-  code "typescript" id=g1 align=left {
-    frame #"""
+  swap {
+    code "typescript" id=g1 align=left #"""
       const theme = {
         name: "sunset",
         warm: true,
       };
       """#
-    frame #"""
+    code "typescript" #"""
       const theme = {
         name: "sunset",
         warm: true,
@@ -149,12 +146,12 @@ slide theme=sunset {
 slide theme=terminal {
   heading "A custom theme: `terminal`"
   text "Green on black, with token colors to match. Change a theme and the code tokens recolor, because they are just CSS variables."
-  code "bash" id=g1 {
-    frame #"""
+  swap {
+    code "bash" id=g1 #"""
       $ slides dev my-talk/
         ready in 312 ms
       """#
-    frame #"""
+    code "bash" #"""
       $ slides build my-talk/ -t single
         wrote my-talk.html (3.8 MB)
       """#
@@ -164,12 +161,12 @@ slide theme=terminal {
 slide theme=light {
   heading "Built-in `light`"
   text "Crisp on projectors. Per-slide, so you can mix themes inside one deck."
-  code "python" id=g1 {
-    frame #"""
+  swap {
+    code "python" id=g1 #"""
       def total(prices, tax=0.2):
           return sum(prices) * (1 + tax)
       """#
-    frame #"""
+    code "python" #"""
       def total(prices, tax=0.2):
           net = sum(prices)
           return round(net * (1 + tax), 2)
@@ -188,11 +185,11 @@ slide background="#2d1b4e" theme=midnight {
 slide theme=midnight background="radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)" {
   heading "Backgrounds: gradients"
   text "`background: radial-gradient(circle at 20% 15%, #7a3a5f, #3b1d5c 50%, #120a24 90%)`"
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       const sky = "gradient";
       """#
-    frame #"""
+    code "typescript" #"""
       const sky = "gradient";
       const sunset = sky + " of warm colors";
       """#
@@ -240,11 +237,11 @@ slide transition=slide-left {
 slide transition=none {
   heading "none"
   text "No entrance animation for the text: it appears instantly. Code still animates."
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       const instant = true;
       """#
-    frame #"""
+    code "typescript" #"""
       const instant = true;
       const code = "still animates";
       """#
@@ -254,19 +251,19 @@ slide transition=none {
 slide --move-dur="1.6s" --fade-dur="0.9s" {
   heading "Slow motion"
   text "Every animation knob is a CSS variable, so a slide can override it: `--move-dur=\"1.6s\"` and `--fade-dur=\"0.9s\"` on the `slide`."
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       function area(w: number, h: number) {
         const result = w * h;
         return result;
       }
       """#
-    frame #"""
+    code "typescript" #"""
       function area(h: number, w: number) {
         return h * w;
       }
       """#
-    frame #"""
+    code "typescript" #"""
       const area = (h: number, w: number) => h * w;
       """#
   }
@@ -278,11 +275,11 @@ slide --move-dur="1.6s" --fade-dur="0.9s" {
 slide --move-dur="0s" --fade-dur="0s" {
   heading "Instant"
   text "`--move-dur: 0s` and `--fade-dur: 0s`: frames switch with no animation at all. (Visitors who ask the OS for reduced motion get this automatically.)"
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       const mode = "instant";
       """#
-    frame #"""
+    code "typescript" #"""
       const mode = "instant";
       const delay = 0;
       """#
@@ -292,19 +289,19 @@ slide --move-dur="0s" --fade-dur="0s" {
 slide --move-dur="0.8s" --ease="cubic-bezier(0.34, 1.56, 0.64, 1)" {
   heading "Bouncy"
   text "`--ease: cubic-bezier(0.34, 1.56, 0.64, 1)` overshoots a little before settling."
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       function greet(name: string) {
         return "Hello, " + name;
       }
       """#
-    frame #"""
+    code "typescript" #"""
       function greet(name: string, punctuation = "!") {
         const message = "Hello, " + name + punctuation;
         return message;
       }
       """#
-    frame #"""
+    code "typescript" #"""
       const greet = (name: string, p = "!") =>
         `Hello, ${name}${p}`;
       """#
@@ -314,17 +311,15 @@ slide --move-dur="0.8s" --ease="cubic-bezier(0.34, 1.56, 0.64, 1)" {
 slide {
   heading "Themes"
   text "Built in: `dark`, `light`, `paper`. Press **t** to cycle, or open `?theme=light`. Your own theme is a set of CSS variables in `deck.json` and joins the cycle:"
-  code "jsonc" {
-    frame #"""
-      "theme": "ocean",
-      "themes": {
-        "ocean": {
-          "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--heading": "#fff", "--accent": "#3ddc97",
-          "--tok-keyword": "#ff7eb6", "--tok-ident": "#e6f4fb", "--tok-type": "#ffd479"
-        }
+  code "jsonc" #"""
+    "theme": "ocean",
+    "themes": {
+      "ocean": {
+        "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--heading": "#fff", "--accent": "#3ddc97",
+        "--tok-keyword": "#ff7eb6", "--tok-ident": "#e6f4fb", "--tok-type": "#ffd479"
       }
-      """#
-  }
+    }
+    """#
   notes #"""
     Token colors: --tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain. See this deck's own deck.json for two full themes (sunset, terminal).
     """#
@@ -333,15 +328,15 @@ slide {
 slide --tok-keyword="#ff5d8f" --tok-ident="#ffe66d" --tok-type="#4ecdc4" --tok-builtin="#ff9f1c" --tok-punct="#8d99ae" --accent="#4ecdc4" {
   heading "Recolor syntax per slide"
   text "This `slide` sets `--tok-keyword`, `--tok-ident`, `--tok-type`, `--tok-builtin` and `--tok-punct` as properties. No theme needed."
-  code "typescript" id=g1 {
-    frame #"""
+  swap {
+    code "typescript" id=g1 #"""
       interface Point { x: number; y: number }
 
       function norm(p: Point): number {
         return Math.sqrt(p.x ** 2 + p.y ** 2);
       }
       """#
-    frame #"""
+    code "typescript" #"""
       interface Point { x: number; y: number }
 
       function norm({ x, y }: Point): number {
@@ -363,13 +358,11 @@ slide --font-heading="Georgia, 'Times New Roman', serif" --heading-size="64px" -
 slide {
   heading "Header, footer and logo"
   text "The bar at the bottom of this very slide is the deck's **footer**. Define a `header` and/or a `footer` in the `deck` node: each has a `left`, `center` and `right` slot holding text or an image (a list of both in `deck.json`)."
-  code "text" {
-    frame #"""
-      deck {
-        footer left="logo.svg" right="{slide} / {slides}" height=42 border=#true background="#0b1d2a" color="#9db4c0"
-      }
-      """#
-  }
+  code "text" #"""
+    deck {
+      footer left="logo.svg" right="{slide} / {slides}" height=42 border=#true background="#0b1d2a" color="#9db4c0"
+    }
+    """#
   text "Text can use `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}`. A slot value that ends in `.svg` `.png` `.jpg` `.webp` is an image, relative to the deck folder. Bars are hidden on `cover` slides unless you set `cover=#true`; any slide can opt out with `footer=off` or `header=off`."
   notes #"""
     Typical use: a school or company theme. Put the logo in the footer or header, add the name and the slide number.
@@ -387,14 +380,12 @@ slide footer=off {
 slide {
   heading "Deck-wide defaults"
   text "`defaults` in the `deck` node gives properties to **every** slide. A slide's own properties win."
-  code "text" {
-    frame #"""
-      deck {
-        defaults justify=#true margin="9vmin 12vmin" align=left
-        vars --heading-size="56px"
-      }
-      """#
-  }
+  code "text" #"""
+    deck {
+      defaults justify=#true margin="9vmin 12vmin" align=left
+      vars --heading-size="56px"
+    }
+    """#
   text "Together with `themes`, `vars`, `header`/`footer` and `css` it is enough to build a house style once and reuse it for every deck of a school or company."
   notes #"""
     Defaults take align, valign, background, margin, justify and transition.
@@ -404,22 +395,20 @@ slide {
 slide {
   heading "deck.json"
   text "Optional, next to the slides. Everything in it can also be written in a `deck` node of a `.slides` file; where both say something, the `deck` node wins."
-  code "jsonc" {
-    frame #"""
-      {
-        "title": "My talk",
-        "theme": "dark",
-        "css": "deck.css",
-        "vars": { "--font-heading": "Georgia, serif", "--text-size": "28px" },
-        "themes": { "...": {} },
-        "fonts": [{ "family": "Fira Code", "src": "fira.woff2", "weight": "400" }],
-        "googleFonts": ["Inter:wght@400;700"],
-        "animation": { "move": 0.5, "fade": 0.3, "moveDelay": 0.05, "fadeInDelay": 0.1,
-                       "ease": "ease-in-out", "slideFade": 0.4,
-                       "textTransition": "slide", "textStagger": 0.1 }
-      }
-      """#
-  }
+  code "jsonc" #"""
+    {
+      "title": "My talk",
+      "theme": "dark",
+      "css": "deck.css",
+      "vars": { "--font-heading": "Georgia, serif", "--text-size": "28px" },
+      "themes": { "...": {} },
+      "fonts": [{ "family": "Fira Code", "src": "fira.woff2", "weight": "400" }],
+      "googleFonts": ["Inter:wght@400;700"],
+      "animation": { "move": 0.5, "fade": 0.3, "moveDelay": 0.05, "fadeInDelay": 0.1,
+                     "ease": "ease-in-out", "slideFade": 0.4,
+                     "textTransition": "slide", "textStagger": 0.1 }
+    }
+    """#
   notes #"""
     Also supported here: "author", "date", "order", "hidden" and "thumbnail", used by the deck gallery.
     """#

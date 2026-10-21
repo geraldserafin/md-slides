@@ -17,17 +17,15 @@ slide {
 slide {
   heading "What a plugin is"
   text "An ES module that default-exports an object. The viewer imports it before it parses the slides:"
-  code "js" {
-    frame #"""
-      export default {
-        name: 'demo',
-        tags: { badge: { doc: 'A label.', render: ({ attrs, text }) => `<b>${text}</b>` } }, // a node: badge "text" color=red
-        themes: { sepia: { '--bg': '#f4ecd8' } },
-        tools: [{ title: 'Hi', icon: '<svg …/>', run: (api) => api.player.next() }],
-        hooks: { step: (api, { slide }) => console.log(slide) },
-      }
-      """#
-  }
+  code "js" #"""
+    export default {
+      name: 'demo',
+      tags: { badge: { doc: 'A label.', render: ({ attrs, text }) => `<b>${text}</b>` } }, // a node: badge "text" color=red
+      themes: { sepia: { '--bg': '#f4ecd8' } },
+      tools: [{ title: 'Hi', icon: '<svg …/>', run: (api) => api.player.next() }],
+      hooks: { step: (api, { slide }) => console.log(slide) },
+    }
+    """#
   text "Plugins are listed in the `deck` node: `plugins \"./demo.js\" \"@someone/slideit-plugin-qr\"` (or in `deck.json`)."
   badge "docs/plugins.md" color=blue
 }

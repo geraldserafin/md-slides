@@ -11,8 +11,8 @@
     "root": {
       "patterns": [
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:ts|typescript)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:ts|typescript)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -26,47 +26,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.ts",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.ts",
-              "patterns": [
-                {
-                  "include": "source.ts"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.ts"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:tsx)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:tsx)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -80,47 +59,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.tsx",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.tsx",
-              "patterns": [
-                {
-                  "include": "source.tsx"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.tsx"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:js|javascript|jsx)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:js|javascript|jsx)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -134,47 +92,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.js",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.js",
-              "patterns": [
-                {
-                  "include": "source.js"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.js"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:cpp|c\\+\\+|cxx|cc|hpp)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:cpp|c\\+\\+|cxx|cc|hpp)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -188,47 +125,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.cpp",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.cpp",
-              "patterns": [
-                {
-                  "include": "source.cpp"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.cpp"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:c|h)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:c|h)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -242,47 +158,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.c",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.c",
-              "patterns": [
-                {
-                  "include": "source.c"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.c"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:py|python)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:py|python)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -296,47 +191,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.python",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.python",
-              "patterns": [
-                {
-                  "include": "source.python"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.python"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:rs|rust)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:rs|rust)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -350,47 +224,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.rust",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.rust",
-              "patterns": [
-                {
-                  "include": "source.rust"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.rust"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:go|golang)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:go|golang)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -404,47 +257,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.go",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.go",
-              "patterns": [
-                {
-                  "include": "source.go"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.go"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:java)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:java)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -458,47 +290,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.java",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.java",
-              "patterns": [
-                {
-                  "include": "source.java"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.java"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:sh|bash|shell)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:sh|bash|shell)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -512,47 +323,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.shell",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.shell",
-              "patterns": [
-                {
-                  "include": "source.shell"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.shell"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:json)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:json)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -566,47 +356,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.json",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.json",
-              "patterns": [
-                {
-                  "include": "source.json"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.json"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:html)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:html)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -620,47 +389,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "text.html.basic",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "text.html.basic",
-              "patterns": [
-                {
-                  "include": "text.html.basic"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "text.html.basic"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:css)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:css)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -674,47 +422,26 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.css",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.css",
-              "patterns": [
-                {
-                  "include": "source.css"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.css"
             }
           ]
         },
         {
-          "begin": "^(\\s*)(code)(\\s+)(\"(?:lua)\")([^{\\n]*)(\\{)\\s*$",
-          "end": "^\\1\\}",
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:lua)\")([^#\\n]*?)(#+)\"\"\"\\s*$",
+          "end": "^\\s*\"\"\"\\6",
           "beginCaptures": {
             "2": {
               "name": "entity.name.tag.slides"
@@ -728,41 +455,20 @@
                   "include": "#props"
                 }
               ]
+            },
+            "6": {
+              "name": "string.quoted.triple.raw.slides"
             }
           },
+          "endCaptures": {
+            "0": {
+              "name": "string.quoted.triple.raw.slides"
+            }
+          },
+          "contentName": "source.lua",
           "patterns": [
             {
-              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
-              "end": "^\\s*\"\"\"\\3",
-              "beginCaptures": {
-                "1": {
-                  "name": "entity.name.tag.slides"
-                },
-                "2": {
-                  "patterns": [
-                    {
-                      "include": "#props"
-                    }
-                  ]
-                },
-                "3": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "endCaptures": {
-                "0": {
-                  "name": "string.quoted.triple.raw.slides"
-                }
-              },
-              "contentName": "source.lua",
-              "patterns": [
-                {
-                  "include": "source.lua"
-                }
-              ]
-            },
-            {
-              "include": "#root"
+              "include": "source.lua"
             }
           ]
         },

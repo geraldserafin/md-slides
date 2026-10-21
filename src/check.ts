@@ -99,11 +99,12 @@ export function check(src: string, extraLayouts: Record<string, string[]> = {}):
       if (!allowed.includes(n.name)) add(n, `\`${n.name}\` is not allowed ${parent ? `inside \`${parent}\`` : 'here'}`);
       checkNode(n, def);
       if (n.name === 'code') {
-        const hasFrames = n.children.some((c) => c.name === 'frame');
         const inline = n.args.slice(1).some((a) => typeof a === 'string' && !(def.flags ?? {})[a]);
-        if (n.props.from === undefined && n.args[0] === undefined) add(n, '`code` needs a language: code "rust" …');
-        if (n.props.from === undefined && !hasFrames && !inline) add(n, '`code` has no code: add `frame`s or the code as a second argument');
+        if (n.props.from === undefined && n.args[0] === undefined) add(n, '`code` needs a language: code "rust" "…"');
+        if (n.props.from === undefined && !inline) add(n, '`code` has no code: write it as the second argument: code "ts" "let a = 1;"');
       }
+      if (n.name === 'swap' && n.children.length === 1) add(n, 'a `swap` of one thing: write the thing');
+      if (n.name === 'swap' && (n.props.autoplay !== undefined || n.args.includes('loop')) && !n.children.every((c) => c.name === 'code')) add(n, '`autoplay` and `loop` of a `swap` work for code only');
       if (n.name === 'slot' && parent !== 'layout' && parent !== 'row' && parent !== 'col' && parent !== 'grid') add(n, '`slot` belongs in a `layout`');
       if (n.children.length) {
         if (def.children || n.name === 'themes') walk(n.children, n.name);

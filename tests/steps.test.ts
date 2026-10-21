@@ -11,7 +11,7 @@ const shared = (a: { keys: Map<number, string> }, b: { keys: Map<number, string>
 
 describe('steps of code groups', () => {
   const frames = (opt: string) =>
-    `slide { code "ts" ${opt} { frame "function f(a) { return a + 1; }"; frame "function f(a) { return a + 2; }" } }`;
+    `slide { swap { code "ts" "function f(a) { return a + 1; }"; code "ts" "function f(a) { return a + 2; }" ${opt} } }`;
 
   it('frames of a group morph: tokens are shared', async () => {
     const steps = await buildSteps(deckOf(frames('')));
@@ -74,7 +74,7 @@ describe('hidden slides', () => {
 
 describe('autoplay blocks', () => {
   it('are one step; the frames are states the viewer plays', async () => {
-    const d = deckOf('slide { code "ts" autoplay=1 { frame "let a = 1;"; frame "let a = 2;" } }');
+    const d = deckOf('slide { swap autoplay=1 { code "ts" "let a = 1;"; code "ts" "let a = 2;" } }');
     const steps = await buildSteps(d);
     expect(steps).toHaveLength(1);
     const st = steps[0].blocks[0];
