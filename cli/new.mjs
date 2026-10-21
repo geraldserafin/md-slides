@@ -4,14 +4,14 @@ import { basename, join, resolve } from 'node:path';
 
 const q = (s) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
-const file = (title) => `// ${title}. Every \`slide\` is one slide; the layout follows from what is in it.
+const file = (title) => `// ${title}. Every \`slide\` is one slide; what you write is the layout (a column; a \`row\` shares the height that is left).
 // Text goes in quotes. Inside it: **bold**, *italic*, \`code\`, [link](https://example.com), $x^2$.
 deck title=${q(title)} author="" theme=dark {
   footer left=${q(title)} right="{slide} / {slide}s"
 }
 
 // a title and a line: the first slide of a deck is a cover
-slide {
+slide layout=cover {
   title ${q(title)}
   text "A subtitle, or the date and where you give the talk"
   notes "Welcome everyone. Notes like this one show in the presenter window (press p)."
@@ -27,19 +27,19 @@ slide {
   }
 }
 
-// text and code side by side; the code changes frame by frame (press → ) and the difference is animated
-slide {
+// text and code side by side; a swap shows its code one state at a time (press → ) and the difference is animated
+slide layout=code-side {
   title "Code that moves"
   text "Press → and the code changes: what stays, stays; what moved, glides."
-  code "ts" {
-    frame #"""
+  swap {
+    code "ts" #"""
       function total(items: number[]) {
         let sum = 0;
         for (const x of items) sum += x;
         return sum;
       }
       """#
-    frame #"""
+    code "ts" #"""
       function total(items: number[]) {
         return items.reduce((sum, x) => sum + x, 0);
       }

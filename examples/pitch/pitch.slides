@@ -22,15 +22,15 @@ slide {
   heading "Meet Fernly"
   row {
     col {
-      subheading "1 · Scan"
+      heading size=3 "1 · Scan"
       text "Point the camera at a plant. Fernly names it and reads its mood."
     }
     col {
-      subheading "2 · Schedule"
+      heading size=3 "2 · Schedule"
       text "A watering and light plan that follows your home and the season."
     }
     col {
-      subheading "3 · Smile"
+      heading size=3 "3 · Smile"
       text "One calm reminder a day. No guilt, no spam."
     }
   }
@@ -103,15 +103,15 @@ slide {
   heading "Team"
   row {
     col {
-      subheading "Mara Linden"
+      heading size=3 "Mara Linden"
       text "CEO. Ten years in consumer apps."
     }
     col {
-      subheading "Teo Brandt"
+      heading size=3 "Teo Brandt"
       text "CTO. Computer vision, formerly at a satellite imaging company."
     }
     col {
-      subheading "Iris Okafor"
+      heading size=3 "Iris Okafor"
       text "Botany lead. The reason the advice is right."
     }
   }

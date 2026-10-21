@@ -2,70 +2,101 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { check } from '../src/check';
-import { parseSlides, sectionItems } from '../src/deck';
-import { pluginTags } from '../src/plugin-schema';
-import { extendSchema, NODES } from '../src/schema';
+import { check } from '../src/kernel/check';
+import { createRegistry, PluginError } from '../src/kernel/registry';
+import { definePlugin } from '../src/kernel/index';
+import { toPlugin } from '../src/kernel/legacy';
+import { loadRegistry } from '../src/node/loader';
+import { stockRegistry } from '../src/plugins/index';
+import { leaves, one } from './helpers';
 
-const parse = (src: string) => parseSlides(src, 'http://x/d/s.slides').slides[0];
+const badge = definePlugin({
+  name: 'badge',
+  nodes: {
+    badge: { doc: 'A label.', part: true, args: [{ name: 'text', doc: 'the label', optional: true }], props: { color: { doc: 'a color', values: ['red', 'green'] } }, render: () => 'x' },
+    dot: { doc: 'A dot.', part: true, render: () => 'o' },
+  },
+});
+const withBadge = () => stockRegistry().use(badge);
 
 describe('plugin nodes', () => {
-  extendSchema({
-    badge: { doc: 'A label.', props: { color: { doc: 'a color', values: ['red', 'green'] } } },
-    dot: { doc: 'A dot.', args: [] },
-  });
-
-  it('become items of kind custom with their properties and text', () => {
-    const items = sectionItems(parse('slide { badge "new" color=red; dot }').sections[0]);
-    expect(items[0]).toMatchObject({ kind: 'custom', tag: 'badge', attrs: { color: 'red' }, text: 'new' });
-    expect(items[1]).toMatchObject({ kind: 'custom', tag: 'dot' });
+  it('a node with only a render becomes an element of its kind, with its properties and text', () => {
+    const els = leaves(one('slide { badge "new" color=red; dot }', withBadge()));
+    expect(els[0]).toMatchObject({ kind: 'badge', props: { text: 'new', color: 'red' } });
+    expect(els[1]).toMatchObject({ kind: 'dot' });
   });
   it('take the animation properties and a step', () => {
-    const [item] = sectionItems(parse('slide { step { badge "x" anim=zoom id=b } }').sections[0]);
-    expect(item).toMatchObject({ at: 1, fx: { anim: 'zoom', morph: 'b' }, attrs: {} });
+    const [e] = leaves(one('slide { step { badge "x" anim=zoom id=b } }', withBadge()));
+    expect(e).toMatchObject({ at: 1, effect: 'zoom', key: 'b' });
   });
   it('sit in rows like the built-in nodes', () => {
-    expect(check('slide { row { badge "a"; text "b" } }')).toEqual([]);
+    expect(check('slide { row { badge "a"; text "b" } }', withBadge())).toEqual([]);
   });
   it('are checked: property values, unknown properties', () => {
-    expect(check('slide { badge "x" color=blue }')[0].message).toMatch(/expected red \| green/);
-    expect(check('slide { badge "x" size=3 }')[0].message).toMatch(/unknown property `size`/);
+    expect(check('slide { badge "x" color=blue }', withBadge())[0].message).toMatch(/expected red \| green/);
+    expect(check('slide { badge "x" size=3 }', withBadge())[0].message).toMatch(/unknown property `size`/);
   });
-  it('cannot replace a built-in node', () => {
-    extendSchema({ text: { doc: 'hijack' } });
-    expect(NODES.text.plugin).toBeUndefined();
+  it('cannot take a name over by accident', () => {
+    expect(() => stockRegistry().use({ name: 'hijack', nodes: { text: { doc: 'mine', part: true } } })).toThrow(PluginError);
+    expect(() => stockRegistry().use({ name: 'hijack', replaces: ['text'], nodes: { text: { doc: 'mine', part: true, render: () => 'x' } } })).not.toThrow();
+  });
+  it('a plugin of a newer API is refused, and a plugin is registered once', () => {
+    expect(() => createRegistry().use({ name: 'future', api: 99 })).toThrow(/plugin API 99/);
+    expect(() => createRegistry().use(badge).use(badge)).toThrow(/registered twice/);
   });
   it('an unknown node is an error', () => {
-    expect(() => parse('slide { nothing }')).toThrow(/unknown node/);
+    expect(() => one('slide { nothing }')).toThrow(/unknown node/);
   });
 });
 
-describe('plugin schema for the editor tooling', () => {
-  const deck = mkdtempSync(join(tmpdir(), 'slideit-plugin-'));
+describe('plugins of the first format', () => {
+  it('tags become nodes: the doc, the attributes, the render', () => {
+    const p = toPlugin({ name: 'old', tags: { chip: { doc: 'A chip.', attrs: { tone: { doc: 'its tone' } }, render: () => 'c' } } }, 'old');
+    expect(p.nodes!.chip).toMatchObject({ doc: 'A chip.', part: true, props: { tone: { doc: 'its tone' } } });
+    expect(typeof p.nodes!.chip.render).toBe('function');
+  });
+});
 
-  it('reads the tags of a local plugin module', async () => {
+describe('what the tools know of the plugins of a deck', () => {
+  it('reads a plugin of the current API from deck.json', async () => {
+    const deck = mkdtempSync(join(tmpdir(), 'slideit-plugin-'));
     writeFileSync(join(deck, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
-    writeFileSync(join(deck, 'p.js'), "export default { name: 'p', tags: { qr: { doc: 'A QR.', empty: true, attrs: { value: { doc: 'v' } }, render() {} } } };");
-    expect(await pluginTags(deck)).toEqual({ qr: { doc: 'A QR.', props: { value: { doc: 'v' } } } });
+    writeFileSync(join(deck, 'p.js'), "export default { name: 'p', nodes: { qr: { doc: 'A QR.', part: true, props: { value: { doc: 'v' } }, render() {} } } };");
+    const { registry } = await loadRegistry(deck);
+    expect(registry.node('qr')?.props).toEqual({ value: { doc: 'v' } });
+  });
+  it('reads a plugin of the first format too', async () => {
+    const deck = mkdtempSync(join(tmpdir(), 'slideit-plugin-old-'));
+    writeFileSync(join(deck, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
+    writeFileSync(join(deck, 'p.js'), "export default { name: 'p', tags: { qr: { doc: 'A QR.', attrs: { value: { doc: 'v' } }, render() {} } } };");
+    expect((await loadRegistry(deck)).registry.node('qr')?.doc).toBe('A QR.');
   });
   it('prefers the package.json description of an npm plugin (no code runs)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-plugin-npm-'));
     mkdirSync(join(dir, 'node_modules', 'slideit-plugin-x'), { recursive: true });
     writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['slideit-plugin-x'] }));
-    writeFileSync(join(dir, 'node_modules/slideit-plugin-x/package.json'), JSON.stringify({ name: 'slideit-plugin-x', main: 'i.js', slideit: { tags: { chip: { doc: 'A chip.' } } } }));
+    writeFileSync(join(dir, 'node_modules/slideit-plugin-x/package.json'), JSON.stringify({ name: 'slideit-plugin-x', main: 'i.js', slideit: { nodes: { chip: { doc: 'A chip.', part: true } } } }));
     writeFileSync(join(dir, 'node_modules/slideit-plugin-x/i.js'), 'throw new Error("must not run");');
-    expect(await pluginTags(dir)).toEqual({ chip: { doc: 'A chip.' } });
+    expect((await loadRegistry(dir)).registry.node('chip')?.doc).toBe('A chip.');
   });
   it('reads the plugins from a deck node of a .slides file', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-plugin-kdl-'));
     writeFileSync(join(dir, 'd.slides'), 'deck { plugins "./p.js" }\nslide { title "x" }');
-    writeFileSync(join(dir, 'p.js'), "export default { name: 'p', tags: { qr: { doc: 'A QR.', render() {} } } };");
-    expect(Object.keys(await pluginTags(dir))).toEqual(['qr']);
+    writeFileSync(join(dir, 'p.js'), "export default { name: 'p', nodes: { qr: { doc: 'A QR.', part: true, render() {} } } };");
+    expect((await loadRegistry(dir)).registry.node('qr')).toBeDefined();
   });
-  it('a plugin that cannot load in node leaves its tags unknown', async () => {
+  it('the themes of the deck are themes its slides may name', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slideit-plugin-theme-'));
+    writeFileSync(join(dir, 'd.slides'), 'deck { themes { sunset --bg="#222" } }\nslide theme=sunset { title "x" }');
+    const { registry } = await loadRegistry(dir);
+    expect(check('slide theme=sunset { title "x" }', registry)).toEqual([]);
+    expect(check('slide theme=nope { title "x" }', registry)[0].message).toMatch(/expected dark \| light \| paper \| sunset/);
+  });
+  it('a plugin that cannot load in node is reported and left out', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-plugin-dom-'));
-    writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['./b.js'] }));
+    writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['./b.js', './missing.js'] }));
     writeFileSync(join(dir, 'b.js'), 'document.title = "x"; export default {};');
-    expect(await pluginTags(dir)).toEqual({});
+    const { problems } = await loadRegistry(dir);
+    expect(problems).toHaveLength(2);
   });
 });

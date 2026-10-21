@@ -9,7 +9,7 @@ slide layout=cover background="linear-gradient(135deg, #1a1a2e, #47305f)" {
     """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Show the pain: every return must be checked separately, out-params instead of return values
     """#
@@ -17,65 +17,61 @@ slide {
     A different problem: the error is not in the signature, call sites have to guess what may be thrown
     """#
   heading "The classic approach: error codes"
-  code "cpp" id=flow {
-    frame #"""
-      bool parseInt(const std::string& s, int& out) {
-        try {
-          out = std::stoi(s);
-          return true;
-        } catch (...) {
-          return false;
-        }
-      }
-
-      bool safeDivide(int a, int b, int& out) {
-        if (b == 0) {
-          return false;
-        }
-        out = a / b;
+  code "cpp" id=flow #"""
+    bool parseInt(const std::string& s, int& out) {
+      try {
+        out = std::stoi(s);
         return true;
+      } catch (...) {
+        return false;
       }
+    }
 
-      bool process(const std::string& s, int divisor, int& result) {
-        int parsed;
-        if (!parseInt(s, parsed)) {
-          return false;
-        }
-        int divided;
-        if (!safeDivide(parsed, divisor, divided)) {
-          return false;
-        }
-        result = divided;
-        return true;
+    bool safeDivide(int a, int b, int& out) {
+      if (b == 0) {
+        return false;
       }
-      """#
-  }
+      out = a / b;
+      return true;
+    }
+
+    bool process(const std::string& s, int divisor, int& result) {
+      int parsed;
+      if (!parseInt(s, parsed)) {
+        return false;
+      }
+      int divided;
+      if (!safeDivide(parsed, divisor, divided)) {
+        return false;
+      }
+      result = divided;
+      return true;
+    }
+    """#
 }
-slide animate=#true {
+slide layout="code" {
   heading "Or: exceptions"
-  code "cpp" id=flow {
-    frame #"""
-      int parseInt(const std::string& s) {
-        return std::stoi(s);
-      }
+  code "cpp" id=flow #"""
+    int parseInt(const std::string& s) {
+      return std::stoi(s);
+    }
 
-      int safeDivide(int a, int b) {
-        if (b == 0) {
-          throw std::runtime_error("division by zero");
-        }
-        return a / b;
+    int safeDivide(int a, int b) {
+      if (b == 0) {
+        throw std::runtime_error("division by zero");
       }
+      return a / b;
+    }
 
-      int process(const std::string& s, int divisor) {
-        int parsed = parseInt(s);
-        int divided = safeDivide(parsed, divisor);
-        return divided;
-      }
-      """#
-  }
+    int process(const std::string& s, int divisor) {
+      int parsed = parseInt(s);
+      int divided = safeDivide(parsed, divisor);
+      return divided;
+    }
+    """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Now the error comes back as a value, not through a reference -- but manual checking remains
     """#
@@ -86,59 +82,55 @@ slide {
     process() shrinks from 5 lines to a single expression
     """#
   heading "std::optional: the error is in the type, not in an out-param"
-  code "cpp" id=flow {
-    frame #"""
-      std::optional<int> parseInt(const std::string& s) {
-        try {
-          return std::stoi(s);
-        } catch (...) {
-          return std::nullopt;
-        }
+  code "cpp" id=flow #"""
+    std::optional<int> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::nullopt;
       }
+    }
 
-      std::optional<int> safeDivide(int a, int b) {
-        if (b == 0) {
-          return std::nullopt;
-        }
-        return a / b;
+    std::optional<int> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::nullopt;
       }
+      return a / b;
+    }
 
-      std::optional<int> process(const std::string& s, int divisor) {
-        auto parsed = parseInt(s);
-        if (!parsed) {
-          return std::nullopt;
-        }
-        return safeDivide(*parsed, divisor);
+    std::optional<int> process(const std::string& s, int divisor) {
+      auto parsed = parseInt(s);
+      if (!parsed) {
+        return std::nullopt;
       }
-      """#
-  }
+      return safeDivide(*parsed, divisor);
+    }
+    """#
 }
-slide animate=#true {
+slide layout="code" {
   heading "Refactor: and_then (monadic bind)"
-  code "cpp" id=flow {
-    frame #"""
-      std::optional<int> parseInt(const std::string& s) {
-        try {
-          return std::stoi(s);
-        } catch (...) {
-          return std::nullopt;
-        }
+  code "cpp" id=flow #"""
+    std::optional<int> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::nullopt;
       }
+    }
 
-      std::optional<int> safeDivide(int a, int b) {
-        if (b == 0) {
-          return std::nullopt;
-        }
-        return a / b;
+    std::optional<int> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::nullopt;
       }
+      return a / b;
+    }
 
-      std::optional<int> process(const std::string& s, int divisor) {
-        return parseInt(s).and_then([divisor](int parsed) {
-          return safeDivide(parsed, divisor);
-        });
-      }
-      """#
-  }
+    std::optional<int> process(const std::string& s, int divisor) {
+      return parseInt(s).and_then([divisor](int parsed) {
+        return safeDivide(parsed, divisor);
+      });
+    }
+    """#
 }
 
 slide {
@@ -151,69 +143,65 @@ slide {
   heading "The problem with optional: you can't tell WHAT went wrong"
   text "`std::nullopt` carries no information -- a parse failure and a division by zero look identical from the outside."
 }
-slide animate=#true {
+slide layout="code" {
   heading "std::expected: Either for C++"
-  code "cpp" id=flow {
-    frame #"""
-      std::expected<int, std::string> parseInt(const std::string& s) {
-        try {
-          return std::stoi(s);
-        } catch (...) {
-          return std::unexpected("invalid number");
-        }
+  code "cpp" id=flow #"""
+    std::expected<int, std::string> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::unexpected("invalid number");
       }
+    }
 
-      std::expected<int, std::string> safeDivide(int a, int b) {
-        if (b == 0) {
-          return std::unexpected("division by zero");
-        }
-        return a / b;
+    std::expected<int, std::string> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::unexpected("division by zero");
       }
+      return a / b;
+    }
 
-      std::expected<int, std::string> process(const std::string& s, int divisor) {
-        return parseInt(s).and_then([divisor](int parsed) {
-          return safeDivide(parsed, divisor);
-        });
-      }
-      """#
-  }
+    std::expected<int, std::string> process(const std::string& s, int divisor) {
+      return parseInt(s).and_then([divisor](int parsed) {
+        return safeDivide(parsed, divisor);
+      });
+    }
+    """#
 }
-slide animate=#true {
+slide layout="code" {
   heading "Adding a step: the chain grows linearly, it doesn't nest"
-  code "cpp" id=flow {
-    frame #"""
-      std::expected<int, std::string> parseInt(const std::string& s) {
-        try {
-          return std::stoi(s);
-        } catch (...) {
-          return std::unexpected("invalid number");
-        }
+  code "cpp" id=flow #"""
+    std::expected<int, std::string> parseInt(const std::string& s) {
+      try {
+        return std::stoi(s);
+      } catch (...) {
+        return std::unexpected("invalid number");
       }
+    }
 
-      std::expected<int, std::string> safeDivide(int a, int b) {
-        if (b == 0) {
-          return std::unexpected("division by zero");
-        }
-        return a / b;
+    std::expected<int, std::string> safeDivide(int a, int b) {
+      if (b == 0) {
+        return std::unexpected("division by zero");
       }
+      return a / b;
+    }
 
-      std::expected<int, std::string> validateRange(int v) {
-        if (v < 0 || v > 1000) {
-          return std::unexpected("out of range");
-        }
-        return v;
+    std::expected<int, std::string> validateRange(int v) {
+      if (v < 0 || v > 1000) {
+        return std::unexpected("out of range");
       }
+      return v;
+    }
 
-      std::expected<int, std::string> process(const std::string& s, int divisor) {
-        return parseInt(s)
-          .and_then([divisor](int parsed) { return safeDivide(parsed, divisor); })
-          .and_then(validateRange);
-      }
-      """#
-  }
+    std::expected<int, std::string> process(const std::string& s, int divisor) {
+      return parseInt(s)
+        .and_then([divisor](int parsed) { return safeDivide(parsed, divisor); })
+        .and_then(validateRange);
+    }
+    """#
 }
 
-slide {
+slide layout="code" {
   notes #"""
     Ask for questions
     """#
@@ -221,23 +209,21 @@ slide {
     If time permits: mention that std::expected has the monadic API right away, no need to wait for another standard
     """#
   heading "Call site"
-  code "cpp" id=flow {
-    frame #"""
-      int main() {
-        auto result = process("42", 2);
+  code "cpp" id=flow #"""
+    int main() {
+      auto result = process("42", 2);
 
-        if (result) {
-          std::cout << "Result: " << *result << "\n";
-        } else {
-          std::cout << "Error: " << result.error() << "\n";
-        }
-
-        return 0;
+      if (result) {
+        std::cout << "Result: " << *result << "\n";
+      } else {
+        std::cout << "Error: " << result.error() << "\n";
       }
-      """#
-  }
+
+      return 0;
+    }
+    """#
 }
-slide animate=#true {
+slide {
   heading "Summary"
   text "`and_then` is `>>=` / `flatMap`. `transform` is `fmap`/`map`. `std::expected` is `Either`, `std::optional` is `Maybe`. C++23 finally has what Haskell has had all along -- just under different names."
   text "Thanks!"

@@ -1,6 +1,6 @@
 {
   "title": "Plugins",
-  "description": "A deck with a plugin: new tags, a theme, a toolbox button",
+  "description": "A deck with plugins: nodes, an effect, a transition, a theme, a toolbox button, and a node written in the language",
   "author": "slideit",
   "plugins": [
     "./demo.js"
@@ -10,5 +10,6 @@
     "left": "Plugins",
     "right": "{slide} / {slides}",
     "height": 42
-  }
+  },
+  "css": "deck.css"
 }

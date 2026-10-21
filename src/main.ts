@@ -1,13 +1,12 @@
 import './style.css';
 import 'katex/dist/katex.min.css';
-import { loadDeck } from './deck';
+import { loadDeck } from './runtime/deck';
 import { loadIndex, showGallery } from './gallery';
 import { fileUrl, LoadError } from './files';
-import { configureGrammars } from './parse';
-import { Player } from './player';
+import { configureGrammars } from './plugins/code/parse.ts';
+import { Player } from './runtime/player';
 import { startPresenterView, CHANNEL } from './presenter';
-import { buildSteps } from './steps';
-import { plugins } from './plugins';
+import { buildSteps } from './runtime/steps';
 import { createOverview, type Overview } from './overview';
 import { startPrintView } from './print';
 import { blackScreen, clearDrawing, drawing, startAutoplay, toggleBlack, toggleDraw, toggleLaser, toggleZoom } from './tools';
@@ -113,13 +112,13 @@ async function main() {
 
   const ch = new BroadcastChannel(CHANNEL);
   const publish = () => ch.postMessage({ type: 'state', state: player.state() });
+  const plugins = deck.runtime.registry.plugins;
   const pluginApi = { player, deck };
-  // the editor's preview follows the cursor: the last step of the slide (or of its section) shows everything revealed
+  // the editor's preview follows the cursor: the last step of the slide shows everything revealed
   (window as unknown as { __slideit: unknown }).__slideit = {
-    goTo(slide: number, section?: number) {
+    goTo(slide: number) {
       let to = -1;
-      steps.forEach((st, i) => { if (st.slide === slide && (section === undefined || deck.slides[slide].sections.indexOf(st.section) === section)) to = i; });
-      if (to < 0 && section !== undefined) steps.forEach((st, i) => { if (st.slide === slide) to = i; });
+      steps.forEach((st, i) => { if (st.slide === slide) to = i; });
       if (to >= 0 && to !== player.state().step) player.go(to);
     },
   };

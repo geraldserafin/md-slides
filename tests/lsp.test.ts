@@ -49,11 +49,12 @@ describe('slides lsp', () => {
     open('file:///t/b.slides', 'slide {\n  row {\n    \n  }\n}');
     const inRow = labels(await complete('file:///t/b.slides', 2, 4));
     expect(inRow).toContain('code');
-    expect(inRow).not.toContain('frame');
+    expect(inRow).toContain('swap');
+    expect(inRow).not.toContain('-');
     open('file:///t/c.slides', 'slide {\n  list {\n    \n  }\n}');
     expect(labels(await complete('file:///t/c.slides', 2, 4))).toEqual(['-']);
     open('file:///t/c2.slides', '\n');
-    expect(labels(await complete('file:///t/c2.slides', 0, 0))).toEqual(['deck', 'slide', 'layout']);
+    expect(labels(await complete('file:///t/c2.slides', 0, 0))).toEqual(['plugin', 'deck', 'slide', 'layout']);
   });
   it('completes properties, flags and values', async () => {
     open('file:///t/d.slides', 'slide {\n  video "a.mp4" \n  text "x" anim=\n}');
@@ -87,23 +88,23 @@ describe('slides lsp', () => {
     expect(labels(await complete(u, 2, 2))).toContain('sparkle');
   });
   it('hovers a node, a property and a flag', async () => {
-    open('file:///t/g.slides', 'slide {\n  code "ts" id=x loop {\n  }\n}');
+    open('file:///t/g.slides', 'slide {\n  code "ts" id=x lines {\n  }\n}');
     const hov = (line: number, character: number) => request('textDocument/hover', { textDocument: { uri: 'file:///t/g.slides' }, position: { line, character } });
-    expect((await hov(1, 4)).contents.value).toMatch(/One animated code block/);
-    expect((await hov(1, 13)).contents.value).toMatch(/morph id/);
-    expect((await hov(1, 20)).contents.value).toMatch(/forth and back/);
+    expect((await hov(1, 4)).contents.value).toMatch(/A block of code/);
+    expect((await hov(1, 13)).contents.value).toMatch(/the animation/);
+    expect((await hov(1, 19)).contents.value).toMatch(/line numbers/);
     expect(await hov(1, 10)).toBeNull(); // inside the string
   });
   it('outlines the structure and folds it', async () => {
-    const src = 'slide {\n  title "Intro"\n  row {\n    text "a"\n    code "ts" id=x {\n      frame "let a;"\n    }\n  }\n}\nslide {\n  title "Two"\n}';
+    const src = 'slide {\n  title "Intro"\n  row {\n    text "a"\n    code "ts" "let a;" id=x\n  }\n}\nslide {\n  title "Two"\n}';
     open('file:///t/i.slides', src);
     const syms = await request('textDocument/documentSymbol', { textDocument: { uri: 'file:///t/i.slides' } });
     expect(syms.map((s: any) => s.name)).toEqual(['1. Intro', '2. Two']);
     expect(syms[0].children.map((s: any) => s.name)).toEqual(['Intro', 'row']);
     expect(syms[0].children[1].children.map((s: any) => s.name)).toEqual(['code ts #x']);
     const folds = await request('textDocument/foldingRange', { textDocument: { uri: 'file:///t/i.slides' } });
-    expect(folds).toContainEqual({ startLine: 0, endLine: 7 });
-    expect(folds).toContainEqual({ startLine: 2, endLine: 6 });
+    expect(folds).toContainEqual({ startLine: 0, endLine: 5 });
+    expect(folds).toContainEqual({ startLine: 2, endLine: 4 });
   });
   it('numbers the slides of a deck folder for the preview to follow the cursor', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-idx-'));

@@ -34,16 +34,14 @@ slide {
     """#
 }
 
-slide {
+slide layout="code-side" {
   heading "Presenter window, notes and tools"
   text "Press **p**: a second window shows your notes (the `notes` nodes), the next slide and a timer. It stays in sync with the audience window, both ways — you can drive from either."
   text "On the slide itself: **l** a laser pointer, **d** draw (**c** clears, **Esc** stops), **z** a 2× magnifier, **a** autoplay (or `autoplay=5` on the `deck`, `?autoplay=5` in the URL). A slide with `hidden=#true` is skipped in the show and the PDF."
-  code "typescript" {
-    frame #"""
-      // the presenter view lists the HTML comments of the current slide
-      const notes = slide.notes;
-      """#
-  }
+  code "typescript" #"""
+    // the presenter view lists the HTML comments of the current slide
+    const notes = slide.notes;
+    """#
   notes #"""
     Like this one. Every HTML comment in a slide becomes one paragraph of notes.
     """#
@@ -58,17 +56,15 @@ slide {
   }
 }
 
-slide {
+slide layout="code" {
   heading "Build targets"
-  code "bash" {
-    frame #"""
-      slides dev   my-talk/                       # dev server, live reload
-      slides build my-talk/ -o dist               # static website
-      slides build my-talk/ -t single -o talk.html  # one file, works offline
-      slides build my-talk/ -t pdf  -o talk.pdf   # PDF (Chromium needed)
-      slides build my-talk/ -t exe  -o talk       # standalone executable
-      """#
-  }
+  code "bash" #"""
+    slides dev   my-talk/                       # dev server, live reload
+    slides build my-talk/ -o dist               # static website
+    slides build my-talk/ -t single -o talk.html  # one file, works offline
+    slides build my-talk/ -t pdf  -o talk.pdf   # PDF (Chromium needed)
+    slides build my-talk/ -t exe  -o talk       # standalone executable
+    """#
   notes #"""
     static: any hosting, --base for sub-paths. single: everything inline as data URIs. pdf: --steps for one page per step. exe: Node single-executable app for the current platform.
     """#
@@ -77,25 +73,23 @@ slide {
 slide {
   heading "Publish on GitHub Pages"
   text "The slideit action checks the deck, builds the site (and a PDF) and uploads it for Pages:"
-  code "yaml" {
-    frame #"""
-      jobs:
-        build:
-          runs-on: ubuntu-latest
-          steps:
-            - uses: actions/checkout@v4
-            - uses: geraldserafin/md-slides@action-v1
-              with:
-                deck: talk
-                pdf: 'true'
-        deploy:
-          needs: build
-          runs-on: ubuntu-latest
-          environment: github-pages
-          steps:
-            - uses: actions/deploy-pages@v4
-      """#
-  }
+  code "yaml" #"""
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: geraldserafin/md-slides@action-v1
+            with:
+              deck: talk
+              pdf: 'true'
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment: github-pages
+        steps:
+          - uses: actions/deploy-pages@v4
+    """#
   text "Or press **Use this template** on `geraldserafin/slideit-template`: a deck and this workflow, ready to push."
   notes #"""
     Settings, Pages, Source: GitHub Actions, once. The action's inputs: deck, output, pdf, check, pages, hub, version.
@@ -105,12 +99,10 @@ slide {
 slide {
   heading "Write decks with an LLM"
   text "The site serves `llms.txt`, a compact language reference written for language models, and `llms-full.txt`, this manual in one file. Give a model the URL, describe your talk, and ask for a deck folder:"
-  code "text" {
-    frame #"""
-      Read https://geraldserafin.github.io/md-slides/llms.txt,
-      then write me a deck about how Git branches work.
-      """#
-  }
+  code "text" #"""
+    Read https://geraldserafin.github.io/md-slides/llms.txt,
+    then write me a deck about how Git branches work.
+    """#
   text "Review it with `slides dev`, adjust, and ship it."
   notes #"""
     One .slides file: easy for a model to produce and easy to diff when you edit its draft.

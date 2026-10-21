@@ -11,7 +11,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { stageDecks } from './decks.mjs';
 import { buildViewer, hasViewer, loadLib, rootDir, sharedDir, viewerDir } from './viewer.mjs';
-import tags from '../src/tags.json' with { type: 'json' };
+const { LANGUAGE_TAGS: tags } = await loadLib('plugins/code/languages');
 
 const TARGETS = ['static', 'single', 'pdf', 'exe'];
 
@@ -20,7 +20,7 @@ slides dev   <deck...> [--port N] [--open] [--vite] [--stop-with-parent]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
 slides check <deck...>                          find mistakes in the .slides files (file:line: message)
 slides import <file.pptx> <folder>               start a deck from a PowerPoint template (backgrounds, logos, colors, margins)
-slides schema                                   the language as JSON (nodes, properties, layouts), for editor tooling
+slides schema [<deck>]                          the language as JSON (nodes, layouts, transitions, languages), for editor tooling
 slides migrate <folder> [--split] [--remove]    turn an old deck (.slide tags) into .slides
 slides lsp                                      the language server (stdio): diagnostics, completion, hover
 
@@ -89,7 +89,7 @@ function expandDecks(args) {
     if (hasMd(dir)) return [dir];
     const subs = readdirSync(dir, { withFileTypes: true })
       .filter((e) => e.isDirectory() && hasMd(join(dir, e.name))).map((e) => join(dir, e.name)).sort();
-    if (!subs.length) throw new Error(`no .slides files in: ${a}`);
+    if (!subs.length) throw new Error(`no .slides files in: ${a}${readdirSync(dir).some((f) => f.endsWith('.slide')) ? ' (it has .slide files: the old tag format; convert it with `slides migrate <folder>`)' : ''}`);
     return subs;
   });
 }
@@ -221,25 +221,26 @@ function openBrowser(url) {
 
 async function cmdCheck(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
-  const { check, layoutsOf } = await loadLib('check');
-  const { extendSchema } = await loadLib('schema');
-  const { pluginTags } = await loadLib('plugin-schema');
+  const { check } = await loadLib('kernel/check');
+  const { loadRegistry } = await loadLib('node/loader');
   let n = 0;
   let files = 0;
-  const seen = new Set();
-  for (const d of expandDecks(o.decks))
-    for (const f of readdirSync(d).filter((f) => f.endsWith('.slides')).sort()) {
-      if (!seen.has(d)) { seen.add(d); extendSchema(await pluginTags(d)); }
+  for (const d of expandDecks(o.decks)) {
+    const { registry, problems } = await loadRegistry(d);
+    for (const p of problems) console.log(`${d}: ${p}`);
+    const names = readdirSync(d).filter((f) => f.endsWith('.slides')).sort();
+    const texts = names.map((f) => readFileSync(join(d, f), 'utf8'));
+    names.forEach((f, i) => {
       files++;
-      const others = Object.assign({}, ...readdirSync(d).filter((g) => g.endsWith('.slides') && g !== f).map((g) => layoutsOf(readFileSync(join(d, g), 'utf8'))));
-      for (const p of check(readFileSync(join(d, f), 'utf8'), others)) { console.log(`${join(d, f)}:${p.line}:${p.col}: ${p.message}`); n++; }
-    }
+      for (const p of check(texts[i], registry, texts.filter((_, j) => j !== i))) { console.log(`${join(d, f)}:${p.line}:${p.col}: ${p.message}`); n++; }
+    });
+  }
   console.log(n ? `${n} problem${n === 1 ? '' : 's'} in ${files} files` : `ok: ${files} files`);
   if (n) process.exit(1);
 }
 
 async function cmdLsp() {
-  (await loadLib('lsp')).serve();
+  (await loadLib('node/lsp')).serve();
 }
 
 async function cmdImport(o) {
@@ -258,9 +259,13 @@ async function cmdMigrate(o) {
   console.log(`next: slides check ${o.decks[0]}${o.remove ? '' : ' (the old .slide files are still there: delete them, or run again with --remove)'}`);
 }
 
-async function cmdSchema() {
-  const { NODES, LAYOUTS } = await loadLib('schema');
-  console.log(JSON.stringify({ nodes: NODES, layouts: LAYOUTS }, null, 2));
+async function cmdSchema(o) {
+  const { exportSchema } = await loadLib('kernel/schema');
+  const { loadRegistry } = await loadLib('node/loader');
+  const { stockRegistry } = await loadLib('plugins/index');
+  // with a deck folder: the schema with the deck's plugins in it
+  const registry = o.decks[0] ? (await loadRegistry(resolve(o.decks[0]))).registry : stockRegistry();
+  console.log(JSON.stringify(exportSchema(registry), null, 2));
 }
 
 async function cmdNew(o) {
@@ -278,7 +283,7 @@ try {
   else if (cmd === 'check') await cmdCheck(parseArgs(rest));
   else if (cmd === 'import') await cmdImport(parseArgs(rest));
   else if (cmd === 'migrate') await cmdMigrate(parseArgs(rest));
-  else if (cmd === 'schema') await cmdSchema();
+  else if (cmd === 'schema') await cmdSchema(parseArgs(rest));
   else if (cmd === 'lsp') await cmdLsp();
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }
 } catch (e) {

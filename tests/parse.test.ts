@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { flatten } from '../src/gumtree';
-import { layoutLeaves } from '../src/layout';
-import { parseOne } from '../src/parse';
+import { flatten } from '../src/plugins/code/gumtree.ts';
+import { layoutLeaves } from '../src/plugins/code/layout.ts';
+import { parseOne } from '../src/plugins/code/parse.ts';
 import { setupNodeGrammars } from './nodeGrammars';
 
 beforeAll(setupNodeGrammars);

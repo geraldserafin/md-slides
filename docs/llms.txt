@@ -12,8 +12,8 @@
 2. Install with `npm i -g @geraldserafin/slideit` (the command is `slides`; one-off: `npx @geraldserafin/slideit ...`), check the
    file with `slides check my-talk/` (fix what it prints), then `slides dev my-talk/` (live reload) or `slides build my-talk/ -o dist`
    (static site), `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
-3. Write for the audience: one idea per slide, short text, code that changes in small steps. Do not position anything: the layout of a
-   slide follows from what is on it.
+3. Write for the audience: one idea per slide, short text, code that changes in small steps. Position with `row`/`col`: a slide is a
+   column; `heading`/`text` take their height, `row`/`col` share the rest. No layout is guessed from the content.
 
 ## The language
 
@@ -46,12 +46,13 @@ slide {
 | `deck` | settings of the deck (once): `title author date theme autoplay loop`; children `vars themes fonts google-fonts header footer plugins defaults animation code-style css` |
 | `slide` | one slide; properties below |
 | `layout "name"` | an own layout: rows and columns with `slot "name"` (and `slot` for the rest) |
-| `title heading subheading text` | headings and a paragraph: `text "..."`; `size="small"\|"large"`, `align`, `valign`, `anim`, `id` |
+| `title heading text` | headings and a paragraph: `text "..."`; `heading size=1..6`; text `size="small"\|"large"`, `align`, `valign`, `anim`, `id` |
 | `list` + `- "item"` | a list (nest a `list` inside an item); flags `numbered`, `steps` (one item per click); `start=3` |
 | `quote "..." by="who"` | a quote |
 | `table` | `head "A" "B"` then `- "1" "2"` per row |
 | `math "..."` | display math (KaTeX) |
-| `code "ts" { frame ... }` | animated code (below) |
+| `code "ts" "let a = 1;"` | a block of code; several in a `swap` are the states of one animated block (below) |
+| `swap { ... }` | shows one child at a time, in one place; a click brings the next; `transition=morph|fade|none|…`, `anim=left`, `autoplay=2 loop` (they take turns by themselves); a child with several things is a `col` |
 | `image "a.png" alt=".."`, `video "a.mp4" autoplay loop muted nocontrols`, `audio "a.mp3"` | media, relative to the file; `width height align` |
 | `chart "bar" title="T" """csv"""` | chart from CSV (first row names the series); `"bar"\|"line"\|"pie"` |
 | `diagram """mermaid"""` | Mermaid diagram |
@@ -62,52 +63,50 @@ slide {
 Any shown node takes `anim` (fade|rise|zoom|left|right|down|blur|pop|none) and `id=name` (morph: the same id on the next slide
 glides between the two; same-file images do it automatically).
 
-## Layouts (chosen from the content unless `layout=` says otherwise)
+## Layouts (none is guessed: without `layout=` the slide is one column)
 
-Only a `title` (+ `text`) on the first slide: `cover`; only a `title`: `section`; text and one image: `image-right`; several images:
-`gallery`; text and animated code: `code-side`; only a `quote`: `quote`; otherwise `default`. Built in: `default cover section center quote
+A slide is a column: `heading`/`text` take their height, `row`/`col` share the rest. Built in (name with `layout=`): `default cover section center quote
 full two-cols three-cols image-left image-right gallery code code-side`. `two-cols` takes the slots `left` and `right`
 (`slide layout=two-cols columns="1 2" { title "T"; left { text "a" }; right { code "ts" "x" } }`), `three-cols` also `middle`.
 Own layout: `layout "side" { row { col size="25%" { slot "s" }; col { slot } } }` then `slide layout=side { s { text "narrow" }; text "wide" }`.
 
 ## Animated code (the point of the tool)
 
-A `code` is one block and its `frame`s are the states it passes through: the first is shown with the block, each next one takes a click,
+Several `code` nodes in a `swap` are the states of one animated block: the first is shown with the block, each next one takes a click,
 and the code morphs between them (tokens glide, new ones fade in, removed ones fade out).
 
 ```kdl
 slide {
   title "Total"
-  code "ts" {
-    frame #"""
-      const total = items.reduce((s, i) => s + i.price, 0);
-      """#
-    frame focus="1" #"""
-      const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  swap {
+    code "ts" "const total = items.reduce((s, i) => s + i.price, 0);"
+    code "ts" focus="1" #"""
+      const total = items.reduce(
+        (s, i) => s + i.price * i.qty, 0);
       """#
   }
 }
 ```
 
-A block with one state: `code "ts" "let a = 1;"`. Blocks are independent unless they share an `id`: the same `id` on another slide
-continues the animation; `code from="cart"` copies the last frame of the earlier block with that id. `animate=#true` on a slide
-continues the previous slide: what is on both (same title, image, code id) stays or glides, the rest swaps. Properties of `code`: `id from
-size=18 start=10 title="cart.ts" bg="#16213e" radius=12 pad="1em" align valign fit=none autoplay=1` and the flags `lines nolines nopanel loop`
-(`autoplay` plays the frames by itself, seconds apart, taking no clicks); of `frame`: `focus="2-4,7"` (dim the other lines),
-`transition=morph|fade|none`. Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
+A block with one state: `code "ts" "let a = 1;"`. Blocks are independent unless they share an `id`: the same `id` on another slide (or in another child
+of a `swap`) continues the animation; `code from="cart"` copies the last state of the earlier block with that id. Properties of
+`code` (of the first one in a swap): `id from size=18 start=10 title="cart.ts" bg="#16213e" radius=12 pad="1em" align valign fit=none` and the
+flags `lines nolines nopanel`; `swap autoplay=1 loop` plays the states by itself, seconds apart, taking no clicks; `swap transition=morph|fade|none`
+says how they change; each `code` of a swap takes `focus="2-4,7"` (dim the other lines). Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
 Between two different languages the code cross-fades. A language without a grammar is a plain static block.
 
 ## Slide properties
 
 `layout`, `columns="1 2"`, `theme=light|dark|paper|<yours>`, `background="img.jpg" | "#123" | "linear-gradient(...)" | "clip.mp4"`,
 `align=left|center|right` and `valign=top|middle|bottom` (default left/top), `justify=#true`,
-`transition=fade|slide|slide-right|slide-left|zoom|none`, `animate=#true`, `hidden=#true` (skip the slide), `autoplay=5`,
+`transition=fade|slide|slide-right|slide-left|zoom|none`, `hidden=#true` (skip the slide), `autoplay=5`,
 `header=off`, `footer=off`, `title="Short"`, `class`, any CSS variable `--accent="#f00"`.
 
 ## Plugins
 
-`plugins "./demo.js" "@x/slideit-plugin-y"` in the `deck` node loads ES modules that default-export `{ name, tags, themes, languages, tools, hooks }`;
-a plugin's nodes (e.g. `timer minutes=5`) then work like built-in ones. Authors: docs/plugins.md in the repository.
+Everything is a plugin, the built-in nodes too. `plugins "./demo.js"` in the `deck` node loads ES modules that default-export `{ name, api: 1, nodes, effects, transitions, themes, languages, tools, hooks }`;
+a plugin's nodes (e.g. `timer minutes=5`) then work like built-in ones. A plugin can also be written in the language: `plugin "ui" { node "callout" { body { col { text "{text}"; slot } } } }`.
+Authors: docs/plugins.md and docs/architecture.md in the repository.
 
 ## Deck settings
 

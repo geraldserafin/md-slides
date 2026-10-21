@@ -7,8 +7,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { describe, expect, it, beforeAll } from 'vitest';
-import { flatten, match, type Tree } from '../src/gumtree';
-import { langFromTag, parseOne } from '../src/parse';
+import { flatten, match, type Tree } from '../src/plugins/code/gumtree.ts';
+import { langFromTag, parseOne } from '../src/plugins/code/parse.ts';
 import { setupNodeGrammars } from './nodeGrammars';
 
 const FIXTURES = join(__dirname, 'fixtures');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderInline } from '../src/inline';
+import { renderInline } from '../src/plugins/core-text/inline.ts';
 
 const r = (s: string) => renderInline(s, { tex: (t) => `<tex>${t}</tex>` });
 

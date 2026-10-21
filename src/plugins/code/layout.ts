@@ -1,7 +1,7 @@
 // Positions tree leaves on a monospace grid (row, col) based on the original
 // source -- the "gap" between leaves (whitespace/indentation) only moves the
 // cursor and is not rendered.
-import { flatten, type Tree } from './gumtree';
+import { flatten, type Tree } from './gumtree.ts';
 
 export interface Placed {
   tree: Tree;

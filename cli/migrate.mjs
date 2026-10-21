@@ -1,6 +1,6 @@
 // `slides migrate <folder>`: the old tag markup (`.slide` files: <h1>, <row>, <code><frame>…) -> the .slides language (KDL).
-// One .slides file for the folder (or one per old file with --split). `<section>` becomes slides with `animate=#true`, the
-// slide's head is repeated in each of them. What has no counterpart any more is dropped with a note on stderr.
+// One .slides file for the folder (or one per old file with --split). `<section>`s become the children of a `swap`, the frames of a
+// `<code>` become the `code` children of a `swap`. What has no counterpart any more is dropped with a note on stderr.
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
@@ -171,7 +171,7 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
     };
     switch (n.tag) {
       case 'h1': case 'h2': case 'h3': case 'p': case 'quote': {
-        const kw = { h1: 'title', h2: 'heading', h3: 'subheading', p: 'text', quote: 'quote' }[n.tag];
+        const kw = { h1: 'title', h2: 'heading', h3: 'heading size=3', p: 'text', quote: 'quote' }[n.tag];
         wrap((ind) => out(ind, `${kw} ${strArg(inline(n.children), ind)}${fxProps(a).map((x) => ` ${x}`).join('')}`));
         break;
       }
@@ -200,23 +200,37 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
               else note(`code class "${c}" dropped`);
             }
           } else if (k === 'loop') flags.push('loop');
+          else if (k === 'transition') continue; // a transition belongs to the swap now (below)
           else if (k === 'halign') props.push(prop('align', ALIGN[v] ?? v));
           else if (k === 'valign') props.push(prop('valign', VALIGN[v] ?? v));
           else props.push(prop(k, v));
         }
-        const head = `code${a.lang ? ` ${q(a.lang)}` : ''}${flags.map((f) => ` ${f}`).join('')}${props.map((p) => ` ${p}`).join('')}`;
-        if (a.from !== undefined) { out(indent, head); break; }
+        if (a.from !== undefined) { out(indent, `code${a.lang ? ` ${q(a.lang)}` : ''}${flags.map((f) => ` ${f}`).join('')}${props.map((p) => ` ${p}`).join('')}`); break; }
         const content = raw(n);
         const frames = [];
         if (/^\s*<frame[\s>]/.test(content)) {
           for (const f of parseMarkup(content)) if (typeof f !== 'string') frames.push({ attrs: f.attrs, code: dedent(raw(f)) });
         } else frames.push({ attrs: {}, code: dedent(content) });
-        out(indent, `${head} {`);
-        for (const f of frames) {
-          const fp = ['focus', 'transition'].filter((k) => f.attrs[k] !== undefined).map((k) => ` ${prop(k, f.attrs[k])}`).join('');
-          out(`${indent}  `, `frame${fp} ${rawStr(f.code, `${indent}  `)}`);
-          if (f.attrs.at !== undefined) note('frame `at` is gone (frames take a click each)');
+        for (const f of frames) if (f.attrs.at !== undefined) note('frame `at` is gone (the states of a swap take a click each)');
+        // the transition of a swap is one for all its states: the one the old frames asked for (a mix is reported)
+        const asked = [...new Set([a.transition, ...frames.map((f) => f.attrs.transition)].filter((t) => t && t !== 'morph'))];
+        if (asked.length > 1) note(`the frames of a code block ask for different transitions (${asked.join(', ')}): the swap has one, ${asked[0]}`);
+        const trans = asked[0] ? ` transition=${asked[0]}` : '';
+        const lang = a.lang ? ` ${q(a.lang)}` : '';
+        if (frames.length === 1) {
+          const own = ['focus'].filter((k) => frames[0].attrs[k] !== undefined).map((k) => ` ${prop(k, frames[0].attrs[k])}`).join('');
+          out(indent, `code${lang}${flags.map((f) => ` ${f}`).join('')}${props.map((p) => ` ${p}`).join('')}${own} ${rawStr(frames[0].code, indent)}`);
+          break;
         }
+        // several frames: the states of one block, the code children of a swap (autoplay and loop are the swap's)
+        const timing = props.filter((p) => p.startsWith('autoplay=')).join(' ');
+        const loop = flags.includes('loop');
+        out(indent, `swap${timing ? ` ${timing}` : ''}${trans}${loop ? ' loop' : ''} {`);
+        frames.forEach((f, i) => {
+          const first = i === 0 ? `${flags.filter((x) => x !== 'loop').map((x) => ` ${x}`).join('')}${props.filter((p) => !p.startsWith('autoplay=')).map((p) => ` ${p}`).join('')}` : '';
+          const own = ['focus'].filter((k) => f.attrs[k] !== undefined).map((k) => ` ${prop(k, f.attrs[k])}`).join('');
+          out(`${indent}  `, `code${lang}${first}${own} ${rawStr(f.code, `${indent}  `)}`);
+        });
         out(indent, '}');
         break;
       }
@@ -293,7 +307,8 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
     else if (k === 'layout') slideProps.push(prop('layout', v));
     else if (VARS[k]) slideProps.push(prop(VARS[k], px(k, v)));
     else if (k === 'justify') slideProps.push(`justify=${/^(true|yes|on|1)$/i.test(v) ? '#true' : '#false'}`);
-    else if (k === 'stagger' || k === 'section-transition') note(`\`${k}\` is gone`);
+    else if (k === 'section-transition') continue;
+    else if (k === 'stagger') note(`\`${k}\` is gone`);
     else if (k === 'hidden') slideProps.push(`hidden=${/^(true|yes|on|1)$/i.test(v) ? '#true' : '#false'}`);
     else slideProps.push(prop(k, v));
   }
@@ -307,7 +322,23 @@ export function migrateSource(src, { name = '', extraRaw = new Set(), warn = () 
     if (inner.length) { lines.push(`${open(extra)} {`, ...inner, '}'); } else lines.push(open(extra));
   };
   if (sections.length) {
-    sections.forEach((s, i) => emitSlide([...loose, ...s.children], i ? ['animate=#true'] : [], i > 0));
+    // what is outside the sections stays; the sections swap in one place
+    const start = lines.length;
+    body(loose);
+    const anim = { 'slide-right': 'left', 'slide-left': 'right', zoom: 'zoom' }[settings['section-transition']];
+    out('  ', `swap${anim ? ` anim=${anim}` : ''} {`);
+    for (const sec of sections) {
+      const kids = sec.children.filter((c) => typeof c !== 'string');
+      if (kids.length === 1) node(kids[0], '    ');
+      else {
+        out('    ', 'col {');
+        for (const k of kids) node(k, '      ');
+        out('    ', '}');
+      }
+    }
+    out('  ', '}');
+    const inner = lines.splice(start);
+    lines.push(`${open()} {`, ...inner, '}');
   } else emitSlide(loose);
   return lines.join('\n');
 }

@@ -10,29 +10,29 @@ slide {
   heading "What you need"
   row {
     col {
-      subheading "Flour"
+      heading size=3 "Flour"
       text "500 g, bread flour if you can."
     }
     col {
-      subheading "Water"
+      heading size=3 "Water"
       text "375 g, lukewarm."
     }
     col {
-      subheading "Starter"
+      heading size=3 "Starter"
       text "100 g, bubbly and fed 6 hours ago."
     }
   }
   row {
     col {
-      subheading "Salt"
+      heading size=3 "Salt"
       text "10 g."
     }
     col {
-      subheading "A pot"
+      heading size=3 "A pot"
       text "A heavy lidded pot that goes in the oven."
     }
     col {
-      subheading "Patience"
+      heading size=3 "Patience"
       text "Most of the work is waiting."
     }
   }

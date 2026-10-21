@@ -1,8 +1,8 @@
 // Print / PDF export mode (?print=slides|steps): one 1280x720 page per slide
 // (final state) or per step. Print from the browser or use `slides build -t pdf`.
-import type { Deck } from './deck';
-import { Player } from './player';
-import type { Step } from './steps';
+import type { Deck } from './runtime/deck';
+import { Player } from './runtime/player';
+import type { Step } from './runtime/steps';
 
 export async function startPrintView(root: HTMLElement, deck: Deck, steps: Step[], mode: string) {
   document.body.classList.add('print-mode');

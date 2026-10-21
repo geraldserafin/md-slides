@@ -1,11 +1,11 @@
-// Generates syntaxes/slides.tmLanguage.json: KDL with our nodes, and the code inside `code "lang" { frame #"""…"""# }` highlighted by
-// the editor's own grammar for that language (the languages come from src/tags.json). Run: node editors/vscode/build-grammar.mjs
+// Generates syntaxes/slides.tmLanguage.json: KDL with our nodes, and the code inside `code "lang" #"""…"""#` highlighted by
+// the editor's own grammar for that language (the languages come from src/plugins/code/languages.ts). Run: node editors/vscode/build-grammar.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const tags = JSON.parse(readFileSync(join(here, '../../src/tags.json'), 'utf8'));
+const { LANGUAGE_TAGS: tags } = await import(pathToFileURL(join(here, '../../src/plugins/code/languages.ts')).href);
 const SCOPES = {
   typescript: 'source.ts', tsx: 'source.tsx', javascript: 'source.js', cpp: 'source.cpp', c: 'source.c', python: 'source.python',
   rust: 'source.rust', go: 'source.go', java: 'source.java', bash: 'source.shell', json: 'source.json', html: 'text.html.basic',
@@ -32,25 +32,19 @@ const common = [
   { match: '[\\w.-]+', name: 'variable.parameter.flag.slides' },
 ];
 
-// code "lang" { … frame #"""…"""# … }: the strings of its frames in the language's grammar
+// code "lang" props #"""…"""#: the raw string in the language's grammar
 const codeRules = Object.entries(SCOPES).map(([grammar, scope]) => {
   const names = [...new Set(Object.entries(tags).filter(([, g]) => g === grammar).map(([t]) => t.replace(/[+]/g, '\\+')))].join('|');
   return {
-    begin: `^(\\s*)(code)(\\s+)("(?:${names})")([^{\\n]*)(\\{)\\s*$`,
-    end: '^\\1\\}',
+    begin: `^(\\s*)(code)(\\s+)("(?:${names})")([^#\\n]*?)(#+)"""\\s*$`,
+    end: '^\\s*"""\\6',
     beginCaptures: {
       2: { name: 'entity.name.tag.slides' }, 4: { name: 'string.quoted.double.slides' },
-      5: { patterns: [{ include: '#props' }] },
+      5: { patterns: [{ include: '#props' }] }, 6: { name: 'string.quoted.triple.raw.slides' },
     },
-    patterns: [
-      {
-        begin: '(frame)([^#\\n]*?)(#+)"""\\s*$', end: '^\\s*"""\\3',
-        beginCaptures: { 1: { name: 'entity.name.tag.slides' }, 2: { patterns: [{ include: '#props' }] }, 3: { name: 'string.quoted.triple.raw.slides' } },
-        endCaptures: { 0: { name: 'string.quoted.triple.raw.slides' } },
-        contentName: scope, patterns: [{ include: scope }],
-      },
-      { include: '#root' },
-    ],
+    endCaptures: { 0: { name: 'string.quoted.triple.raw.slides' } },
+    contentName: scope,
+    patterns: [{ include: scope }],
   };
 });
 

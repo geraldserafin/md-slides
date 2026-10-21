@@ -21,8 +21,8 @@ slide {
     """#
   row {
     heading "Step 1: types and basics"
-    code "typescript" id=calc {
-      frame #"""
+    swap {
+      code "typescript" id=calc #"""
         function calc(items) {
           var total = 0;
           for (var i = 0; i < items.length; i++) {
@@ -31,7 +31,7 @@ slide {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         function calc(items) {
           let total = 0;
           for (let i = 0; i < items.length; i++) {
@@ -40,7 +40,7 @@ slide {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -54,7 +54,7 @@ slide {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -68,7 +68,7 @@ slide {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -82,7 +82,7 @@ slide {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -99,11 +99,11 @@ slide {
     }
   }
 }
-slide animate=#true {
+slide {
   row {
     heading "Step 2: naming and a guard clause"
-    code "typescript" id=calc {
-      frame #"""
+    swap {
+      code "typescript" id=calc #"""
         interface Item {
           price: number;
           qty: number;
@@ -117,7 +117,7 @@ slide animate=#true {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -131,7 +131,7 @@ slide animate=#true {
           return total;
         }
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -168,33 +168,31 @@ slide {
     """#
   row {
     heading "Step 3: functional style"
-    code "typescript" id=calc {
-      frame #"""
-        interface Item {
-          price: number;
-          qty: number;
+    code "typescript" id=calc #"""
+      interface Item {
+        price: number;
+        qty: number;
+      }
+
+      const calculateTotal = (cartItems: Item[]): number => {
+        if (cartItems.length === 0) {
+          return 0;
         }
 
-        const calculateTotal = (cartItems: Item[]): number => {
-          if (cartItems.length === 0) {
-            return 0;
-          }
-
-          let total = 0;
-          for (const item of cartItems) {
-            total += item.price * item.qty;
-          }
-          return total;
-        };
-        """#
-    }
+        let total = 0;
+        for (const item of cartItems) {
+          total += item.price * item.qty;
+        }
+        return total;
+      };
+      """#
   }
 }
-slide animate=#true {
+slide {
   row {
     heading "Step 4: Extract Method"
-    code "typescript" id=calc {
-      frame #"""
+    swap {
+      code "typescript" id=calc #"""
         interface Item {
           price: number;
           qty: number;
@@ -216,7 +214,7 @@ slide animate=#true {
           return total;
         };
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;
@@ -241,7 +239,7 @@ slide animate=#true {
     }
   }
 }
-slide animate=#true {
+slide {
   row {
     col {
       heading "Step 5: .reduce and export"
@@ -249,8 +247,8 @@ slide animate=#true {
         text "The end. Thanks!"
       }
     }
-    code "typescript" id=calc {
-      frame #"""
+    swap {
+      code "typescript" id=calc #"""
         interface Item {
           price: number;
           qty: number;
@@ -263,7 +261,7 @@ slide animate=#true {
         const calculateTotal = (cartItems: Item[]): number =>
           cartItems.reduce((total, item) => total + itemTotal(item), 0);
         """#
-      frame #"""
+      code "typescript" #"""
         interface Item {
           price: number;
           qty: number;

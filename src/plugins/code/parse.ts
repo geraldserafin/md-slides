@@ -1,14 +1,14 @@
 // tree-sitter (web-tree-sitter) adapter -> Tree. The only place that knows
-// concrete grammars. New language: add its tags to tags.json and make sure
-// tree-sitter-<name>.wasm exists in the tree-sitter-wasms package.
+// concrete grammars. New language: add its tags to languages.ts and make sure
+// tree-sitter-<name>.wasm exists in the tree-sitter-wasms package, or add it with a plugin (`languages`).
 import Parser from 'web-tree-sitter';
-import type { Tree } from './gumtree';
-import tags from './tags.json';
+import type { Tree } from './gumtree.ts';
+import { LANGUAGE_TAGS } from './languages.ts';
 
 export type Lang = string; // grammar name, e.g. "cpp", "typescript"
 
 /** language tag (`lang=` of a code tag) -> grammar name */
-const TAGS: Record<string, Lang> = tags;
+const TAGS: Record<string, Lang> = { ...LANGUAGE_TAGS };
 
 const extraWasm = new Map<Lang, string>();
 

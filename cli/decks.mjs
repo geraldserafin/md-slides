@@ -21,7 +21,7 @@ function stageHub(hubDir, deckDirs, out) {
 
 /** the plugins of a deck: files in the deck folder go along with it; an npm package is copied into _plugins/ */
 async function stagePlugins(dir, dest, meta) {
-  const { resolvePlugin } = await loadLib('plugin-schema');
+  const { resolvePlugin } = await loadLib('node/loader');
   return (meta.plugins ?? []).map((entry) => {
     const p = resolvePlugin(dir, entry);
     if (!p) throw new Error(`plugin not found: ${entry} (npm install it next to the deck, or use ./file.js)`);
@@ -33,7 +33,7 @@ async function stagePlugins(dir, dest, meta) {
 }
 
 export async function stageDecks(dirs, publicDir, hubDir) {
-  const { readDeckMeta } = await loadLib('deckfiles');
+  const { readDeckMeta } = await loadLib('node/loader');
   const out = join(publicDir, 'decks');
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -44,7 +44,7 @@ export async function stageDecks(dirs, publicDir, hubDir) {
     const dest = join(out, name);
     cpSync(dir, dest, { recursive: true, filter: (s) => !/(^|\/)(node_modules|\.git)(\/|$)/.test(s) });
     const files = readdirSync(dir).filter((f) => f.endsWith('.slides')).sort();
-    if (!files.length) throw new Error(`no .slides files in folder: ${dir}`);
+    if (!files.length) throw new Error(`no .slides files in folder: ${dir}${readdirSync(dir).some((f) => f.endsWith('.slide')) ? ' (it has .slide files: the old tag format; convert it with `slides migrate <folder>`)' : ''}`);
     const meta = readDeckMeta(dir);
     const plugins = meta.plugins ? await stagePlugins(dir, dest, meta) : undefined;
     writeFileSync(join(dest, 'manifest.json'), JSON.stringify({ title: name, ...meta, ...(plugins ? { plugins } : {}), files }, null, 2));

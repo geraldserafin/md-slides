@@ -2,7 +2,7 @@
 
 Presentations where **code transitions are animated by an AST diff**, written in a small language (KDL).
 
-Write your slides in a `.slides` file. When a code block goes through several frames,
+Write your slides in a `.slides` file. When a code block goes through several states,
 the viewer parses both with [tree-sitter](https://tree-sitter.github.io/), matches the two syntax trees
 with [GumTree](https://hal.science/hal-01054552), and animates the result: unchanged tokens stay,
 moved tokens glide to their new place, removed ones fade out, new ones fade in.
@@ -107,7 +107,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | --- | --- |
 | `showcase` | a short tour: code morphing, the diff, math, charts, diagrams, morph, themes |
 | `writing` | the language: nodes and strings, layouts, clicks, text and media, math, charts, diagrams, own layouts, per-element animation |
-| `code-animation` | the AST diff: every kind of edit, frames, languages, code options, focus, fit, frame transitions, how matching works |
+| `code-animation` | the AST diff: every kind of edit, states of a block, languages, code options, focus, fit, transitions, how matching works |
 | `theming` | alignment, themes, backgrounds, motion, header/footer, `deck.json`, fonts, CSS |
 | `presenting` | controls, presenter view and tools, export, build targets, GitHub Pages, writing decks with an LLM |
 
@@ -145,13 +145,9 @@ slide {
 
 slide {
   title "Code that moves"
-  code "ts" {                  // the frames are the states; the diff between them is what moves
-    frame #"""
-      let total = 0;
-      """#
-    frame #"""
-      let total = items.length;
-      """#
+  swap {                       // one thing at a time; code in a swap: the diff between the states is what moves
+    code "ts" "let total = 0;"
+    code "ts" "let total = items.length;"
   }
 }
 ````
@@ -160,17 +156,9 @@ Where a node has several children write them on separate lines, or on one line w
 lines with `"""`, and a raw string `#"…"#` has no escapes (good for code and LaTeX). `//` starts a comment and `/-` in front of a node
 switches the whole node off. A syntax error is reported with its line (`slides check`, the editor, the viewer's error screen).
 
-**Layouts.** You write what is on the slide; its layout follows from the content, or you name one:
-
-| On the slide | Layout |
-| --- | --- |
-| only a `title` (and `text`), the first slide | `cover` |
-| only a `title` | `section` |
-| `title`, `text`, `list`… | `default` |
-| text and one image | `image-right` |
-| several images | `gallery` |
-| text and animated code | `code-side` |
-| only a `quote` | `quote` |
+**Layouts.** What you write is the layout: a slide is a column, top to bottom. `heading` and `text` take the height they need; a `row` or `col` takes
+what is left of the height, and two of them share it equally (`size=2` weights, `size=auto`). Nothing is guessed from the content. To
+place things differently, name a layout:
 
 Built in: `default` `cover` `section` `center` `quote` `full` `two-cols` (`left`, `right`) `three-cols` (`left`, `middle`, `right`)
 `image-left` `image-right` `gallery` `code` `code-side`. Name one with `slide layout=two-cols`, then put content in the slots:
@@ -205,17 +193,18 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 
 | Node | Does | Arguments, flags, properties |
 | --- | --- | --- |
-| `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `animate` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
-| `title` `heading` `subheading` `text` | a heading, a paragraph; one item each | the text; `size="small"\|"large"` `align` `valign` `anim` `id` |
+| `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
+| `title` `heading` `text` | a heading (`size=1`…`6`), a paragraph; one item each | the text; `size="small"\|"large"` (not on headings) `align` `valign` `anim` `id` |
 | `list` with `-` items | a list, nested by putting a `list` in an item | `numbered` `steps` `start=3` |
 | `quote` | a quote with an accent bar | the text, `by="who"` |
 | `table` with `head` and `-` | a table | the cells as arguments |
 | `math` | display math (KaTeX); inline is `$x^2$` in a text | the formula |
-| `code` with `frame`s | one animated code block | the language, flags `lines` `nolines` `nopanel` `loop`, `id` `from` `title` `start` `size` `fit` `autoplay` `focus` `transition` `bg` `radius` `pad` `align` `valign` |
+| `code` | a block of code; several `code`s in a `swap` are the states of one animated block | the language and the code, flags `lines` `nolines` `nopanel`, `id` `from` `title` `start` `size` `fit` `focus` `transition` `bg` `radius` `pad` `align` `valign` |
 | `image` `video` `audio` | media, relative to the file | the file; `alt` `width` `height` `align`; flags `autoplay` `loop` `muted` `nocontrols` |
 | `chart` | CSV as an SVG chart | `"bar"` `"line"` `"pie"`, the CSV, `title` `width` |
 | `diagram` | a Mermaid diagram | the source, `width` |
 | `row` `col` `grid` | layout | `size` `gap` `align` `valign` `class` `columns` |
+| `swap` | shows one child at a time, all in one place; a click brings the next | `transition` (default `morph`) `anim` `size` `align` `valign`; `autoplay=2` and the flag `loop` make the children take turns by themselves |
 | `step` `pause` | reveal on a click | `anim` |
 | `notes` | presenter notes | the text |
 
@@ -223,11 +212,12 @@ part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` 
 newline is a line break; a backslash escapes a special character (`\*`). Nothing else is special, so `snake_case`, `a * b` and `<`
 stay as they are.
 
-**Animated code.** A `code` is one block; its `frame`s are the states it passes through. The first one is there with the block,
-each next one takes a click, and the diff between two frames is what moves. A block with a single state needs no `frame`:
-`code "ts" "let a = 1;"`. Blocks are **independent** unless they share an `id`: the same `id` on another slide continues the
-animation from the last frame it showed. `code from="total"` shows a copy of the last frame of the earlier block with that id.
-Tabs are expanded to four spaces; a language without a grammar is shown as static code.
+**Animated code.** `code "ts" "let a = 1;"` is a block of code. Put several in a `swap` and they are the states of one animated
+block: the first is there with the block, each next one takes a click, and the diff between two states is what moves (the options
+of the block are the first `code`'s; `focus` is each state's own). Blocks are **independent** unless they share an `id`:
+the same `id` on another slide, or in another child of a `swap`, continues the animation from the last state it showed.
+`code from="total"` shows a copy of the last state of the earlier block with that id. Tabs are expanded to four spaces; a language
+without a grammar is shown as static code.
 
 | Property | Meaning |
 | --- | --- |
@@ -238,17 +228,18 @@ Tabs are expanded to four spaces; a language without a grammar is shown as stati
 | `title="cart.ts"` | a caption above the code |
 | `size=18` | fixed font size in px |
 | `fit=none` | disable automatic scaling to the available space |
-| `focus="2-4,7"` | keep these lines bright and dim the rest; on a `frame` to walk through code |
-| `transition=morph\|fade\|none` | how *this frame* is entered: the diff animation (default), a cross-fade, or a cut |
-| `autoplay=1`, flag `loop` | the frames play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
+| `focus="2-4,7"` | keep these lines bright and dim the rest; on each `code` of a swap to walk through code |
+| `swap transition=morph\|fade\|none` | how the states change: the diff animation (default), a cross-fade, or a cut |
+| `swap autoplay=1 loop` | the states play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
 
 **Reveal.** `pause` holds back everything after it (in the same container) until the next click; `step { … }` does it for what is
 inside; `list steps` shows a list bullet by bullet. Nothing moves when the content appears (its space is reserved). `anim=` on any
 node (`fade`, `rise`, `zoom`, `left`, `right`, `down`, `blur`, `pop`, `none`) says how it comes in.
 
-**One story over several slides.** `animate=#true` on a slide continues the one before it: what is on both (the same title, image,
-paragraph or code `id`) stays or glides to its new place, and the rest swaps. Give any node an `id` to pair it by hand. Images with the
-same file match on their own.
+**Swap.** `swap { … }` shows one of its children at a time, all in the same place (the size of the biggest), and what is outside
+it stays: a title with several examples that you present one at a time. A child with several things is a `col`. `anim=left` says how
+the next one comes in. A `swap` can sit in one column of a `row`. Give any node an `id` to glide it from one slide (or child) to
+the next; images with the same file match on their own, and `code` with the same `id` morphs.
 
 **Math, charts, diagrams.** `$x^2$` in a text is inline math and a `math` node is display math, rendered with [KaTeX](https://katex.org)
 (plain HTML: it works in every target and in the PDF). `chart "bar"` turns CSV lines into an SVG chart in the slide's colors (the
@@ -261,14 +252,13 @@ is loaded on first use and left out of builds whose decks have no `diagram`.
 
 | Property | Meaning |
 | --- | --- |
-| `layout=cover` | a built-in or own layout (default: chosen from the content) |
+| `layout=cover` | a built-in or own layout (default: one column, as written) |
 | `columns="1 2"` | proportions of the columns of a column layout |
 | `theme=light` | the theme for this slide only |
 | `background="img.jpg"` | an image or a looping muted video relative to the file, or any CSS: `"linear-gradient(…)"`, `"#123"` |
 | `align=center` `valign=middle` | where the content sits, and how text is aligned (`left` `center` `right`, `top` `middle` `bottom`) |
 | `justify=#true` | justified paragraphs |
 | `transition=slide` | how the content comes in: `fade` `slide` `slide-right` `slide-left` `zoom` `none` |
-| `animate=#true` | continue the previous slide (see above) |
 | `hidden=#true` | left out of the show, the drawer and the PDF; stays in the file |
 | `autoplay=3` | seconds per step when the deck plays itself |
 | `header=off` `footer=off` | hide the deck's bars here |
@@ -324,8 +314,7 @@ deck title="My talk" author="Me" theme=ocean {
 ## Old decks (the tag markup)
 
 Decks written in the old tag markup (`.slide` files with `<h1>`, `<row>`, `<code><frame>`…) are converted by
-`slides migrate my-deck` (`--split` keeps one file per old file, `--remove` deletes the old files). Each `<section>` becomes a
-slide with `animate=#true`; what has no counterpart any more (`at=`, `delay=`, `margin:` and friends in the slide block) is
+`slides migrate my-deck` (`--split` keeps one file per old file, `--remove` deletes the old files). Each `<section>` becomes a child of a `swap` and the `<frame>`s of a `<code>` become the `code`s of one; what has no counterpart any more (`at=`, `delay=`, `margin:` and friends in the slide block) is
 reported, and the sizes and margins become CSS variables on the slide.
 
 ## Writing decks with an LLM
@@ -352,7 +341,7 @@ PDF export is also available from any browser: open `?print=slides` or `?print=s
 `slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
-`slides check <deck...>` validates every `.slides` file against the schema (unknown nodes and properties, nodes in the wrong place, bad values, missing texts; with a "did you mean") and prints `file:line:col: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema` prints the schema (`src/schema.ts`: every node, its arguments, flags and properties, and what may sit inside it; the layouts) as JSON, the same data the editor tooling uses. `slides migrate <deck>` converts an old tag-markup deck.
+`slides check <deck...>` validates every `.slides` file against the schema (unknown nodes and properties, nodes in the wrong place, bad values, missing texts; with a "did you mean") and prints `file:line:col: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema [deck]` prints the registry as JSON (every node with its arguments, flags and properties and the plugin it came from, the layouts, transitions, effects, languages, themes; with a deck folder, its plugins too), the same data the editor tooling uses. `slides migrate <deck>` converts an old tag-markup deck.
 
 ## Starting from a PowerPoint template
 
@@ -399,10 +388,13 @@ deck and this workflow. *Use this template*, then *Settings → Pages → Source
 
 ## Plugins
 
-A deck can load plugins (`plugins "./demo.js" "@someone/slideit-plugin-qr"` in the `deck` node): ES modules that add **nodes**, **themes**,
-**tree-sitter languages**, **toolbox buttons** and **step hooks**. The viewer loads them before it reads the slides, and `slides check`
-and the editor tooling know their nodes. `examples/plugin-demo` is a working example and [docs/plugins.md](docs/plugins.md) is the guide
-for authors (the format, packaging for npm, describing the nodes to editors).
+Everything the tool does is a plugin: the nodes, the layouts, the transitions (`fade`, `morph`…), the code animation. They are loaded
+automatically; yours use the same API and come in three sizes. In the language itself (no JS): `plugin "ui" { node "callout" { body { … } } effect … theme … }`
+makes new nodes out of existing ones. One JS file (`plugins "./demo.js"` in the `deck` node): nodes with a `render`, effects, **transitions**, themes,
+**tree-sitter languages**, toolbox buttons and step hooks. An npm package: the same module, described as data so the tools know its nodes.
+The viewer loads plugins before it reads the slides, and `slides check`, the language server and the editor know their nodes.
+`examples/plugin-demo` is a working deck with all three, [docs/plugins.md](docs/plugins.md) is the guide for authors and
+[docs/architecture.md](docs/architecture.md) says how the compiler, the program, the player and the plugins fit together.
 
 ## Viewer controls
 
@@ -431,17 +423,19 @@ Other ways to navigate: click (left quarter = back), swipe on touch screens, `#<
 
 ## Adding a language
 
-1. Add the language tags (the `lang=` values) to `src/tags.json` (`"kt": "kotlin"`).
+1. Add the language tags (what `code "kt"` takes) to `src/plugins/code/languages.ts` (`kt: 'kotlin'`).
 2. Add the grammar name to the glob in `src/main.ts` (grammars come from the
    [`tree-sitter-wasms`](https://www.npmjs.com/package/tree-sitter-wasms) package).
-3. Optionally map node types to token classes in `src/tokens.ts`.
+3. Optionally map node types to token classes in `src/plugins/code/tokens.ts`.
+
+Or add a language without touching the source, with a plugin: `languages: [{ name: 'zig', tags: ['zig'], wasm: './tree-sitter-zig.wasm' }]` (see [docs/plugins.md](docs/plugins.md)).
 
 Built in: TypeScript, TSX, JavaScript, C, C++, Python, Rust, Go, Java, Bash, JSON, HTML, CSS, Lua. (YAML is excluded: the grammar in `tree-sitter-wasms` crashes with this runtime.)
 
 ## How the diff works
 
-For every pair of consecutive frames of a code group the viewer matches the two syntax trees and renders the match.
-The matcher (`src/gumtree.ts`) is GumTree plus a few extra cues that reduce false matches:
+For every pair of consecutive states of a code block the viewer matches the two syntax trees and renders the match.
+The matcher (`src/plugins/code/gumtree.ts`) is GumTree plus a few extra cues that reduce false matches:
 
 1. **Top-down** (height ≥ 2): identical subtrees, tallest first. Identical pairs sitting in *different
    slots* are deferred when one side has its own same-slot partner (e.g. a function body vs. an identical
@@ -476,8 +470,12 @@ A Nix/devenv shell with Node and Chromium is provided (`devenv shell`).
 Layout:
 
 ```
-cli/        the `slides` command (new, dev, build, check, schema), the prebuilt-viewer dev server
-src/        the markup (markup.ts, schema.ts, check.ts), the viewer (browser): parsing, GumTree, layout, renderer, themes, drawer, chrome (header/footer), presenter
+cli/        the `slides` command (new, dev, build, check, schema, migrate, import), the prebuilt-viewer dev server
+src/kernel/    the compiler: KDL parser, registry, compile, lowering, check, schema (runs in node and in the browser)
+src/plugins/   the stock plugins: core-deck, core-layout, core-text, core-media, core-timeline, core-transitions, morph, code (each with a `runtime.ts`, its DOM side)
+src/runtime/   the viewer's core: loading a deck, the steps, the player (draws elements with the plugins' renderers, moves with their transitions)
+src/node/      what the node tools know of a deck folder (plugins, settings), the language server
+src/           the rest of the viewer: themes, drawer, gallery, presenter, chrome (header/footer), tools
 tests/      vitest suites; tests/fixtures/ has matcher regression cases (old.*, new.*, expect.txt)
 examples/   demo decks used for development and GitHub Pages
 ```

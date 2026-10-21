@@ -1,4 +1,4 @@
-import type { DeckMeta } from './deck';
+import type { DeckMeta } from './runtime/deck';
 import { fileUrl } from './files';
 
 export const BUILTIN_THEMES = ['dark', 'light', 'paper'];

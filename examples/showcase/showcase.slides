@@ -8,31 +8,33 @@ slide layout=cover align=center valign=middle justify=#false {
 }
 
 slide {
-  heading "Code that moves"
-  text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
-  code "typescript" id=g1 {
-    frame #"""
-      function total(items: number[]) {
-        let sum = 0;
-        for (const x of items) {
-          sum += x;
+  col {
+    heading "Code that moves"
+    text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
+    swap {
+      code "typescript" id=g1 #"""
+        function total(items: number[]) {
+          let sum = 0;
+          for (const x of items) {
+            sum += x;
+          }
+          return sum;
         }
-        return sum;
-      }
-      """#
-    frame #"""
-      function total(items: number[]) {
-        const sum = items.reduce(
-          (acc, x) => acc + x,
-          0,
-        );
-        return sum;
-      }
-      """#
-    frame #"""
-      const total = (items: number[]) =>
-        items.reduce((acc, x) => acc + x, 0);
-      """#
+        """#
+      code "typescript" #"""
+        function total(items: number[]) {
+          const sum = items.reduce(
+            (acc, x) => acc + x,
+            0,
+          );
+          return sum;
+        }
+        """#
+      code "typescript" #"""
+        const total = (items: number[]) =>
+          items.reduce((acc, x) => acc + x, 0);
+        """#
+    }
   }
   notes #"""
     Press the right arrow slowly and watch `total`, `items` and `return` keep their identity.
@@ -40,151 +42,147 @@ slide {
 }
 
 slide {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`rename`"
-  text "Only the identifiers change; every other token stays exactly where it is."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function area(r: number) {
-        return Math.PI * r * r;
+  heading "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a child of a `swap` under this title and slides in from the left: press → to play it, → again for the next."
+  swap anim=right {
+    col {
+      text "`rename` - Only the identifiers change; every other token stays exactly where it is."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function area(r: number) {
+            return Math.PI * r * r;
+          }
+          """#
+        code "typescript" #"""
+          function circleArea(radius: number) {
+            return Math.PI * radius * radius;
+          }
+          """#
       }
-      """#
-    frame #"""
-      function circleArea(radius: number) {
-        return Math.PI * radius * radius;
+    }
+    col {
+      heading "`insert`"
+      text "New lines fade in; the lines below glide down to make room."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function greet(name: string) {
+            return "Hello, " + name;
+          }
+          """#
+        code "typescript" #"""
+          function greet(name: string) {
+            if (!name) {
+              throw new Error("name required");
+            }
+            return "Hello, " + name;
+          }
+          """#
       }
-      """#
-  }
-}
-slide animate=#true {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`insert`"
-  text "New lines fade in; the lines below glide down to make room."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function greet(name: string) {
-        return "Hello, " + name;
+    }
+    col {
+      heading "`delete`"
+      text "Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function connect(url: string) {
+            console.log("connecting to", url);
+            const socket = new WebSocket(url);
+            console.log("socket created");
+            return socket;
+          }
+          """#
+        code "typescript" #"""
+          function connect(url: string) {
+            const socket = new WebSocket(url);
+            return socket;
+          }
+          """#
       }
-      """#
-    frame #"""
-      function greet(name: string) {
-        if (!name) {
-          throw new Error("name required");
-        }
-        return "Hello, " + name;
+    }
+    col {
+      heading "`move`"
+      text "Statements swap places; every token glides to its new position instead of disappearing and reappearing."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function init() {
+            connect();
+            loadConfig();
+            start();
+          }
+          """#
+        code "typescript" #"""
+          function init() {
+            loadConfig();
+            connect();
+            start();
+          }
+          """#
       }
-      """#
-  }
-}
-slide animate=#true {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`delete`"
-  text "Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function connect(url: string) {
-        console.log("connecting to", url);
-        const socket = new WebSocket(url);
-        console.log("socket created");
-        return socket;
+    }
+    col {
+      heading "`wrap`"
+      text "Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function save(data: Data) {
+            write(data);
+            log("saved");
+          }
+          """#
+        code "typescript" #"""
+          function save(data: Data) {
+            try {
+              write(data);
+              log("saved");
+            } catch (err) {
+              report(err);
+            }
+          }
+          """#
       }
-      """#
-    frame #"""
-      function connect(url: string) {
-        const socket = new WebSocket(url);
-        return socket;
+    }
+    col {
+      heading "`extract`"
+      text "The moved lines keep their identity inside the new function."
+      swap autoplay=1 loop {
+        code "typescript" #"""
+          function report(order: Order) {
+            const total = order.items.reduce((s, i) => s + i.price, 0);
+            console.log(order.id, total);
+          }
+          """#
+        code "typescript" #"""
+          function sum(order: Order) {
+            return order.items.reduce((s, i) => s + i.price, 0);
+          }
+    
+          function report(order: Order) {
+            const total = sum(order);
+            console.log(order.id, total);
+          }
+          """#
       }
-      """#
-  }
-}
-slide animate=#true {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`move`"
-  text "Statements swap places; every token glides to its new position instead of disappearing and reappearing."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function init() {
-        connect();
-        loadConfig();
-        start();
-      }
-      """#
-    frame #"""
-      function init() {
-        loadConfig();
-        connect();
-        start();
-      }
-      """#
-  }
-}
-slide animate=#true {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`wrap`"
-  text "Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function save(data: Data) {
-        write(data);
-        log("saved");
-      }
-      """#
-    frame #"""
-      function save(data: Data) {
-        try {
-          write(data);
-          log("saved");
-        } catch (err) {
-          report(err);
-        }
-      }
-      """#
-  }
-}
-slide animate=#true {
-  title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
-  heading "`extract`"
-  text "The moved lines keep their identity inside the new function."
-  code "typescript" loop autoplay=1 {
-    frame #"""
-      function report(order: Order) {
-        const total = order.items.reduce((s, i) => s + i.price, 0);
-        console.log(order.id, total);
-      }
-      """#
-    frame #"""
-      function sum(order: Order) {
-        return order.items.reduce((s, i) => s + i.price, 0);
-      }
-
-      function report(order: Order) {
-        const total = sum(order);
-        console.log(order.id, total);
-      }
-      """#
+    }
   }
 }
 
 slide {
+  col {
   heading "A longer story: growing a class"
   text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
-  code "python" id=g1 {
-    frame #"""
+  swap {
+    code "python" id=g1 #"""
       class Stack:
           pass
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self.items = []
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self.items = []
@@ -192,7 +190,8 @@ slide {
           def push(self, item):
               self.items.append(item)
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self.items = []
@@ -203,7 +202,8 @@ slide {
           def pop(self):
               return self.items.pop()
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self.items = []
@@ -216,7 +216,8 @@ slide {
                   raise IndexError("empty")
               return self.items.pop()
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self._items = []
@@ -229,7 +230,8 @@ slide {
                   raise IndexError("empty")
               return self._items.pop()
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self._items = []
@@ -245,7 +247,8 @@ slide {
           def __len__(self):
               return len(self._items)
       """#
-    frame #"""
+
+    code "python" #"""
       class Stack:
           def __init__(self):
               self._items = []
@@ -261,6 +264,7 @@ slide {
           def __len__(self):
               return len(self._items)
       """#
+  }
   }
 }
 
@@ -307,14 +311,16 @@ slide {
 }
 
 slide {
+  col {
+  heading "Morph anything"
+  text "Not only code: an image, a heading or a diagram with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
+  image "diagram.svg" align=left width="230px"
+  }
   notes #"""
     Morph pairs items by id between two slides. Text that changes cross-fades while it moves.
     """#
-  heading "Morph anything"
-  text "Not only code: an image, a heading or a diagram with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
-  image "diagram.svg" align=left width="180px"
 }
-slide animate=#true {
+slide layout="image-right" {
   heading "Same picture, bigger"
   image "diagram.svg" align=right width="460px"
   text "The picture above is the same file, so it grew and moved by itself. Give a heading or a paragraph the same `id` and it glides too."
@@ -323,17 +329,15 @@ slide animate=#true {
 slide {
   heading "Themes"
   text "Built in: `dark`, `light`, `paper`. Press **t** to cycle, or open `?theme=light`. Your own theme is a set of CSS variables in `deck.json` and joins the cycle:"
-  code "jsonc" {
-    frame #"""
-      "theme": "ocean",
-      "themes": {
-        "ocean": {
-          "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--heading": "#fff", "--accent": "#3ddc97",
-          "--tok-keyword": "#ff7eb6", "--tok-ident": "#e6f4fb", "--tok-type": "#ffd479"
-        }
+  code "jsonc" #"""
+    "theme": "ocean",
+    "themes": {
+      "ocean": {
+        "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--heading": "#fff", "--accent": "#3ddc97",
+        "--tok-keyword": "#ff7eb6", "--tok-ident": "#e6f4fb", "--tok-type": "#ffd479"
       }
-      """#
-  }
+    }
+    """#
   notes #"""
     Token colors: --tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain. See this deck's own deck.json for two full themes (sunset, terminal).
     """#

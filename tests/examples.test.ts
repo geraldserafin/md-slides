@@ -1,19 +1,25 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { check } from '../src/check';
-import { parseSlides } from '../src/deck';
-import { pluginTags } from '../src/plugin-schema';
-import { extendSchema } from '../src/schema';
+import { check } from '../src/kernel/check';
+import { compile } from '../src/kernel/compile';
+import { loadRegistry, readDeckMeta } from '../src/node/loader';
 
-it('every example slide parses and passes the schema check', async () => {
+it('every example deck compiles and passes the check', async () => {
   const bad: string[] = [];
   for (const d of readdirSync('examples', { withFileTypes: true }).filter((e) => e.isDirectory())) {
-    extendSchema(await pluginTags(join('examples', d.name)));
-    for (const f of readdirSync(join('examples', d.name)).filter((f) => f.endsWith('.slides'))) {
-      const src = readFileSync(join('examples', d.name, f), 'utf8');
-      try { parseSlides(src, 'http://x/d/' + f); } catch (e) { bad.push(`${d.name}/${f}: ${(e as Error).message}`); }
-      for (const p of check(src)) bad.push(`${d.name}/${f}:${p.line}: ${p.message}`);
+    const dir = join('examples', d.name);
+    const files = readdirSync(dir).filter((f) => f.endsWith('.slides')).sort();
+    if (!files.length) continue;
+    const { registry } = await loadRegistry(dir);
+    const texts = files.map((f) => readFileSync(join(dir, f), 'utf8'));
+    files.forEach((f, i) => {
+      for (const p of check(texts[i], registry, texts.filter((_, j) => j !== i))) bad.push(`${d.name}/${f}:${p.line}: ${p.message}`);
+    });
+    try {
+      compile(files.map((f, i) => ({ url: 'http://x/' + f, text: texts[i], name: f })), registry, { name: d.name, meta: readDeckMeta(dir) });
+    } catch (e) {
+      bad.push(`${d.name}: ${(e as Error).message}`);
     }
   }
   expect(bad).toEqual([]);

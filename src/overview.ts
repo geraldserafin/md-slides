@@ -3,9 +3,9 @@
 // slide is highlighted and clicking a thumbnail jumps there. Each thumbnail is a real Player in a full-size
 // frame, scaled with a transform. The drawer is built once in the background (one thumbnail at a time while
 // the browser is idle) and only slides in and out afterwards, so opening it never waits for anything.
-import { isHidden, type Deck } from './deck';
-import { Player } from './player';
-import type { Step } from './steps';
+import { isHidden, type Deck } from './runtime/deck';
+import { Player } from './runtime/player';
+import type { Step } from './runtime/steps';
 
 export interface Overview {
   open(): void;

@@ -1,7 +1,5 @@
 // Alignment model: everything is `start` unless told otherwise.
-//   halign / valign: start | center | end   (front matter, deck.json "defaults" and "columns", fence options)
-// `columns` is the deck-wide default for slides that actually show two columns (text + code in a side layout),
-// `textOnly` the one for slides that show a single column of text and no code.
+//   halign / valign: start | center | end (also left right top middle bottom): the slide's properties, a layout's defaults, the deck's `defaults`
 export type Align = 'start' | 'center' | 'end';
 
 const WORDS: Record<string, Align> = {
@@ -13,26 +11,13 @@ const WORDS: Record<string, Align> = {
 export const parseAlign = (v: string | undefined): Align | undefined => (v ? WORDS[v.trim().toLowerCase()] : undefined);
 
 export interface AlignSources {
-  own: Record<string, string>; // the slide's own front matter
-  defaults?: Record<string, string>; // deck.json "defaults"
-  columns?: Record<string, string>; // deck.json "columns": applies to two-column slides only
-  textOnly?: Record<string, string>; // deck.json "textOnly": applies to slides without code only
+  own: Record<string, string>; // the slide's own properties (with its layout's defaults)
+  defaults?: Record<string, string>; // the deck's `defaults`
 }
 
-export interface AlignContext {
-  twoColumns: boolean;
-  textOnly: boolean;
-}
-
-/** the slide's own value beats the shape-specific default (columns / textOnly), which beats the deck default, which beats `start` */
-export function resolveAlign(key: 'halign' | 'valign', src: AlignSources, ctx: AlignContext): Align {
-  return (
-    parseAlign(src.own[key]) ??
-    (ctx.twoColumns ? parseAlign(src.columns?.[key]) : undefined) ??
-    (ctx.textOnly ? parseAlign(src.textOnly?.[key]) : undefined) ??
-    parseAlign(src.defaults?.[key]) ??
-    'start'
-  );
+/** the slide's own value beats the deck default, which beats `start` */
+export function resolveAlign(key: 'halign' | 'valign', src: AlignSources): Align {
+  return parseAlign(src.own[key]) ?? parseAlign(src.defaults?.[key]) ?? 'start';
 }
 
 /** fence classes / options of a code block: .left .center .right .top .middle .bottom, halign=, valign= */
