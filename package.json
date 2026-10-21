@@ -46,9 +46,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/geraldserafin/md-slides.git"
+    "url": "git+https://github.com/geraldserafin/slideit.git"
   },
-  "homepage": "https://geraldserafin.github.io/md-slides/",
+  "homepage": "https://geraldserafin.github.io/slideit/",
   "keywords": [
     "slides",
     "presentation",

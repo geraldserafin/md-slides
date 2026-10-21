@@ -3,7 +3,7 @@
 > Presentations whose code transitions are animated by an AST diff (GumTree). A deck is a `.slides` file (or a folder of them)
 > written in KDL, plus optional assets and deck.json. It compiles to a static website, a single HTML file, a PDF or a standalone
 > executable. Everything you need to write a deck is below; the full manual is in llms-full.txt (same site) and in the README:
-> https://github.com/geraldserafin/md-slides
+> https://github.com/geraldserafin/slideit
 
 ## How to produce a deck (for an LLM)
 
@@ -141,4 +141,4 @@ l laser · d draw · z magnifier · b black screen · a autoplay · h help.
 ## Links
 
 - Full manual for models: llms-full.txt (README + the slides of the manual decks)
-- Source and README: https://github.com/geraldserafin/md-slides
+- Source and README: https://github.com/geraldserafin/slideit

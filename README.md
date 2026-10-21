@@ -26,7 +26,7 @@ Other ways to get it:
 
 ```sh
 bunx @geraldserafin/slideit new my-talk   # bun: bunx / bun add -g @geraldserafin/slideit
-nix run github:geraldserafin/md-slides -- new my-talk   # nix (a nixpkgs package is planned, see nix/README.md)
+nix run github:geraldserafin/slideit -- new my-talk   # nix (a nixpkgs package is planned, see nix/README.md)
 brew install geraldserafin/tap/slideit  # Homebrew
 ```
 
@@ -321,7 +321,7 @@ reported, and the sizes and margins become CSS variables on the slide.
 
 The site also serves `llms.txt` (a compact language reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.slides` file. For example:
 
-> Read https://geraldserafin.github.io/md-slides/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
+> Read https://geraldserafin.github.io/slideit/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
 
 `npm run llms` writes both files into `dist/` (the Pages workflow does it on every push).
 
@@ -352,7 +352,7 @@ page whenever a file in the deck folder changes.
 `slides lsp` is a language server (stdio): diagnostics from the schema check, completion (with snippets) and hover for nodes, properties, flags and values, outline, folding and go to definition for code ids. `editors/vscode` is a VS Code / VSCodium / Cursor extension: KDL highlighting, the language server bundled (nothing to install for completion), snippets, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor, following the cursor to the slide you are editing. `editors/vim` has the filetype, syntax, the Neovim LSP setup and how to use the KDL tree-sitter grammar. See the README in each folder.
 ## GitHub Action and template
 
-`geraldserafin/md-slides@action-v1` checks a deck, builds the site (and a PDF) and uploads it for GitHub Pages:
+`geraldserafin/slideit@action-v1` checks a deck, builds the site (and a PDF) and uploads it for GitHub Pages:
 
 ```yaml
 jobs:
@@ -360,7 +360,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: geraldserafin/md-slides@action-v1
+      - uses: geraldserafin/slideit@action-v1
         with:
           deck: talk        # a folder of .slides files, or a folder of decks
           pdf: 'true'       # also writes <deck>.pdf into the site

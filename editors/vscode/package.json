@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "https://github.com/geraldserafin/md-slides.git",
+    "url": "https://github.com/geraldserafin/slideit.git",
     "directory": "editors/vscode"
   },
   "engines": {

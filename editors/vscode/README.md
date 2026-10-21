@@ -1,6 +1,6 @@
 # slideit for VS Code (and VSCodium, Cursor, …)
 
-Support for `.slides` presentations ([slideit](https://github.com/geraldserafin/md-slides)):
+Support for `.slides` presentations ([slideit](https://github.com/geraldserafin/slideit)):
 
 - **Highlighting** of the language (KDL with our nodes), with the code inside `code "ts" #"""…"""#` highlighted as that language.
 - **Completion** for nodes (only the ones allowed where you are, as snippets), properties, flags and values (layout names, `anim`…),

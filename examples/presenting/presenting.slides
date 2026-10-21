@@ -79,7 +79,7 @@ slide {
         runs-on: ubuntu-latest
         steps:
           - uses: actions/checkout@v4
-          - uses: geraldserafin/md-slides@action-v1
+          - uses: geraldserafin/slideit@action-v1
             with:
               deck: talk
               pdf: 'true'
@@ -100,7 +100,7 @@ slide {
   heading "Write decks with an LLM"
   text "The site serves `llms.txt`, a compact language reference written for language models, and `llms-full.txt`, this manual in one file. Give a model the URL, describe your talk, and ask for a deck folder:"
   code "text" #"""
-    Read https://geraldserafin.github.io/md-slides/llms.txt,
+    Read https://geraldserafin.github.io/slideit/llms.txt,
     then write me a deck about how Git branches work.
     """#
   text "Review it with `slides dev`, adjust, and ship it."

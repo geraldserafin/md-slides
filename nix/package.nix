@@ -24,7 +24,7 @@ buildNpmPackage (finalAttrs: {
     else
       fetchFromGitHub {
         owner = "geraldserafin";
-        repo = "md-slides";
+        repo = "slideit";
         tag = "v${finalAttrs.version}";
         hash = lib.fakeHash; # fill in when v0.1.0 is tagged
       };
@@ -46,7 +46,7 @@ buildNpmPackage (finalAttrs: {
 
   meta = {
     description = "Presentations written in a small language (KDL), with code transitions animated by an AST diff";
-    homepage = "https://github.com/geraldserafin/md-slides";
+    homepage = "https://github.com/geraldserafin/slideit";
     license = lib.licenses.bsd3;
     mainProgram = "slides";
     platforms = lib.platforms.unix;
