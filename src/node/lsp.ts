@@ -15,17 +15,23 @@ interface Pos { line: number; character: number }
 const docs = new Map<string, string>();
 
 /** the registry of the deck a file belongs to (the stock plugins and the deck's own, read once per folder) */
+/** the path of a `file:` uri; none for another scheme or a path this system cannot have */
+const pathOf = (uri: string): string | undefined => {
+  try { return uri.startsWith('file:') ? fileURLToPath(uri) : undefined; } catch { return undefined; }
+};
+
 const decks = new Map<string, Promise<Registry>>();
 const baseFor = (uri: string): Promise<Registry> => {
-  if (!uri.startsWith('file:')) return Promise.resolve(stockRegistry());
-  const dir = dirname(fileURLToPath(uri));
+  const file = pathOf(uri);
+  if (!file) return Promise.resolve(stockRegistry());
+  const dir = dirname(file);
   if (!decks.has(dir)) decks.set(dir, loadRegistry(dir).then((r) => r.registry, () => stockRegistry()));
   return decks.get(dir)!;
 };
 
 const siblingTexts = (uri: string): string[] => {
-  if (!uri.startsWith('file:')) return [];
-  const file = fileURLToPath(uri);
+  const file = pathOf(uri);
+  if (!file) return [];
   const dir = dirname(file);
   try {
     return slideFiles(dir).filter((f) => join(dir, f) !== file).map((f) => readFileSync(join(dir, f), 'utf8'));
@@ -247,8 +253,9 @@ function definition(uri: string, text: string, p: Pos) {
   const ls = text.lastIndexOf('\n', off - 1) + 1;
   const line = text.slice(ls, text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off));
   const hit = [...line.matchAll(/\b(?:id|from)=["']?([\w-]+)/g)].find((m) => off - ls >= m.index! && off - ls <= m.index! + m[0].length);
-  if (!hit || !uri.startsWith('file:')) return [];
-  const dir = dirname(fileURLToPath(uri));
+  const path = pathOf(uri);
+  if (!hit || !path) return [];
+  const dir = dirname(path);
   const out: { uri: string; range: { start: Pos; end: Pos } }[] = [];
   for (const f of readdirSync(dir).filter((f) => f.endsWith('.slides')).sort()) {
     const fileUri = pathToFileURL(join(dir, f)).href;
@@ -265,8 +272,8 @@ function definition(uri: string, text: string, p: Pos) {
 function slideIndex(uri: string, line: number): number {
   const count = (text: string) => { try { return parseKdl(text).filter((n) => n.name === 'slide'); } catch { return []; } };
   let base = 0;
-  if (uri.startsWith('file:')) {
-    const file = fileURLToPath(uri);
+  const file = pathOf(uri);
+  if (file) {
     const dir = dirname(file);
     for (const f of slideFiles(dir)) {
       if (join(dir, f) === file) break;
