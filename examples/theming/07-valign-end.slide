@@ -1,7 +1,0 @@
-<slide>
-  valign: end
-</slide>
-
-<h2>valign: end</h2>
-
-<p>The text sits at the bottom of the slide, above the footer.</p>

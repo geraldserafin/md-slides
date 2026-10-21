@@ -1,0 +1,124 @@
+slide theme=launch layout=cover align=center valign=middle justify=#false background="radial-gradient(circle at 20% 0%, #4a2a86 0%, #14111f 62%)" {
+  title "Fernly"
+  text "Plants that never die."
+  text "An app that remembers to water them."
+  notes #"""
+    Every number in this example deck is made up.
+    """#
+}
+
+slide valign=middle --text-size="4.6vmin" {
+  heading "Plants die. Not because of you."
+  text "Most people do not forget to care. They forget *when*, and they never learned *what*."
+  step {
+    text "Watering too much and too little look the same from the outside." anim=rise
+  }
+  step {
+    text "**Result:** a shelf of expensive green regret." anim=zoom
+  }
+}
+
+slide {
+  heading "Meet Fernly"
+  row {
+    col {
+      subheading "1 · Scan"
+      text "Point the camera at a plant. Fernly names it and reads its mood."
+    }
+    col {
+      subheading "2 · Schedule"
+      text "A watering and light plan that follows your home and the season."
+    }
+    col {
+      subheading "3 · Smile"
+      text "One calm reminder a day. No guilt, no spam."
+    }
+  }
+}
+
+slide {
+  heading "How it works"
+  diagram width="100%" #"""
+    flowchart LR
+      A[Photo] --> B[Identify species]
+      B --> C[Plan from light and humidity]
+      C --> D[Reminder]
+      D --> E[Photo of the new leaf]
+      E --> C
+    """#
+  text "The loop closes itself: every new photo sharpens the plan."
+}
+
+slide {
+  heading "Traction"
+  chart "bar" title="Weekly active households (thousands)" width="95%" #"""
+    month, households
+    Apr, 4
+    May, 7
+    Jun, 12
+    Jul, 19
+    Aug, 31
+    Sep, 48
+    """#
+  step {
+    text "Doubling about every two months, without paid acquisition." anim=rise
+  }
+}
+
+slide {
+  heading "Who we serve"
+  row {
+    chart "pie" title="Our users" width="95%" #"""
+      segment, share
+      First-time owners, 46
+      Gift receivers, 27
+      Collectors, 17
+      Offices, 10
+      """#
+    col {
+      step {
+        text "The biggest group is the one that kills the most plants: **first-time owners**."
+      }
+      step {
+        text "The next is **gift receivers**: people who never chose the plant at all."
+      }
+    }
+  }
+}
+
+slide {
+  heading "Business model"
+  table {
+    head "Plan" "Price" "For"
+    - "Free" "\\$0" "up to 5 plants"
+    - "Grow" "\\$3 / month" "unlimited plants, plant doctor"
+    - "Home" "\\$6 / month" "the whole household, shared reminders"
+  }
+  step {
+    text "Grow converts at 9% of active users; the plant doctor is why."
+  }
+}
+
+slide {
+  heading "Team"
+  row {
+    col {
+      subheading "Mara Linden"
+      text "CEO. Ten years in consumer apps."
+    }
+    col {
+      subheading "Teo Brandt"
+      text "CTO. Computer vision, formerly at a satellite imaging company."
+    }
+    col {
+      subheading "Iris Okafor"
+      text "Botany lead. The reason the advice is right."
+    }
+  }
+}
+
+slide theme=launch layout=cover align=center valign=middle justify=#false background="radial-gradient(circle at 80% 100%, #4a2a86 0%, #14111f 60%)" {
+  title "\\$1.2M"
+  text "seed, to reach 250,000 households and launch the plant doctor." anim=fade
+  text "[mara@fernly.example](mailto:mara@fernly.example)"
+}

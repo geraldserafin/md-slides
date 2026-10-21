@@ -4,7 +4,7 @@
 import type { Deck } from './deck';
 import type { Player } from './player';
 import { registerLanguage } from './parse';
-import { extendSchema, type AttrDef } from './schema';
+import { extendSchema, type PropDef } from './schema';
 
 export interface PluginApi {
   player: Player;
@@ -14,7 +14,7 @@ export interface PluginApi {
 export interface PluginTagContext {
   tag: string;
   attrs: Record<string, string>;
-  /** the raw content of a raw tag, otherwise the text directly inside the tag */
+  /** the first argument of the node (its text) */
   text: string;
   /** the element of the item; fill it, or return what should go into it */
   el: HTMLElement;
@@ -24,9 +24,8 @@ export interface PluginTagContext {
 
 export interface PluginTag {
   doc: string;
-  attrs?: Record<string, AttrDef>;
-  raw?: boolean;
-  empty?: boolean;
+  /** the properties of the node: `weather city="Oslo"` */
+  attrs?: Record<string, PropDef>;
   render(ctx: PluginTagContext): string | Node | void | Promise<string | Node | void>;
 }
 
@@ -62,7 +61,7 @@ export async function loadPlugins(urls: string[]) {
     const p = mod.default;
     if (!p) throw new Error(`plugin ${url}: no default export`);
     plugins.push(p);
-    if (p.tags) extendSchema(Object.fromEntries(Object.entries(p.tags).map(([n, t]) => [n, { doc: t.doc, attrs: t.attrs, raw: t.raw, empty: t.empty }])));
+    if (p.tags) extendSchema(Object.fromEntries(Object.entries(p.tags).map(([n, t]) => [n, { doc: t.doc, props: t.attrs }])));
     for (const l of p.languages ?? []) registerLanguage(l.name, l.tags, new URL(l.wasm, url).href);
   }
 }

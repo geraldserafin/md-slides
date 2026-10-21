@@ -1,0 +1,109 @@
+slide theme=corporate-dark layout=cover align=center valign=middle justify=#false background="linear-gradient(135deg, #0b1b3a 0%, #1d4ed8 100%)" {
+  title "Q3 review"
+  text "Northwind Trading · October"
+  notes #"""
+    Example data only.
+    """#
+}
+
+slide --text-size="4.2vmin" {
+  heading "Highlights"
+  list steps {
+    - "Revenue grew **12%** over Q2, our best quarter"
+    - "Two new regional partners signed in the Nordics"
+    - "Support response time halved after the new tooling"
+  }
+  notes #"""
+    Each bullet appears on its own click.
+    """#
+}
+
+slide {
+  heading "Revenue"
+  chart "line" title="Revenue by quarter ($M)" width="95%" #"""
+    quarter, this year, last year
+    Q1, 2.8, 2.1
+    Q2, 3.7, 2.6
+    Q3, 4.2, 3.0
+    Q4, 4.8, 3.4
+    """#
+  text "Q4 is the plan, not a result."
+}
+
+slide {
+  heading "By region"
+  chart "bar" title="Q3 revenue by region ($M)" width="95%" #"""
+    region, revenue
+    North, 1.6
+    South, 1.1
+    East, 0.9
+    West, 0.6
+    """#
+  step {
+    text "North carries the quarter; West is the opportunity."
+  }
+}
+
+slide {
+  heading "Key metrics"
+  table {
+    head "Metric" "Q2" "Q3" "Change"
+    - "Revenue" "\\$3.7M" "\\$4.2M" "+12%"
+    - "Gross margin" "41%" "44%" "+3 pts"
+    - "New customers" "118" "163" "+38%"
+    - "Churn" "3.1%" "2.4%" "−0.7 pts"
+    - "Support reply time" "6.0 h" "3.1 h" "−48%"
+  }
+}
+
+slide {
+  heading "Risks and responses"
+  row {
+    col {
+      subheading "Risks"
+      list {
+        - "One supplier provides a third of our stock"
+        - "Currency swings in the East"
+        - "Hiring is slower than the plan"
+      }
+    }
+    step {
+      col {
+        subheading "Responses"
+        list {
+          - "Qualify a second supplier by December"
+          - "Invoice in local currency, hedge the rest"
+          - "Two contractors start in November"
+        }
+      }
+    }
+  }
+}
+
+slide {
+  heading "Next two quarters"
+  diagram width="100%" #"""
+    flowchart LR
+      A[Oct: second supplier] --> B[Nov: new hires]
+      B --> C[Dec: Nordics launch]
+      C --> D[Jan: pricing review]
+      D --> E[Feb: West campaign]
+    """#
+}
+
+slide valign=middle --text-size="4vmin" {
+  heading "Decisions we need today"
+  list numbered anim=left {
+    - "Approve the Nordics launch budget"
+  }
+  step {
+    list numbered start=2 anim=left {
+      - "Confirm the second supplier shortlist"
+    }
+  }
+  step {
+    list numbered start=3 anim=left {
+      - "Agree the January pricing review date"
+    }
+  }
+}

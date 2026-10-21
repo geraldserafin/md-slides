@@ -1,0 +1,42 @@
+slide transition=slide layout=cover align=center valign=middle justify=#false background="linear-gradient(180deg, #0b1320 0%, #1b3a5b 55%, #7fd1ff 120%)" {
+  title "Iceland"
+  text "in six pictures"
+  notes #"""
+    A story deck: each slide is one big background and a few words. The backgrounds are CSS gradients, so no photos are needed.
+    """#
+}
+
+slide layout=cover align=left valign=bottom justify=#false transition=slide background="linear-gradient(200deg, #0b1320 0%, #1f3b5a 50%, #f4a261 130%)" {
+  title "Midnight sun"
+  text "It never gets fully dark in June. We stopped checking the time."
+}
+
+slide layout=cover align=right valign=top justify=#false transition=slide background="linear-gradient(160deg, #0a2a2e 0%, #1f6f6f 60%, #b8f2e6 140%)" {
+  title "Black sand"
+  text "The beach at Reynisfjara is the colour of burnt toast."
+}
+
+slide layout=cover align=center valign=middle justify=#false transition=zoom background="radial-gradient(circle at 50% 120%, #8be3ff 0%, #2b5d9e 35%, #0b1320 75%)" {
+  title "Seljalandsfoss"
+  text "You can walk behind the waterfall. Bring a raincoat."
+}
+
+slide layout=cover align=left valign=middle justify=#false transition=slide background="linear-gradient(120deg, #1b0f2e 0%, #3d1f6b 45%, #38d9a9 140%)" {
+  title "Northern lights"
+  text "They arrived at 1 a.m., green first, then violet."
+}
+
+slide layout=cover align=center valign=bottom justify=#false transition=slide background="linear-gradient(0deg, #2a1d14 0%, #7a4a2b 50%, #d9a066 120%)" {
+  title "Highland road"
+  text "Four hours, one gas station, no regrets."
+}
+
+slide layout=cover align=center valign=middle justify=#false transition=zoom background="radial-gradient(circle at 50% 30%, #6fd3ff 0%, #1b3a5b 45%, #0b1320 100%)" {
+  title "Blue Lagoon"
+  text "The last evening, in 38 degrees of milky blue water."
+}
+
+slide layout=cover align=center valign=middle justify=#false background="linear-gradient(180deg, #0b1320 0%, #0b1320 100%)" {
+  title "Takk fyrir"
+  text "Thank you for watching."
+}

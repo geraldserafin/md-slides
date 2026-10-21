@@ -61,7 +61,7 @@ it('slides import turns a template into a deck: backgrounds, theme colors, fonts
   expect(deck.vars).toMatchObject({ '--fg': '#112233', '--accent': '#cc3344', '--heading': '#334455', '--font-heading': "'Lora', system-ui, sans-serif" });
   expect(readFileSync(join(dir, 'assets/cover.png'), 'utf8')).toBe('COVERPNG');
   expect(readFileSync(join(dir, 'assets/content.png'), 'utf8')).toBe('CONTENTPNG');
-  expect(existsSync(join(dir, '01-hello.slide'))).toBe(true);
+  expect(existsSync(join(dir, 'out.slides'))).toBe(true);
   expect(existsSync(join(dir, '01-cover.slide'))).toBe(false);
   expect(r.notes.join(' ')).toMatch(/Chrome|Chromium/);
 });

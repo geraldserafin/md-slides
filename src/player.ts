@@ -613,6 +613,7 @@ export class Player {
         l.children.forEach((c: Layout) => build(c, el, false, cells, ph, pv));
       }
       if (l.opts.class) el.classList.add(...l.opts.class.split(/\s+/));
+      if (l.opts.gap) el.style.gap = /^\d+(\.\d+)?$/.test(l.opts.gap) ? `${l.opts.gap}vmin` : l.opts.gap;
       parent.append(el);
     };
     if (sec.layout.kind === 'col') sec.layout.children.forEach((c: Layout) => build(c, grid, false, 1));

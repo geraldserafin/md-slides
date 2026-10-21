@@ -30,6 +30,7 @@
     "build:package": "node scripts/build-lib.mjs && node scripts/build-viewer.mjs"
   },
   "dependencies": {
+    "@bgotink/kdl": "^0.4.1",
     "postject": "^1.0.0-alpha.6",
     "puppeteer-core": "^25.14.0"
   },

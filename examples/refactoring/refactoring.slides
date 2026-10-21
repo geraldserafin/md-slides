@@ -1,0 +1,281 @@
+slide layout=cover {
+  title "Refactoring: a cart total"
+  text "We'll go from an untyped imperative loop to a typed, functional version with an extracted function."
+  notes #"""
+    Say this is a live demo of a tool that animates code diffs, not a static slide
+    """#
+  notes #"""
+    The right arrow moves to the next step
+    """#
+}
+
+slide {
+  notes #"""
+    Start with the bare loop, show it works, then add types gradually
+    """#
+  notes #"""
+    var->let, then interface, then type annotations, then for-of, then +=
+    """#
+  notes #"""
+    rename calc->calculateTotal, items->cartItems, add a guard for an empty cart
+    """#
+  row {
+    heading "Step 1: types and basics"
+    code "typescript" id=calc {
+      frame #"""
+        function calc(items) {
+          var total = 0;
+          for (var i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        function calc(items) {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items) {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (let i = 0; i < items.length; i++) {
+            total = total + items[i].price * items[i].qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total = total + item.price * item.qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calc(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+        """#
+    }
+  }
+}
+slide animate=#true {
+  row {
+    heading "Step 2: naming and a guard clause"
+    code "typescript" id=calc {
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(items: Item[]): number {
+          let total = 0;
+          for (const item of items) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(cartItems: Item[]): number {
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function calculateTotal(cartItems: Item[]): number {
+          if (cartItems.length === 0) {
+            return 0;
+          }
+
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        }
+        """#
+    }
+  }
+}
+
+slide {
+  notes #"""
+    function declaration -> const arrow function
+    """#
+  notes #"""
+    two steps: first add the new function (duplicated logic), then swap the call site
+    """#
+  notes #"""
+    split in two because otherwise the diff gets lost on identical structure
+    """#
+  notes #"""
+    Say thanks, ask for questions
+    """#
+  row {
+    heading "Step 3: functional style"
+    code "typescript" id=calc {
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        const calculateTotal = (cartItems: Item[]): number => {
+          if (cartItems.length === 0) {
+            return 0;
+          }
+
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        };
+        """#
+    }
+  }
+}
+slide animate=#true {
+  row {
+    heading "Step 4: Extract Method"
+    code "typescript" id=calc {
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function itemTotal(item: Item): number {
+          return item.price * item.qty;
+        }
+
+        const calculateTotal = (cartItems: Item[]): number => {
+          if (cartItems.length === 0) {
+            return 0;
+          }
+
+          let total = 0;
+          for (const item of cartItems) {
+            total += item.price * item.qty;
+          }
+          return total;
+        };
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function itemTotal(item: Item): number {
+          return item.price * item.qty;
+        }
+
+        const calculateTotal = (cartItems: Item[]): number => {
+          if (cartItems.length === 0) {
+            return 0;
+          }
+
+          let total = 0;
+          for (const item of cartItems) {
+            total += itemTotal(item);
+          }
+          return total;
+        };
+        """#
+    }
+  }
+}
+slide animate=#true {
+  row {
+    col {
+      heading "Step 5: .reduce and export"
+      step {
+        text "The end. Thanks!"
+      }
+    }
+    code "typescript" id=calc {
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        function itemTotal(item: Item): number {
+          return item.price * item.qty;
+        }
+
+        const calculateTotal = (cartItems: Item[]): number =>
+          cartItems.reduce((total, item) => total + itemTotal(item), 0);
+        """#
+      frame #"""
+        interface Item {
+          price: number;
+          qty: number;
+        }
+
+        export function itemTotal(item: Item): number {
+          return item.price * item.qty;
+        }
+
+        export const calculateTotal = (cartItems: Item[]): number =>
+          cartItems.reduce((total, item) => total + itemTotal(item), 0);
+        """#
+    }
+  }
+}

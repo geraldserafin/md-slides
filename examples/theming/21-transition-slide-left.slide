@@ -1,9 +1,0 @@
-<slide>
-  transition: slide-left
-</slide>
-
-<h2>slide-left</h2>
-
-<p>
-  The content travels to the left: the new section comes in from the right, the old one leaves to the left. <c>slide-right</c> is the mirror image, and it moves the code along with the text.
-</p>

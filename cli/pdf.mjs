@@ -7,7 +7,7 @@ import puppeteer from 'puppeteer-core';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
-  '.slide': 'text/plain; charset=utf-8', '.wasm': 'application/wasm', '.svg': 'image/svg+xml',
+  '.slides': 'text/plain; charset=utf-8', '.wasm': 'application/wasm', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.ttf': 'font/ttf', '.woff2': 'font/woff2',
 };

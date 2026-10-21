@@ -1,4 +1,4 @@
-// Assembles deck folders (.slide files + assets + deck.json) into <publicDir>/decks/<name>/
+// Assembles deck folders (.slides files + assets, deck.json optional) into <publicDir>/decks/<name>/
 // with manifests and an index.json.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
@@ -33,6 +33,7 @@ async function stagePlugins(dir, dest, meta) {
 }
 
 export async function stageDecks(dirs, publicDir, hubDir) {
+  const { readDeckMeta } = await loadLib('deckfiles');
   const out = join(publicDir, 'decks');
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -42,10 +43,9 @@ export async function stageDecks(dirs, publicDir, hubDir) {
     const name = basename(dir);
     const dest = join(out, name);
     cpSync(dir, dest, { recursive: true, filter: (s) => !/(^|\/)(node_modules|\.git)(\/|$)/.test(s) });
-    const files = readdirSync(dir).filter((f) => f.endsWith('.slide')).sort();
-    if (!files.length) throw new Error(`no .slide files in folder: ${dir}`);
-    const metaPath = join(dir, 'deck.json');
-    const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
+    const files = readdirSync(dir).filter((f) => f.endsWith('.slides')).sort();
+    if (!files.length) throw new Error(`no .slides files in folder: ${dir}`);
+    const meta = readDeckMeta(dir);
     const plugins = meta.plugins ? await stagePlugins(dir, dest, meta) : undefined;
     writeFileSync(join(dest, 'manifest.json'), JSON.stringify({ title: name, ...meta, ...(plugins ? { plugins } : {}), files }, null, 2));
     decks.push({ name, title: meta.title ?? name, description: meta.description, author: meta.author, date: meta.date, hidden: meta.hidden, thumbnail: meta.thumbnail, order: meta.order ?? 100 });

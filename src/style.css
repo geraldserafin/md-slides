@@ -169,6 +169,13 @@ body.embed .hud { display: none; }
 .stage { z-index: 1; }
 .hud { z-index: 2; }
 .stage.layout-cover .item h1 { font-size: calc(var(--heading-size) * 1.8); }
+.stage.layout-section .item h1 { font-size: calc(var(--heading-size) * 1.5); }
+.stage.layout-quote .item blockquote { font-size: 1.5em; }
+.item blockquote footer { margin-top: 0.5em; font-size: 0.7em; color: var(--muted); }
+.item blockquote footer::before { content: '— '; }
+/* size="small" | "large" on a text node: relative to the theme */
+.item .size-small { font-size: 0.8em; }
+.item .size-large { font-size: 1.3em; }
 
 /* ---- slide drawer (overview) ---------------------------------------------------- */
 .drawer {

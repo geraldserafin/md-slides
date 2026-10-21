@@ -1,0 +1,244 @@
+slide layout=cover background="linear-gradient(135deg, #1a1a2e, #47305f)" {
+  title "Monads for error handling"
+  text "How to get from classic C++ (error codes, exceptions) to a monadic style with `std::optional` and `std::expected` (C++23)."
+  notes #"""
+    Show that this is the same animation engine as the previous deck, just another language
+    """#
+  notes #"""
+    std::expected is C++23, and so are the monadic and_then/transform
+    """#
+}
+
+slide {
+  notes #"""
+    Show the pain: every return must be checked separately, out-params instead of return values
+    """#
+  notes #"""
+    A different problem: the error is not in the signature, call sites have to guess what may be thrown
+    """#
+  heading "The classic approach: error codes"
+  code "cpp" id=flow {
+    frame #"""
+      bool parseInt(const std::string& s, int& out) {
+        try {
+          out = std::stoi(s);
+          return true;
+        } catch (...) {
+          return false;
+        }
+      }
+
+      bool safeDivide(int a, int b, int& out) {
+        if (b == 0) {
+          return false;
+        }
+        out = a / b;
+        return true;
+      }
+
+      bool process(const std::string& s, int divisor, int& result) {
+        int parsed;
+        if (!parseInt(s, parsed)) {
+          return false;
+        }
+        int divided;
+        if (!safeDivide(parsed, divisor, divided)) {
+          return false;
+        }
+        result = divided;
+        return true;
+      }
+      """#
+  }
+}
+slide animate=#true {
+  heading "Or: exceptions"
+  code "cpp" id=flow {
+    frame #"""
+      int parseInt(const std::string& s) {
+        return std::stoi(s);
+      }
+
+      int safeDivide(int a, int b) {
+        if (b == 0) {
+          throw std::runtime_error("division by zero");
+        }
+        return a / b;
+      }
+
+      int process(const std::string& s, int divisor) {
+        int parsed = parseInt(s);
+        int divided = safeDivide(parsed, divisor);
+        return divided;
+      }
+      """#
+  }
+}
+
+slide {
+  notes #"""
+    Now the error comes back as a value, not through a reference -- but manual checking remains
+    """#
+  notes #"""
+    This is Haskell's bind/flatMap -- and_then is in std::optional since C++23
+    """#
+  notes #"""
+    process() shrinks from 5 lines to a single expression
+    """#
+  heading "std::optional: the error is in the type, not in an out-param"
+  code "cpp" id=flow {
+    frame #"""
+      std::optional<int> parseInt(const std::string& s) {
+        try {
+          return std::stoi(s);
+        } catch (...) {
+          return std::nullopt;
+        }
+      }
+
+      std::optional<int> safeDivide(int a, int b) {
+        if (b == 0) {
+          return std::nullopt;
+        }
+        return a / b;
+      }
+
+      std::optional<int> process(const std::string& s, int divisor) {
+        auto parsed = parseInt(s);
+        if (!parsed) {
+          return std::nullopt;
+        }
+        return safeDivide(*parsed, divisor);
+      }
+      """#
+  }
+}
+slide animate=#true {
+  heading "Refactor: and_then (monadic bind)"
+  code "cpp" id=flow {
+    frame #"""
+      std::optional<int> parseInt(const std::string& s) {
+        try {
+          return std::stoi(s);
+        } catch (...) {
+          return std::nullopt;
+        }
+      }
+
+      std::optional<int> safeDivide(int a, int b) {
+        if (b == 0) {
+          return std::nullopt;
+        }
+        return a / b;
+      }
+
+      std::optional<int> process(const std::string& s, int divisor) {
+        return parseInt(s).and_then([divisor](int parsed) {
+          return safeDivide(parsed, divisor);
+        });
+      }
+      """#
+  }
+}
+
+slide {
+  notes #"""
+    This is the motivation for expected: we want Either, not Maybe
+    """#
+  notes #"""
+    The point of this deck: adding another step is one more .and_then, not another level of if
+    """#
+  heading "The problem with optional: you can't tell WHAT went wrong"
+  text "`std::nullopt` carries no information -- a parse failure and a division by zero look identical from the outside."
+}
+slide animate=#true {
+  heading "std::expected: Either for C++"
+  code "cpp" id=flow {
+    frame #"""
+      std::expected<int, std::string> parseInt(const std::string& s) {
+        try {
+          return std::stoi(s);
+        } catch (...) {
+          return std::unexpected("invalid number");
+        }
+      }
+
+      std::expected<int, std::string> safeDivide(int a, int b) {
+        if (b == 0) {
+          return std::unexpected("division by zero");
+        }
+        return a / b;
+      }
+
+      std::expected<int, std::string> process(const std::string& s, int divisor) {
+        return parseInt(s).and_then([divisor](int parsed) {
+          return safeDivide(parsed, divisor);
+        });
+      }
+      """#
+  }
+}
+slide animate=#true {
+  heading "Adding a step: the chain grows linearly, it doesn't nest"
+  code "cpp" id=flow {
+    frame #"""
+      std::expected<int, std::string> parseInt(const std::string& s) {
+        try {
+          return std::stoi(s);
+        } catch (...) {
+          return std::unexpected("invalid number");
+        }
+      }
+
+      std::expected<int, std::string> safeDivide(int a, int b) {
+        if (b == 0) {
+          return std::unexpected("division by zero");
+        }
+        return a / b;
+      }
+
+      std::expected<int, std::string> validateRange(int v) {
+        if (v < 0 || v > 1000) {
+          return std::unexpected("out of range");
+        }
+        return v;
+      }
+
+      std::expected<int, std::string> process(const std::string& s, int divisor) {
+        return parseInt(s)
+          .and_then([divisor](int parsed) { return safeDivide(parsed, divisor); })
+          .and_then(validateRange);
+      }
+      """#
+  }
+}
+
+slide {
+  notes #"""
+    Ask for questions
+    """#
+  notes #"""
+    If time permits: mention that std::expected has the monadic API right away, no need to wait for another standard
+    """#
+  heading "Call site"
+  code "cpp" id=flow {
+    frame #"""
+      int main() {
+        auto result = process("42", 2);
+
+        if (result) {
+          std::cout << "Result: " << *result << "\n";
+        } else {
+          std::cout << "Error: " << result.error() << "\n";
+        }
+
+        return 0;
+      }
+      """#
+  }
+}
+slide animate=#true {
+  heading "Summary"
+  text "`and_then` is `>>=` / `flatMap`. `transform` is `fmap`/`map`. `std::expected` is `Either`, `std::optional` is `Maybe`. C++23 finally has what Haskell has had all along -- just under different names."
+  text "Thanks!"
+}

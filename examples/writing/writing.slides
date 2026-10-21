@@ -1,0 +1,415 @@
+// The manual of the language. Every slide of this deck is live: it uses the feature it describes.
+
+// an own layout, used by the "Own layouts" slide near the end
+layout "sidebar" {
+  row {
+    col size="28%" { slot "side" }
+    col { slot }
+  }
+}
+
+slide layout=cover {
+  title "Writing slides"
+  text "Everything the .slides language can do."
+  text "One file, many slides · press **→**"
+  notes #"""
+    Writing slides: part of the slides manual. Source: examples/writing.
+    """#
+}
+
+slide --text-size="4vmin" {
+  heading "What's inside"
+  list numbered {
+    - "The language: nodes, strings, flags"
+    - "Slides, layouts and clicks"
+    - "Text, rich text and media"
+    - "Code that moves"
+    - "Math, charts and diagrams"
+    - "Layouts of your own"
+  }
+  notes #"""
+    Press o at any time for the slide drawer, h for help.
+  """#
+}
+
+slide {
+  heading "Your first deck"
+  code "text" {
+    frame #"""
+      my-talk/
+        my-talk.slides     the slides, in one file
+        diagram.svg        assets live next to it
+        deck.json          optional configuration
+      """#
+  }
+  code "bash" {
+    frame #"""
+      slides new my-talk                 # a starter deck
+      slides dev my-talk/                # live reload
+      slides build my-talk/ -o dist      # static website
+      """#
+  }
+  text "A big deck can be several `.slides` files in the folder: they are read in the order of their names."
+  notes #"""
+    A deck is a folder with one or more .slides files. The first slide of the first file is slide 1.
+    """#
+}
+
+slide --text-size="3.1vmin" {
+  heading "The language"
+  text "A `.slides` file is [KDL](https://kdl.dev): **nodes** with arguments, `key=value` properties and children in braces. Text goes in quotes."
+  code "text" {
+    frame ##"""
+      // a comment
+      slide {                        // a node with children
+        title "Hello"                // a node with one argument
+        text "**bold** and `code`"   // inline markup inside the quotes
+        image "cat.jpg" alt="a cat"  // a property
+        video "a.mp4" loop muted     // bare words are flags
+        notes """
+          a text on several lines
+        """
+      }
+      /-slide { }                    // /- switches a whole node off
+      """##
+  }
+  notes #"""
+    One node per line, or several separated with ; . Raw strings #"..."# need no escaping: good for code.
+    """#
+}
+
+slide {
+  heading "Slides and layouts"
+  text "A `slide` is one slide. You write what is on it; the **layout** follows from the content:"
+  table {
+    head "On the slide" "Layout"
+    - "only a `title` (and `text`), first slide" "`cover`"
+    - "only a `title`" "`section`"
+    - "`title`, `text`, `list`…" "`default`"
+    - "text and one image" "`image-right`"
+    - "several images" "`gallery`"
+    - "text and code" "`code-side`"
+    - "only `quote`" "`quote`"
+  }
+  text "Name one when you want another: `slide layout=two-cols { … }`."
+  notes #"""
+    Built in: default, cover, section, center, quote, full, two-cols, three-cols, image-left, image-right, gallery, code, code-side.
+    """#
+}
+
+slide {
+  heading "Text"
+  text "Nodes for text: `title`, `heading`, `subheading`, `text`, `list`, `quote`, `table`. Inside the quotes **bold**, *italic*, `inline code` and [links](https://example.com) work."
+  list numbered {
+    - "a `list` is bulleted; add `numbered` for numbers"
+    - "an item can hold a nested `list`" {
+      list {
+        - "like this one"
+      }
+    }
+  }
+  quote "A `quote` gets an accent bar." by="the manual"
+  text "`size=\"small\"` and `size=\"large\"` make a text smaller or larger than the theme's." size="small"
+  notes #"""
+    The notes node holds the speaker notes. They never show on the slide. Open the presenter window with p.
+    """#
+}
+
+slide {
+  heading "Rich text"
+  text "Inside the quotes: ~~strikethrough~~, [[Ctrl]] + [[K]], ==highlighted== text, H~2~O and x^2^. A newline in the text is a line break. Use a backslash to write a special character: \\*stars\\*."
+  table {
+    head "Key" "Action" "Where"
+    - "[[→]]" "next step" "everywhere"
+    - "[[o]]" "overview" "audience window"
+    - "[[p]]" "presenter window" "audience window"
+  }
+  notes #"""
+    Inline: **bold** *italic* ~~strike~~ ==mark== ~sub~ ^sup^ `code` [link](url) $tex$ [[Key]]. Nothing else is special: snake_case, a * b and < stay as they are.
+    """#
+}
+
+slide {
+  heading "Reveal: add content on a click"
+  text "`pause` holds back everything after it until the next click. Nothing moves when it appears: the space is reserved."
+  pause
+  text "This text appeared on the first click."
+  pause
+  text "And this one on the second. A `step` does the same for what is inside it:"
+  step {
+    code "typescript" {
+      frame #"""
+        const clicks = 3; // the code block came last
+        """#
+    }
+  }
+  list steps {
+    - "`list steps` shows one item per click"
+    - "second"
+    - "third"
+  }
+  notes #"""
+    Works for text, lists, images, video, charts and code blocks. Frames of a code block count as clicks too.
+    """#
+}
+
+slide {
+  heading "Animate one element"
+  text "Give any node `anim=zoom` and it comes in that way. Together with a `step` it is a build, like PowerPoint's entrance effects:"
+  step {
+    text "Fades in on the first click, no movement." anim=fade
+  }
+  step {
+    text "Zooms in from a smaller size." anim=zoom
+  }
+  step {
+    text "Pops with a little overshoot." anim=pop
+  }
+  notes #"""
+    anim: fade | rise (default) | zoom | left | right | down | blur | pop | none. A step passes its anim to everything inside.
+    """#
+}
+
+slide --text-size="3.2vmin" {
+  heading "Code that moves"
+  text "A `code` node is one animated block; its `frame`s are the states it passes through, one click each. Between two frames what stayed stays and what moved glides."
+  code "typescript" id=fn {
+    frame #"""
+      function total(items: number[]) {
+        let sum = 0;
+        for (const x of items) sum += x;
+        return sum;
+      }
+      """#
+    frame focus="2-4" #"""
+      function total(items: number[]) {
+        return items.reduce((sum, x) => sum + x, 0);
+      }
+      """#
+  }
+  notes #"""
+    The most important idea of the tool. `focus` keeps some lines bright, `transition` is morph, fade or none, `autoplay=2` plays the frames by itself.
+    """#
+}
+
+slide animate=#true {
+  heading "A slide that continues the last one"
+  text "`animate=#true` makes a slide continue the one before it: what is on both (the same title, image, or code `id`) stays or glides, the rest swaps. This is how one story spans several slides."
+  code "typescript" id=fn {
+    frame #"""
+      const total = (items: number[]) =>
+        items.reduce((sum, x) => sum + x, 0);
+      """#
+  }
+  notes #"""
+    Matching is by content: the same heading text, the same image file, the same code id. Anything else fades out and in.
+    """#
+}
+
+slide {
+  heading "Morph anything"
+  text "Not only code: an image, a heading or a paragraph with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
+  image "diagram.svg" align=left width="180px"
+}
+slide animate=#true {
+  heading "Same picture, bigger"
+  image "diagram.svg" align=right width="460px"
+  text "The picture above is the same file, so it grew and moved by itself." id=note
+}
+
+slide {
+  heading "Math"
+  text "Inline math sits in the text: Euler's identity is $e^{i\\pi} + 1 = 0$. A `math` node is display math and follows the slide's alignment:"
+  math #"""
+    \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+    \qquad
+    \sum_{k=1}^{n} k = \frac{n(n+1)}{2}
+    """#
+  notes #"""
+    KaTeX renders math to plain HTML (no scripts at runtime), so it works in every build target and in the PDF.
+    """#
+}
+
+slide {
+  heading "Diagrams"
+  text "A `diagram` node draws a [Mermaid](https://mermaid.js.org) diagram with the slide's colors; press **t** to see it follow the theme."
+  diagram width="100%" #"""
+    flowchart LR
+      src[.slides] --> parse[Parse] --> diff{{GumTree diff}} --> play[Animate]
+      diff -. same language .-> play
+      parse --> pdf[PDF / static / exe]
+    """#
+  notes #"""
+    Mermaid is loaded when a slide first needs it and left out of builds whose decks never use it.
+    """#
+}
+
+slide {
+  heading "Charts"
+  text "A `chart` node turns a few CSV lines into a chart in the slide's colors: `\"bar\"`, `\"line\"` or `\"pie\"`."
+  chart "bar" title="Build time (s)" width="85%" #"""
+    tool, cold, warm
+    webpack, 12, 4
+    vite, 3, 1.2
+    esbuild, 1.5, 0.6
+    """#
+  notes #"""
+    The first row names the series; with one series the bars carry their value. Charts are plain SVG, so they print and export like the rest.
+    """#
+}
+
+slide theme=light {
+  heading "Images"
+  text "`image \"file\"`: the file is relative to the `.slides` file. `alt`, `width`, `height` and `align` size and place it."
+  image "diagram.svg" alt="diagram" align=center
+  code "text" {
+    frame #"""
+      image "diagram.svg" align=left width="420px"
+      image "photo.jpg" alt="a wide photo"
+      """#
+  }
+  notes #"""
+    width and height are CSS lengths, so they take a string: width="40%".
+    """#
+}
+
+slide {
+  heading "Video and audio"
+  text "`video` and `audio` take the flags `autoplay`, `loop`, `muted` and `nocontrols`. Audio gives a player bar. A video can also be a slide's background: `background=\"clip.mp4\"`."
+  video "clip.webm" autoplay loop muted
+  code "text" {
+    frame #"""
+      video "clip.webm" autoplay loop muted
+      audio "talk.mp3" autoplay
+      """#
+  }
+  notes #"""
+    autoplay implies muted (browsers block unmuted autoplay).
+    """#
+}
+
+slide layout=two-cols {
+  heading "Columns: two-cols"
+  left {
+    text "Text on the left, code on the right: `layout=two-cols` and the `left` and `right` slots. `columns=\"1 2\"` changes the proportions."
+  }
+  right {
+    code "go" id=g1 {
+      frame #"""
+        func Sum(xs []int) int {
+        	total := 0
+        	for _, x := range xs {
+        		total += x
+        	}
+        	return total
+        }
+        """#
+      frame #"""
+        func Sum[T int | float64](xs []T) T {
+        	var total T
+        	for _, x := range xs {
+        		total += x
+        	}
+        	return total
+        }
+        """#
+    }
+  }
+  notes #"""
+    three-cols has left, middle and right. image-left and image-right need no slots: the image goes to its side by itself.
+    """#
+}
+
+slide {
+  heading "Rows and columns, by hand"
+  text "For any other shape build it: a `row` puts its children **side by side**, a `col` **stacks** them. Nest them; the parts always add up to the whole slide."
+  row gap=3 valign=middle {
+    col size=2 {
+      subheading "A column"
+      text "`size=2` is a weight: twice as wide. `size=auto` is the size of the content, `size=\"40%\"` a length."
+    }
+    col {
+      subheading "Another"
+      text "`align` and `valign` align inside a part; `gap` sets the space between."
+    }
+    code "python" {
+      frame #"""
+        x = 1
+        """#
+      frame #"""
+        x = 2   # on the first click
+        """#
+    }
+  }
+  notes #"""
+    The built-in layouts are made of these: two-cols is a title and a row of two cols.
+    """#
+}
+
+slide {
+  heading "A grid"
+  grid columns=3 gap=2 {
+    text "One"
+    text "Two"
+    text "Three"
+    text "Four"
+    text "Five"
+    text "Six"
+  }
+  text "A `grid` fills its rows with its children, `columns` to a row."
+  notes #"""
+    The gallery layout does this for images.
+  """#
+}
+
+slide layout=sidebar {
+  side {
+    subheading "Own layouts"
+    text "A `layout` node at the top of a file, used by name." size="small"
+  }
+  heading "A layout of your own"
+  code "text" {
+    frame ##"""
+      layout "sidebar" {
+        row {
+          col size="28%" { slot "side" }
+          col { slot }
+        }
+      }
+
+      slide layout=sidebar {
+        side { text "in the narrow column" }
+        text "in the wide one (the slot without a name)"
+      }
+      """##
+  }
+  notes #"""
+    A layout is rows and columns with slots. Content that is in no slot goes to the unnamed slot. Layouts can live in any .slides file of the deck.
+    """#
+}
+
+slide {
+  heading "The deck node"
+  text "Settings of the whole deck go in a `deck` node at the top (or in `deck.json`):"
+  code "text" {
+    frame ##"""
+      deck title="My talk" author="Me" theme=dark {
+        vars --accent="#d82838"
+        header left="logo.svg" right="{slide} / {slides}"
+        plugins "./qr.js"
+      }
+      """##
+  }
+  notes #"""
+    deck takes title author date description theme autoplay loop; children: vars themes fonts google-fonts header footer plugins defaults animation code-style css.
+    """#
+}
+
+slide theme=midnight layout=cover background="bg.svg" transition=zoom justify=#false {
+  title "That's all"
+  text "More decks in this series: **Showcase**, **Code animation**, **Theming and layout**, **Presenting and shipping**."
+  text "Start your own: `slides new my-talk`"
+  notes #"""
+    The end.
+    """#
+}

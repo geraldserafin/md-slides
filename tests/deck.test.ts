@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSlide, resolveRefs, sectionItems, type Layout } from '../src/deck';
+import { applyAnimate, parseSlides, resolveRefs, sectionItems, type Layout, type Slide } from '../src/deck';
 import { barVisible, expand, isImage, usesSlideNumber } from '../src/chrome';
 
 describe('chrome (header/footer)', () => {
@@ -27,203 +27,147 @@ describe('chrome (header/footer)', () => {
   });
 });
 
-const parse = (src: string) => parseSlide(src, 'http://x/d/s.slide');
+const slides = (src: string): Slide[] => parseSlides(src, 'http://x/d/s.slides').slides;
+const one = (src: string) => slides(src)[0];
 const shape = (l: Layout): unknown => (l.kind === 'item' ? l.item.kind : { [l.kind]: l.children.map(shape) });
+const items = (s: Slide) => sectionItems(s.sections[0]);
+const htmls = (s: Slide) => items(s).map((i) => (i.kind === 'html' ? i.html : i.kind));
 
-describe('slide settings and notes', () => {
-  it('<slide> holds key: value lines', () => {
-    const s = parse('<slide>\n  layout: cover\n  --accent: #f00\n  # comment\n</slide>\n<h1>T</h1>');
-    expect(s.meta).toEqual({ layout: 'cover', '--accent': '#f00' });
-    expect(s.title).toBe('T');
+describe('slides, settings and notes', () => {
+  it('a file holds many slides; the title is the first heading', () => {
+    const ss = slides('slide { title "One" }\nslide { title "Two" }');
+    expect(ss.map((s) => s.title)).toEqual(['One', 'Two']);
   });
-  it('<notes> are the presenter notes', () => {
-    expect(parse('<p>text</p>\n<notes>\n  say <b>this</b>\n</notes>').notes).toEqual(['say <b>this</b>']);
+  it('slide properties are its settings', () => {
+    const s = one('slide background="a.jpg" transition=fade hidden=#true --accent="#f00" { title "T" }');
+    expect(s.own).toMatchObject({ background: 'a.jpg', transition: 'fade', hidden: 'true', '--accent': '#f00' });
   });
-});
-
-describe('a slide with no content', () => {
-  it('is still a slide (one step): it shows its background', () => {
-    const s = parse('<slide>\n  background: cover.jpg\n</slide>');
+  it('notes are the presenter notes', () => {
+    expect(one('slide { text "x"; notes "say this" }').notes).toEqual(['say this']);
+  });
+  it('a slide with no content is still a slide', () => {
+    const s = one('slide background="cover.jpg"');
     expect(s.sections).toHaveLength(1);
-    expect(sectionItems(s.sections[0])).toEqual([]);
-    expect(s.sections[0].stages).toBe(1);
+    expect(items(s)).toEqual([]);
+  });
+  it('the deck node and own layouts are read from the file', () => {
+    const f = parseSlides('deck title="D" { vars --accent="#f00"; plugins "./a.js" }\nslide { title "x" }', 'http://x/s.slides');
+    expect(f.deck).toMatchObject({ title: 'D', vars: { '--accent': '#f00' }, plugins: ['./a.js'] });
   });
 });
 
-describe('text tags', () => {
-  const html = (src: string) => sectionItems(parse(src).sections[0]).map((i) => (i.kind === 'html' ? i.html : i.kind));
-  it('one item per block tag, with the tag kind', () => {
-    const s = parse('<h1>Title</h1><p>Text</p><ul><li>a</li><li>b</li></ul><quote>q</quote>');
-    expect(sectionItems(s.sections[0]).map((i) => (i.kind === 'html' ? i.tag : i.kind))).toEqual(['h1', 'paragraph', 'list', 'blockquote']);
+describe('text nodes', () => {
+  it('one item per node, with the kind', () => {
+    const s = one('slide { title "T"; text "p"; list { - "a"; - "b" }; quote "q" by="who"; table { head "A" "B"; - "1" "2" } }');
+    expect(items(s).map((i) => (i.kind === 'html' ? i.tag : i.kind))).toEqual(['h1', 'paragraph', 'list', 'blockquote', 'table']);
   });
-  it('inline tags become HTML', () => {
-    expect(html('<p>a <b>b</b> <i>i</i> <c>x < y</c> <s>s</s> <a href="#top">l</a><br /></p>')).toEqual(['<p>a <strong>b</strong> <em>i</em> <code>x &lt; y</code> <del>s</del> <a href="#top">l</a><br></p>']);
+  it('inline markup becomes HTML', () => {
+    expect(htmls(one('slide { text "a **b** `x < y` [l](#top)" }'))).toEqual(['<p>a <strong>b</strong> <code>x &lt; y</code> <a href="#top">l</a></p>']);
   });
-  it('links resolve against the slide', () => {
-    expect(html('<p><a href="a.pdf">x</a></p>')[0]).toContain('href="http://x/d/a.pdf"');
+  it('lists: numbered, nested, with steps', () => {
+    const s = one('slide { list numbered start=3 { - "a" { list { - "b" } } } }');
+    expect(htmls(s)).toEqual(['<ol start="3"><li>a<ul><li>b</li></ul></li></ol>']);
+    const t = one('slide { list steps { - "a"; - "b"; - "c" } }');
+    expect(items(t).map((i) => i.at)).toEqual([1, 2, 3]);
+    expect(t.sections[0].stages).toBe(4);
   });
-  it('text is escaped, entities stay', () => {
-    expect(html('<p>1 < 2 & 3 &lt; 4 &#39;</p>')).toEqual(['<p>1 &lt; 2 &amp; 3 &lt; 4 &#39;</p>']);
+  it('size makes a class; math is display KaTeX', () => {
+    expect(htmls(one('slide { title "T" size="small" }'))[0]).toBe('<h1 class="size-small">T</h1>');
+    expect(htmls(one('slide { math "x^2" }'))[0]).toContain('katex');
   });
-  it('tables', () => {
-    expect(html('<table><tr><th>a</th></tr><tr><td>b</td></tr></table>')[0]).toBe('<table><tr><th>a</th></tr><tr><td>b</td></tr></table>');
+  it('a text node needs its text', () => {
+    expect(() => one('slide { text }')).toThrow(/needs a text/);
   });
-  it('the title is the first heading', () => {
-    expect(parse('<p>x</p><h2>The <b>title</b></h2>').title).toBe('The title');
-  });
-  it('text outside a tag and unknown inline tags are errors', () => {
-    expect(() => parse('loose words')).toThrow(/text outside a tag/);
-    expect(() => parse('<p>a <blink>b</blink></p>')).toThrow(/not allowed inside text/);
-  });
-  it('math: <tex> inline in a paragraph, display on its own', () => {
-    const items = sectionItems(parse('<p>Euler <tex>e^{i\\pi}</tex></p><tex>\\frac{a}{b}</tex>').sections[0]);
-    expect(items[0]).toMatchObject({ kind: 'html' });
-    expect((items[0] as { html: string }).html).toContain('class="katex"');
-    expect((items[1] as { html: string }).html).toContain('math-block');
+  it('an unknown node is an error with its line', () => {
+    expect(() => one('slide {\n  bogus "x"\n}')).toThrow(/line 2: unknown node `bogus`/);
   });
 });
 
-describe('media and code', () => {
-  it('images resolve against the slide and keep class and options', () => {
-    const img = sectionItems(parse('<img src=a.png alt=x class="left wide" width=50% />').sections[0])[0];
-    expect(img).toMatchObject({ kind: 'image', src: 'http://x/d/a.png', alt: 'x', attrs: { classes: ['left', 'wide'], opts: { width: '50%' } } });
+describe('reveal', () => {
+  it('pause and step take the next click', () => {
+    const s = one('slide { text "a"; pause; text "b"; text "c"; pause; text "d" }');
+    expect(items(s).map((i) => i.at)).toEqual([0, 1, 1, 2]);
+    const t = one('slide { text "a"; step anim=pop { text "b" }; text "c" }');
+    expect(items(t).map((i) => [i.at, i.fx?.anim])).toEqual([[0, undefined], [1, 'pop'], [0, undefined]]);
   });
-  it('video and audio', () => {
-    const items = sectionItems(parse('<video src=c.mp4 autoplay loop /><audio src=t.mp3 />').sections[0]);
-    expect(items[0]).toMatchObject({ kind: 'video', attrs: { opts: { autoplay: 'true', loop: 'true' } } });
-    expect(items[1].kind).toBe('audio');
+});
+
+describe('layouts', () => {
+  it('the layout follows from the content', () => {
+    expect(one('slide { title "T"; text "x" }').own.layout).toBe('cover'); // the first slide
+    const ss = slides('slide { title "A" }\nslide { title "Sec" }\nslide { title "T"; list { - "a" } }\nslide { title "T"; text "x"; image "a.png" }\nslide { image "a.png"; image "b.png" }\nslide { title "T"; code "ts" "let a = 1" }');
+    expect(ss.map((s) => s.own.layout)).toEqual(['cover', 'section', 'default', 'image-right', 'gallery', 'code']);
   });
-  it('code is raw: < and & need no escaping', () => {
-    const s = parse('<code lang=ts>\n  const a: Array<number> = [1 < 2 && 3];\n</code>');
-    expect(s.sections[0].blocks[0].frames[0].code).toBe('const a: Array<number> = [1 < 2 && 3];');
+  it('two columns from slots', () => {
+    const s = one('slide layout=two-cols columns="1 2" { title "T"; left { text "l" }; right { text "r" } }');
+    expect(shape(s.sections[0].layout)).toEqual({ col: ['html', { row: [{ col: ['html'] }, { col: ['html'] }] }] });
+    const kids = (s.sections[0].layout as { children: { children: { opts: Record<string, string> }[] }[] }).children[1].children;
+    expect(kids.map((c) => c.opts.size)).toEqual(['1', '2']);
   });
-  it('frames are the states of one block; options, id and class come from the tag', () => {
-    const s = parse('<code lang=rust id=fn class="lines panel" start=10 title="my file.rs" focus=2>\n<frame>\n  a;\n  b;\n</frame>\n<frame focus=1-2 transition=fade>\n  a;\n</frame>\n</code>');
+  it('a node named like a slot picks the layout', () => {
+    expect(one('slide { left { text "l" }; right { text "r" } }').own.layout).toBe('two-cols');
+  });
+  it('an unknown layout is an error', () => {
+    expect(() => one('slide layout=nope { text "x" }')).toThrow(/unknown layout `nope`/);
+  });
+  it('an own layout fills its slots', () => {
+    const f = parseSlides('layout "side" { row { col size="25%" { slot "s" }; col { slot } } }\nslide layout=side { s { text "a" }; text "b" }', 'http://x/s.slides');
+    expect(shape(f.slides[0].sections[0].layout)).toEqual({ col: [{ row: [{ col: ['html'] }, { col: ['html'] }] }] });
+  });
+  it('explicit rows and columns, with size and alignment', () => {
+    const s = one('slide { row gap=2 valign=middle { col size=2 { text "a" }; code "ts" "x" size=20 } }');
+    expect(shape(s.sections[0].layout)).toEqual({ col: [{ row: [{ col: ['html'] }, { col: ['block'] }] }] });
+    const box = (l: Layout) => l as { opts: Record<string, string>; children: Layout[] };
+    const row = box(box(s.sections[0].layout).children[0]);
+    expect(row.opts).toMatchObject({ gap: '2', valign: 'middle' });
+    expect(box(row.children[0]).opts.size).toBe('2');
+  });
+});
+
+describe('code', () => {
+  it('frames are the states; the first is shown from the start, the others take a click each', () => {
+    const s = one('slide { code "typescript" id=a { frame "let a = 1"; frame "let a = 2" focus="1"; frame "let a = 3" } }');
     const b = s.sections[0].blocks[0];
-    expect(b).toMatchObject({ id: 'fn', explicit: true, lang: 'rust', classes: ['lines', 'panel'], opts: { start: '10', title: 'my file.rs' } });
-    expect(b.frames.map((f) => [f.code, f.focus, f.transition, f.at])).toEqual([['a;\nb;', '2', undefined, 0], ['a;', '1-2', 'fade', 1]]);
+    expect(b.id).toBe('a');
+    expect(b.explicit).toBe(true);
+    expect(b.frames.map((f) => [f.code, f.at, f.focus])).toEqual([['let a = 1', 0, undefined], ['let a = 2', 1, '1'], ['let a = 3', 2, undefined]]);
   });
-  it('code tags are independent unless they share an id', () => {
-    const t = parse('<code lang=ts>a;</code><code lang=ts>b;</code><code lang=ts id=x>c;</code><code lang=ts id=x>d;</code>');
-    expect(t.sections[0].blocks.map((b) => b.frames.length)).toEqual([1, 1, 1, 1]);
-    expect(t.sections[0].blocks.map((b) => b.explicit)).toEqual([false, false, true, true]);
+  it('autoplay frames take no clicks; loop and lines are flags', () => {
+    const s = one('slide { code "typescript" autoplay=2 loop lines { frame "a"; frame "b" } }');
+    const b = s.sections[0].blocks[0];
+    expect(b.frames.map((f) => f.at)).toEqual([0, 0]);
+    expect(b.opts).toMatchObject({ autoplay: '2', loop: 'true' });
+    expect(b.classes).toEqual(['lines']);
   });
   it('a language without a grammar is a static block', () => {
-    const t = parse('<code lang=yaml-x>a: 1</code>');
-    expect(sectionItems(t.sections[0])[0].kind).toBe('code');
-    expect(t.sections[0].blocks).toEqual([]);
+    expect(items(one('slide { code "nolang" "x" }'))[0]).toMatchObject({ kind: 'code', lang: 'nolang' });
   });
-  it('\\</code> writes a closing tag inside a raw tag', () => {
-    expect(sectionItems(parse('<code lang=html-x>\n  <code>x\\</code>\n</code>').sections[0])[0]).toMatchObject({ text: '<code>x</code>' });
-  });
-  it('<code from=id /> copies the last frame of the earlier block', () => {
-    const a = parse('<code lang=ts id=k><frame>1;</frame><frame>2;</frame></code>');
-    const b = parse('<code from=k />');
-    resolveRefs([a, b]);
-    expect(b.sections[0].blocks[0]).toMatchObject({ lang: 'typescript', frames: [{ code: '2;' }] });
-  });
-  it('<chart> and <diagram> are raw', () => {
-    const s = parse('<chart type=bar title="T">\na, b\nx, 1\n</chart><diagram>graph LR; A-->B</diagram>');
-    const items = sectionItems(s.sections[0]);
-    expect(items[0]).toMatchObject({ kind: 'html', tag: 'chart' });
-    expect(items[1]).toMatchObject({ kind: 'diagram', text: 'graph LR; A-->B' });
+  it('from= copies the last frame of an earlier block', () => {
+    const ss = slides('slide { code "typescript" id=g { frame "a"; frame "b" } }\nslide { code from="g" }');
+    resolveRefs(ss);
+    expect(ss[1].sections[0].blocks[0].frames.map((f) => f.code)).toEqual(['b']);
+    expect(() => resolveRefs(slides('slide { code from="nope" }'))).toThrow(/no earlier block/);
   });
 });
 
-describe('sections; what is outside them stays', () => {
-  it('<section>s swap under the content outside them', () => {
-    const s = parse('<h1>Title</h1><p>intro</p><section><h2>A</h2></section><section><h2>B</h2></section>');
-    expect(s.head).toHaveLength(2);
-    expect(s.sections).toHaveLength(2);
-    expect(s.title).toBe('Title');
+describe('media, charts, diagrams', () => {
+  it('media flags become options', () => {
+    const i = items(one('slide { video "a.mp4" autoplay loop nocontrols }'))[0];
+    expect(i).toMatchObject({ kind: 'video', src: 'http://x/d/a.mp4', attrs: { opts: { autoplay: 'true', loop: 'true', controls: 'false' } } });
   });
-  it('a heading does not split a slide', () => {
-    expect(parse('<h2>A</h2><p>text</p><h2>B</h2>').sections).toHaveLength(1);
-  });
-});
-
-describe('layout: row = parts side by side, col = parts stacked', () => {
-  const code = '<code lang=ts>a;</code>';
-  it('text left, code right', () => {
-    expect(shape(parse(`<row><p>left</p>${code}</row>`).sections[0].layout)).toEqual({ col: [{ row: ['html', 'block'] }] });
-  });
-  it('a title over two columns; a col groups several things into one part', () => {
-    const s = parse('<h2>T</h2><row><col><p>a</p><img src=x.png /></col><p>b</p></row>');
-    expect(shape(s.sections[0].layout)).toEqual({ col: ['html', { row: [{ col: ['html', 'image'] }, 'html'] }] });
-  });
-  it('a 2x2 grid', () => {
-    const s = parse('<col><row><p>a</p><p>b</p></row><row><p>c</p><p>d</p></row></col>');
-    expect(shape(s.sections[0].layout)).toEqual({ col: [{ col: [{ row: ['html', 'html'] }, { row: ['html', 'html'] }] }] });
-  });
-  it('size, halign and valign are kept', () => {
-    const s = parse('<row><col size=2 valign=center><p>a</p></col><p halign=end>b</p></row>');
-    const row = (s.sections[0].layout as { children: Layout[] }).children[0] as { children: Layout[] };
-    expect(row.children[0]).toMatchObject({ kind: 'col', opts: { size: '2', valign: 'center' } });
-    expect(row.children[1]).toMatchObject({ kind: 'col', opts: { halign: 'end' } });
+  it('a chart is drawn, a diagram kept as text', () => {
+    const s = one('slide { chart "bar" """\n  x,a\n  p,1\n  """\n diagram "graph LR; A-->B" }');
+    expect(htmls(s)[0]).toContain('<svg');
+    expect(items(s)[1]).toMatchObject({ kind: 'diagram', text: 'graph LR; A-->B' });
   });
 });
 
-describe('click numbers', () => {
-  it('<step> makes what is inside appear on the next click', () => {
-    const t = parse('<p>first</p><step><p>second</p></step><step><p>third</p></step>');
-    expect(t.sections[0].stages).toBe(3);
-    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 1, 2]);
-  });
-  it('<step at=3> jumps to an absolute click; what follows is back at the start', () => {
-    const t = parse('<p>a</p><step at=3><p>b</p></step><p>c</p>');
-    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 3, 0]);
-    expect(t.sections[0].stages).toBe(4);
-  });
-  it('steps in a row appear one part at a time', () => {
-    const t = parse('<row><p>a</p><step><p>b</p></step></row>');
-    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 1]);
-  });
-  it('the frames of a block take a click each; at= says which', () => {
-    const t = parse('<code lang=ts><frame>1;</frame><frame>2;</frame><frame at=5>3;</frame></code>');
-    expect(t.sections[0].blocks[0].frames.map((f) => f.at)).toEqual([0, 1, 5]);
-    expect(t.sections[0].stages).toBe(6);
-  });
-  it('a block inside a <step> starts on its click', () => {
-    const t = parse('<step><code lang=ts><frame>1;</frame><frame>2;</frame></code></step>');
-    expect(t.sections[0].blocks[0].frames.map((f) => f.at)).toEqual([1, 2]);
-  });
-  it('<ul steps> shows one bullet per click', () => {
-    const t = parse('<p>intro</p><ul steps><li>a</li><li>b</li><li>c</li></ul><p>after</p>');
-    expect(sectionItems(t.sections[0]).map((i) => i.at)).toEqual([0, 1, 2, 3, 0]);
-    expect(t.sections[0].stages).toBe(4);
-  });
-  it('<ol steps> keeps the numbers', () => {
-    const t = parse('<ol steps><li>a</li><li>b</li></ol>');
-    expect(sectionItems(t.sections[0]).map((i) => (i.kind === 'html' ? i.html : ''))[1]).toContain('start="2"');
-  });
-});
-
-describe('per-element animation', () => {
-  it('attributes set fx; id is the morph id; at and out reach the stages', () => {
-    const s = parse('<p anim=zoom delay=0.2 at=2 out=4 id=note>Two</p>');
-    const [item] = sectionItems(s.sections[0]);
-    expect(item.fx).toEqual({ anim: 'zoom', delay: '0.2', out: '4', morph: 'note' });
-    expect(item.at).toBe(2);
-    expect(s.sections[0].stages).toBe(5);
-  });
-  it('a <step> passes its animation to what is inside', () => {
-    const [item] = sectionItems(parse('<step anim=fade><p>x</p></step>').sections[0]);
-    expect(item.fx).toEqual({ anim: 'fade' });
-  });
-});
-
-describe('errors say where', () => {
-  it('unknown tag', () => expect(() => parse('<p>a</p>\n<div>x</div>')).toThrow(/line 2: <div>/));
-  it('unclosed tag', () => expect(() => parse('<row>\n<p>a</p>')).toThrow(/line 1: <row> is never closed/));
-  it('stray closing tag', () => expect(() => parse('<p>a</p></row>')).toThrow(/closes nothing/));
-  it('unclosed raw tag', () => expect(() => parse('<code lang=ts>x')).toThrow(/never closed/));
-});
-
-describe('autoplay code', () => {
-  it('the frames of an autoplay block take no clicks', () => {
-    const t = parse('<code lang=ts autoplay=1 loop><frame>1;</frame><frame>2;</frame><frame>3;</frame></code>');
-    expect(t.sections[0].blocks[0].frames.map((f) => f.at)).toEqual([0, 0, 0]);
-    expect(t.sections[0].stages).toBe(1);
-    expect(t.sections[0].blocks[0].opts).toMatchObject({ autoplay: '1', loop: 'true' });
+describe('animate', () => {
+  it('shared elements of consecutive slides get a morph id', () => {
+    const ss = slides('slide { title "Same"; text "one" }\nslide animate=#true { title "Same"; text "two" }');
+    applyAnimate(ss);
+    const m = (s: Slide) => items(s).map((i) => i.fx?.morph);
+    expect(m(ss[0])[0]).toBeTruthy();
+    expect(m(ss[0])[0]).toBe(m(ss[1])[0]);
   });
 });

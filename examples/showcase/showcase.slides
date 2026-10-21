@@ -1,0 +1,349 @@
+slide layout=cover align=center valign=middle justify=#false {
+  title "Code in motion"
+  text "Write plain tags and text. Press →. Every edit to the code is animated."
+  text "A two-minute tour of what this tool does · press **→**"
+  notes #"""
+    Showcase: part of the slides manual. Source: examples/showcase.
+    """#
+}
+
+slide {
+  heading "Code that moves"
+  text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
+  code "typescript" id=g1 {
+    frame #"""
+      function total(items: number[]) {
+        let sum = 0;
+        for (const x of items) {
+          sum += x;
+        }
+        return sum;
+      }
+      """#
+    frame #"""
+      function total(items: number[]) {
+        const sum = items.reduce(
+          (acc, x) => acc + x,
+          0,
+        );
+        return sum;
+      }
+      """#
+    frame #"""
+      const total = (items: number[]) =>
+        items.reduce((acc, x) => acc + x, 0);
+      """#
+  }
+  notes #"""
+    Press the right arrow slowly and watch `total`, `items` and `return` keep their identity.
+    """#
+}
+
+slide {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`rename`"
+  text "Only the identifiers change; every other token stays exactly where it is."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function area(r: number) {
+        return Math.PI * r * r;
+      }
+      """#
+    frame #"""
+      function circleArea(radius: number) {
+        return Math.PI * radius * radius;
+      }
+      """#
+  }
+}
+slide animate=#true {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`insert`"
+  text "New lines fade in; the lines below glide down to make room."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function greet(name: string) {
+        return "Hello, " + name;
+      }
+      """#
+    frame #"""
+      function greet(name: string) {
+        if (!name) {
+          throw new Error("name required");
+        }
+        return "Hello, " + name;
+      }
+      """#
+  }
+}
+slide animate=#true {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`delete`"
+  text "Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function connect(url: string) {
+        console.log("connecting to", url);
+        const socket = new WebSocket(url);
+        console.log("socket created");
+        return socket;
+      }
+      """#
+    frame #"""
+      function connect(url: string) {
+        const socket = new WebSocket(url);
+        return socket;
+      }
+      """#
+  }
+}
+slide animate=#true {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`move`"
+  text "Statements swap places; every token glides to its new position instead of disappearing and reappearing."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function init() {
+        connect();
+        loadConfig();
+        start();
+      }
+      """#
+    frame #"""
+      function init() {
+        loadConfig();
+        connect();
+        start();
+      }
+      """#
+  }
+}
+slide animate=#true {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`wrap`"
+  text "Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function save(data: Data) {
+        write(data);
+        log("saved");
+      }
+      """#
+    frame #"""
+      function save(data: Data) {
+        try {
+          write(data);
+          log("saved");
+        } catch (err) {
+          report(err);
+        }
+      }
+      """#
+  }
+}
+slide animate=#true {
+  title "What the diff does"
+  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  heading "`extract`"
+  text "The moved lines keep their identity inside the new function."
+  code "typescript" loop autoplay=1 {
+    frame #"""
+      function report(order: Order) {
+        const total = order.items.reduce((s, i) => s + i.price, 0);
+        console.log(order.id, total);
+      }
+      """#
+    frame #"""
+      function sum(order: Order) {
+        return order.items.reduce((s, i) => s + i.price, 0);
+      }
+
+      function report(order: Order) {
+        const total = sum(order);
+        console.log(order.id, total);
+      }
+      """#
+  }
+}
+
+slide {
+  heading "A longer story: growing a class"
+  text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
+  code "python" id=g1 {
+    frame #"""
+      class Stack:
+          pass
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self.items = []
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self.items = []
+
+          def push(self, item):
+              self.items.append(item)
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self.items = []
+
+          def push(self, item):
+              self.items.append(item)
+
+          def pop(self):
+              return self.items.pop()
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self.items = []
+
+          def push(self, item):
+              self.items.append(item)
+
+          def pop(self):
+              if not self.items:
+                  raise IndexError("empty")
+              return self.items.pop()
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self._items = []
+
+          def push(self, item):
+              self._items.append(item)
+
+          def pop(self):
+              if not self._items:
+                  raise IndexError("empty")
+              return self._items.pop()
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self._items = []
+
+          def push(self, item):
+              self._items.append(item)
+
+          def pop(self):
+              if not self._items:
+                  raise IndexError("empty")
+              return self._items.pop()
+
+          def __len__(self):
+              return len(self._items)
+      """#
+    frame #"""
+      class Stack:
+          def __init__(self):
+              self._items = []
+
+          def push(self, item):
+              self._items.append(item)
+
+          def pop(self):
+              if not self:
+                  raise IndexError("empty")
+              return self._items.pop()
+
+          def __len__(self):
+              return len(self._items)
+      """#
+  }
+}
+
+slide {
+  heading "Math"
+  text "Inline math sits in the text: Euler's identity is $e^{i\\pi} + 1 = 0$, and a \\$5 price stays a price. Display math goes between double dollars and follows the slide's alignment:"
+  math #"""
+    \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+    \qquad
+    \sum_{k=1}^{n} k = \frac{n(n+1)}{2}
+    """#
+  text "Math reveals like any other item: put it in a `<step>`."
+  notes #"""
+    KaTeX renders math to plain HTML (no scripts at runtime), so it works in every build target and in the PDF.
+    """#
+}
+
+slide {
+  heading "Charts"
+  text "A `<chart>` tag turns a few CSV lines into a chart in the slide's colors: `type=bar` (default), `line` or `pie`."
+  chart "bar" title="Build time (s)" width="85%" #"""
+    tool, cold, warm
+    webpack, 12, 4
+    vite, 3, 1.2
+    esbuild, 1.5, 0.6
+    """#
+  notes #"""
+    The first row names the series; with one series the bars carry their value. Charts are plain SVG, so they print and export like the rest. Reveal them with a `<step>`.
+    """#
+}
+
+slide {
+  heading "Diagrams"
+  text "A `<diagram>` tag draws a diagram with the slide's colors; press **t** to see it follow the theme."
+  diagram width="100%" #"""
+    flowchart LR
+      md[.slide] --> parse[Parse] --> diff{{GumTree diff}} --> play[Animate]
+      diff -. same language .-> play
+      parse --> pdf[PDF / static / exe]
+    """#
+  notes #"""
+    Mermaid is loaded when a slide first needs it and left out of builds whose decks never use it.
+    """#
+}
+
+slide {
+  notes #"""
+    Morph pairs items by id between two sections of a slide, or between two slides. Text that changes cross-fades while it moves.
+    """#
+  heading "Morph anything"
+  text "Not only code: an image, a heading or a diagram with the same `id` in the next section glides from where it was. Images with the same file do it on their own. Press → to see it move."
+  image "diagram.svg" align=left width="180px"
+}
+slide animate=#true {
+  heading "Same picture, bigger"
+  image "diagram.svg" align=right width="460px"
+  text "The picture above is the same file, so it grew and moved by itself. Give a heading or a paragraph the same `id` and it glides too."
+}
+
+slide {
+  heading "Themes"
+  text "Built in: `dark`, `light`, `paper`. Press **t** to cycle, or open `?theme=light`. Your own theme is a set of CSS variables in `deck.json` and joins the cycle:"
+  code "jsonc" {
+    frame #"""
+      "theme": "ocean",
+      "themes": {
+        "ocean": {
+          "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--heading": "#fff", "--accent": "#3ddc97",
+          "--tok-keyword": "#ff7eb6", "--tok-ident": "#e6f4fb", "--tok-type": "#ffd479"
+        }
+      }
+      """#
+  }
+  notes #"""
+    Token colors: --tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain. See this deck's own deck.json for two full themes (sunset, terminal).
+    """#
+}
+
+slide theme=midnight layout=cover align=center valign=middle justify=#false background="bg.svg" transition=zoom {
+  title "That's all"
+  text "More decks in this series: **Writing slides**, **Code animation**, **Theming and layout**, **Presenting and shipping**."
+  text "Start your own: `slideit dev my-talk/`"
+  notes #"""
+    The end.
+    """#
+}

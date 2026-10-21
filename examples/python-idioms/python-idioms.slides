@@ -1,0 +1,141 @@
+slide layout=cover background="linear-gradient(135deg, #f4ecd8, #e3cd9c)" {
+  title "Pythonic refactorings"
+  text "Loops to comprehensions, dicts to `Counter`, classes to dataclasses."
+  notes #"""
+    Light "paper" theme set in deck.json; press t to cycle themes.
+    """#
+}
+
+slide {
+  notes #"""
+    append in a loop -> list comprehension. Note how `if` moves inside.
+    """#
+  heading "Build a list: loop to comprehension"
+  code "python" id=g1 {
+    frame #"""
+      def squares_of_evens(numbers):
+          result = []
+          for n in numbers:
+              if n % 2 == 0:
+                  result.append(n * n)
+          return result
+      """#
+    frame #"""
+      def squares_of_evens(numbers):
+          return [n * n for n in numbers if n % 2 == 0]
+      """#
+  }
+}
+slide animate=#true {
+  heading "Lazily: generator expression"
+  code "python" id=g2 {
+    frame #"""
+      def total_of_squares(numbers):
+          return sum([n * n for n in numbers if n % 2 == 0])
+      """#
+    frame #"""
+      def total_of_squares(numbers):
+          return sum(n * n for n in numbers if n % 2 == 0)
+      """#
+  }
+}
+
+slide {
+  heading "Counting words"
+  code "python" id=g1 {
+    frame #"""
+      def word_counts(text):
+          counts = {}
+          for word in text.split():
+              if word in counts:
+                  counts[word] += 1
+              else:
+                  counts[word] = 1
+          return counts
+      """#
+    frame #"""
+      def word_counts(text):
+          counts = {}
+          for word in text.split():
+              counts[word] = counts.get(word, 0) + 1
+          return counts
+      """#
+    frame #"""
+      from collections import Counter
+
+
+      def word_counts(text):
+          return Counter(text.split())
+      """#
+    frame #"""
+      from collections import Counter
+
+
+      def top_words(text, n=3):
+          return Counter(text.lower().split()).most_common(n)
+      """#
+  }
+  notes #"""
+    The manual version first, then the standard library does it for us.
+    """#
+}
+
+slide {
+  notes #"""
+    ~15 lines of boilerplate shrink to a decorator and annotated fields.
+    """#
+  heading "A class that is just data"
+  code "python" id=g1 {
+    frame #"""
+      class Point:
+          def __init__(self, x, y):
+              self.x = x
+              self.y = y
+
+          def __repr__(self):
+              return f"Point(x={self.x!r}, y={self.y!r})"
+
+          def __eq__(self, other):
+              return isinstance(other, Point) and self.x == other.x and self.y == other.y
+      """#
+    frame #"""
+      from dataclasses import dataclass
+
+
+      @dataclass
+      class Point:
+          x: float
+          y: float
+      """#
+    frame #"""
+      from dataclasses import dataclass
+
+
+      @dataclass(frozen=True)
+      class Point:
+          x: float
+          y: float
+
+          def distance_to(self, other: "Point") -> float:
+              return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
+      """#
+  }
+}
+slide animate=#true {
+  heading "Resource handling"
+  code "python" id=g2 {
+    frame #"""
+      def read_first_line(path):
+          f = open(path)
+          try:
+              return f.readline()
+          finally:
+              f.close()
+      """#
+    frame #"""
+      def read_first_line(path):
+          with open(path) as f:
+              return f.readline()
+      """#
+  }
+}

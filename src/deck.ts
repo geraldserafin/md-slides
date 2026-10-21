@@ -1,16 +1,19 @@
-// .slide markup -> presentation model. One .slide file = one slide (see markup.ts for the syntax). A slide is a list of sections
-// (`<section>`; without one, a single section; whatever sits outside the sections stays on screen while they swap); a section is
-// a tree of `<row>`s (parts side by side) and `<col>`s (parts stacked) whose leaves are text (`<h1>`, `<p>`, `<ul>`...), animated
-// code blocks, images, charts... in reading order. `<step>` makes what is inside appear on the next click. A `<code>` is one
-// animated block, its `<frame>`s are the states it passes through; blocks with the same `id` are one animation across sections and slides.
+// .slides -> presentation model. A .slides file is KDL (see kdl.ts, schema.ts): a `deck` node with the settings, `layout` nodes
+// (own layouts) and `slide` nodes. A slide is one section: a tree of rows and columns (chosen by its layout, see layouts.ts)
+// whose leaves are text (`title`, `text`, `list`...), animated code blocks, images, charts... in reading order. `pause` and `step`
+// make what follows appear on the next click. A `code` is one animated block, its `frame`s are the states it passes through;
+// blocks with the same `id` are one animation across slides, and `animate=#true` makes a slide continue the previous one.
 import katex from 'katex';
 import { renderChart } from './chart';
+import { deckFromNode } from './deckmeta';
 import { fetchFile, fetchJson, fileUrl } from './files';
 import type { ChromeBar } from './chrome';
-import { dedent, MarkupError, parseMarkup, rawText, tagAttrs, type El } from './markup';
+import { renderInline } from './inline';
+import { KdlError, parseKdl, type KNode, type KValue } from './kdl';
+import { buildLayout, buildOwn, inferLayout, layoutDefaults, slotsOf, type Part, type PartKind } from './layouts';
 import { loadPlugins, pluginThemes } from './plugins';
 import { langFromTag, type Lang } from './parse';
-import { TAGS } from './schema';
+import { LAYOUTS, NODES } from './schema';
 
 export type Item = (
   | { kind: 'html'; html: string; tag: string } // heading/paragraph/list/quote...
@@ -147,7 +150,7 @@ export interface Deck {
 
 const tex = (src: string, display: boolean) => katex.renderToString(src, { displayMode: display, throwOnError: false, output: 'html' });
 
-/** `hidden: true` in the slide settings: the slide is left out of the presentation (and the PDF) but stays in the files */
+/** `hidden=#true` on a slide: it is left out of the presentation (and the PDF) but stays in the files */
 export const isHidden = (s: Slide) => /^(true|yes|on|1)$/i.test(s.meta.hidden ?? '');
 
 const resolve = (src: string, base: string) => {
@@ -158,245 +161,284 @@ const resolve = (src: string, base: string) => {
   }
 };
 
-/** attributes that animate an element (any content tag takes them) */
 const FX = ['anim', 'delay', 'dur', 'out', 'morph'];
-/** attributes of the layout tags */
-const LAYOUT = ['size', 'halign', 'valign', 'justify', 'class'];
-/** attributes that are not options of an image or video */
-const NOT_OPTS = new Set(['src', 'alt', 'class', 'at', 'id', ...FX]);
+const strs = (p: Record<string, KValue>, skip: string[] = []) => Object.fromEntries(Object.entries(p).filter(([k]) => !skip.includes(k)).map(([k, v]) => [k, String(v)]));
+const plain = (html: string) => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+const CODE_FLAGS = new Set(['lines', 'nolines', 'nopanel', 'loop']);
 
-const without = (a: Record<string, string>, ...keys: string[]) => Object.fromEntries(Object.entries(a).filter(([k]) => !keys.includes(k)));
-/** text tags -> the HTML they become (block level ones are items of their own) */
-const NAMES: Record<string, string> = { b: 'strong', i: 'em', c: 'code', s: 'del', quote: 'blockquote' };
-const BLOCK_TAGS: Record<string, string> = { h1: 'h1', h2: 'h2', h3: 'h3', p: 'paragraph', ul: 'list', ol: 'list', quote: 'blockquote', table: 'table' };
-const INLINE_TAGS = new Set(['li', 'thead', 'tbody', 'tr', 'th', 'td', 'b', 'i', 'c', 's', 'a', 'kbd', 'mark', 'sub', 'sup', 'br', 'tex']);
-/** attributes that go through to the HTML of a text tag */
-const HTML_ATTRS = ['class', 'href', 'title', 'start', 'colspan', 'rowspan'];
-const TEXT_ONLY = new Set(['steps', 'size', 'halign', 'valign']);
-/** text of a tag as HTML text: `<` and a bare `&` are escaped, entities (`&lt;`, `&#39;`) stay */
-const escText = (s: string) => s.replace(/&(?!#?\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const escRaw = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const words = (s: string | undefined) => (s ?? '').split(/\s+/).filter(Boolean);
-
-/** the `<slide>` block: `key: value` lines */
-function parseSettings(text: string): Record<string, string> {
-  const meta: Record<string, string> = {};
-  for (const line of text.split(/\r?\n/)) {
-    const i = line.indexOf(':');
-    if (i > 0 && !line.trimStart().startsWith('#')) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  }
-  return meta;
+export interface ParsedFile {
+  deck: Partial<DeckMeta>;
+  /** own layouts by name */
+  layouts: Record<string, KNode>;
+  slides: KNode[];
 }
 
-/** the `<frame>`s of a code block (or the whole content as its only frame) */
-function splitFrames(el: El): { attrs: Record<string, string>; code: string }[] {
-  const raw = rawText(el);
-  if (!/^\s*<frame[\s>]/.test(raw)) return [{ attrs: {}, code: dedent(raw) }];
-  const out: { attrs: Record<string, string>; code: string }[] = [];
-  let pos = 0;
-  for (;;) {
-    while (/\s/.test(raw[pos] ?? '')) pos++;
-    if (pos >= raw.length) return out;
-    const open = /^<frame\b([^>]*)>/.exec(raw.slice(pos));
-    if (!open) throw new MarkupError('a <code> with <frame>s holds nothing but <frame>s', el.line);
-    pos += open[0].length;
-    let end = pos;
-    for (;;) {
-      end = raw.indexOf('</frame>', end);
-      if (end < 0) throw new MarkupError('<frame> is never closed', el.line);
-      if (raw[end - 1] !== '\\') break;
-      end += 8;
-    }
-    out.push({ attrs: tagAttrs(open[1]), code: dedent(raw.slice(pos, end).replace(/\\<\//g, '</')) });
-    pos = end + 8;
+/** the nodes at the top of a .slides file: `deck`, `layout`, `slide` */
+export function parseFile(src: string): ParsedFile {
+  const out: ParsedFile = { deck: {}, layouts: {}, slides: [] };
+  for (const n of parseKdl(src)) {
+    if (n.name === 'deck') Object.assign(out.deck, deckFromNode(n));
+    else if (n.name === 'layout') {
+      if (n.args[0] === undefined) throw new KdlError('`layout` needs a name: layout "sidebar" { … }', n.line);
+      out.layouts[String(n.args[0])] = n;
+    } else if (n.name === 'slide') out.slides.push(n);
+    else throw new KdlError(`unknown node \`${n.name}\` at the top (expected deck, layout or slide)`, n.line);
   }
+  return out;
 }
 
-export function parseSlide(src: string, url: string): Slide {
-  const nodes = parseMarkup(src);
+export interface BuildCtx {
+  url: string;
+  layouts: Record<string, KNode>;
+  /** the position of the slide in the deck (the first slide may be a cover) */
+  index: number;
+}
+
+export function buildSlide(node: KNode, ctx: BuildCtx): Slide {
+  const { url } = ctx;
   const notes: string[] = [];
-  const head: Item[] = [];
-  const sections: Section[] = [];
-  let meta: Record<string, string> = {};
   let title = '';
-
-  /** the state of the section being built */
+  /** the state of the slide being built */
   interface State {
     stage: number; // the reveal stage of what is being added
-    clicks: number; // the highest stage used so far (the next <step> is clicks + 1)
+    clicks: number; // the highest stage used so far (the next `step` is clicks + 1)
     blocks: Block[];
-    fx: Record<string, string>; // animation attributes of the enclosing <step>
-    inHead: boolean;
+    fx: Record<string, string>; // animation properties of the enclosing `step`
   }
+  const st: State = { stage: 0, clicks: 0, blocks: [], fx: {} };
   let autoId = 0;
 
-  const fxOf = (attrs: Record<string, string>, id = true): Record<string, string> => {
-    const fx: Record<string, string> = {};
-    for (const k of FX) if (attrs[k] !== undefined) fx[k] = attrs[k];
-    if (id && attrs.id !== undefined && fx.morph === undefined) fx.morph = attrs.id;
-    return fx;
+  const fail = (n: KNode, message: string): never => { throw new KdlError(message, n.line, n.col); };
+  const textOf = (n: KNode): string => {
+    const t = n.args[0];
+    if (t === undefined || t === null) return fail(n, `\`${n.name}\` needs a text: ${n.name} "…"`);
+    return String(t);
   };
-  const leaf = (st: State, item: ItemInit, attrs: Record<string, string> = {}, id = true): Layout => {
-    const own = fxOf(attrs, id);
-    const fx = { ...st.fx, ...own };
-    const at = /^\d+$/.test(attrs.at ?? '') ? parseInt(attrs.at, 10) : st.stage;
-    st.clicks = Math.max(st.clicks, at, /^\d+$/.test(fx.out ?? '') ? parseInt(fx.out, 10) : 0);
+  const inl = (s: string) => renderInline(s, { tex: (t) => tex(t, false), href: (u) => (/^(#|[a-z]+:)/i.test(u) ? u : resolve(u, url)) });
+
+  const leaf = (item: ItemInit, props: Record<string, KValue> = {}, id = true): Layout => {
+    const fx: Record<string, string> = { ...st.fx };
+    for (const k of FX) if (props[k] !== undefined) fx[k] = String(props[k]);
+    if (id && props.id !== undefined && fx.morph === undefined) fx.morph = String(props.id);
+    const at = st.stage;
+    st.clicks = Math.max(st.clicks, at);
     return { kind: 'item', item: { ...item, at, ...(Object.keys(fx).length ? { fx } : {}) } as Item };
   };
-  const layoutOpts = (attrs: Record<string, string>) => Object.fromEntries(LAYOUT.filter((k) => attrs[k] !== undefined).map((k) => [k, attrs[k]]));
-  const mediaAttrs = (attrs: Record<string, string>): Attrs => ({
-    classes: words(attrs.class),
-    opts: Object.fromEntries(Object.entries(attrs).filter(([k]) => !NOT_OPTS.has(k))),
-  });
-
-  /** the HTML of a text tag (and what is inside it) */
-  const html = (n: El | string): string => {
-    if (typeof n === 'string') return escText(n);
-    if (n.tag === 'tex') return tex(dedent(rawText(n)), false);
-    if (n.tag === 'c') return `<code>${escRaw(rawText(n))}</code>`;
-    if (!INLINE_TAGS.has(n.tag) && !BLOCK_TAGS[n.tag]) throw new MarkupError(`<${n.tag}> is not allowed inside text`, n.line);
-    const name = NAMES[n.tag] ?? n.tag;
-    if (name === 'br') return '<br>';
-    const attrs = HTML_ATTRS.filter((k) => n.attrs[k] !== undefined).map((k) => {
-      const v = k === 'href' && !/^(#|[a-z]+:)/i.test(n.attrs[k]) ? resolve(n.attrs[k], url) : n.attrs[k];
-      return ` ${k}="${v.replace(/"/g, '&quot;')}"`;
-    }).join('');
-    return `<${name}${attrs}>${n.children.map(html).join('')}</${name}>`;
+  /** align / valign on a node belong to its part of the layout */
+  const placed = (n: KNode, l: Layout[]): Layout => {
+    const o: Record<string, string> = {};
+    if (n.props.align !== undefined) o.halign = String(n.props.align);
+    if (n.props.valign !== undefined) o.valign = String(n.props.valign);
+    return Object.keys(o).length ? { kind: 'col', opts: o, children: l } : l.length === 1 ? l[0] : { kind: 'col', opts: {}, children: l };
   };
-  const textOf = (n: El | string): string => (typeof n === 'string' ? n.trim() : n.tag === 'tex' || n.tag === 'c' ? rawText(n).trim() : n.children.map(textOf).join(' '));
+  const sizeClass = (n: KNode) => (n.props.size === 'small' || n.props.size === 'large' ? ` class="size-${n.props.size}"` : '');
 
-  /** a block of text (<h1>..<h3>, <p>, <ul>, <ol>, <quote>, <table>, display <tex>): one leaf, or one per bullet with `steps` */
-  const textLeaves = (el: El, st: State): Layout[] => {
-    if (el.tag === 'tex') return [leaf(st, { kind: 'html', html: `<div class="math-block">${tex(dedent(rawText(el)), true)}</div>`, tag: 'math' }, el.attrs)];
-    const attrs = Object.fromEntries(Object.entries(el.attrs).filter(([k]) => !TEXT_ONLY.has(k)));
-    if (/^h[1-3]$/.test(el.tag) && !title) title = textOf(el);
-    if ((el.tag === 'ul' || el.tag === 'ol') && el.attrs.steps !== undefined) {
-      // bullet by bullet, one click each
-      const base = st.stage;
-      const lis = el.children.filter((c): c is El => typeof c !== 'string');
-      const start = el.tag === 'ol' ? Number(el.attrs.start) || 1 : 1;
-      return lis.map((li, i) => {
-        const saved = st.stage;
-        st.stage = base + 1 + i;
-        const one: El = { ...el, attrs: { ...(el.tag === 'ol' ? { start: String(start + i) } : {}), ...(el.attrs.class ? { class: el.attrs.class } : {}) }, children: [li] };
-        const l = leaf(st, { kind: 'html', html: html(one), tag: 'list' }, without(attrs, 'id', 'at', 'start', 'class'));
-        st.stage = saved;
-        return l;
-      });
-    }
-    return [leaf(st, { kind: 'html', html: html(el), tag: BLOCK_TAGS[el.tag] }, attrs)];
+  const listHtml = (n: KNode, only?: KNode, start?: number): string => {
+    const ordered = n.args.includes('numbered');
+    const tag = ordered ? 'ol' : 'ul';
+    const s = start ?? (ordered && n.props.start !== undefined ? Number(n.props.start) : undefined);
+    const items = (only ? [only] : n.children.filter((c) => c.name === '-'))
+      .map((li) => `<li>${inl(li.args.length ? String(li.args[0]) : '')}${li.children.filter((c) => c.name === 'list').map((c) => listHtml(c)).join('')}</li>`).join('');
+    return `<${tag}${s && s !== 1 ? ` start="${s}"` : ''}>${items}</${tag}>`;
+  };
+  const tableHtml = (n: KNode): string => {
+    const cells = (c: KNode, t: string) => c.args.map((a) => `<${t}>${inl(String(a))}</${t}>`).join('');
+    const head = n.children.filter((c) => c.name === 'head').map((c) => `<tr>${cells(c, 'th')}</tr>`).join('');
+    const body = n.children.filter((c) => c.name === '-').map((c) => `<tr>${cells(c, 'td')}</tr>`).join('');
+    return `<table>${head ? `<thead>${head}</thead>` : ''}<tbody>${body}</tbody></table>`;
   };
 
-  const codeLeaf = (el: El, st: State): Layout => {
-    const a = el.attrs;
-    const frames = splitFrames(el);
-    const lang = a.from === undefined && a.lang ? langFromTag(a.lang) : undefined;
-    if (a.from === undefined && (!lang || st.inHead)) return leaf(st, { kind: 'code', text: frames[0].code, lang: a.lang ?? '' }, a, false);
-    const opts = Object.fromEntries(Object.entries(a).filter(([k]) => !['lang', 'id', 'class', 'at', 'from', 'focus', 'transition', ...FX].includes(k)));
-    const at = /^\d+$/.test(a.at ?? '') ? parseInt(a.at, 10) : st.stage;
+  const flagsOf = (n: KNode, from: number) => new Set(n.args.slice(from).filter((a) => typeof a === 'string').map(String));
+  const mediaOpts = (n: KNode, flags: Set<string>): Attrs => {
+    const opts: Record<string, string> = strs(n.props, ['src', 'alt', 'id', 'anim', 'align', 'valign']);
+    for (const f of flags) opts[f === 'nocontrols' ? 'controls' : f] = f === 'nocontrols' ? 'false' : 'true';
+    return { classes: [], opts };
+  };
+
+  const codeLeaf = (n: KNode): Layout => {
+    const a = n.props;
+    const lang0 = typeof n.args[0] === 'string' && !CODE_FLAGS.has(n.args[0]) ? n.args[0] : undefined;
+    const rest = n.args.slice(lang0 === undefined ? 0 : 1);
+    const flags = new Set(rest.filter((x) => typeof x === 'string' && CODE_FLAGS.has(x)).map(String));
+    const inline = rest.find((x) => typeof x === 'string' && !CODE_FLAGS.has(x));
+    const frames = n.children.filter((c) => c.name === 'frame');
+    const from = a.from === undefined ? undefined : String(a.from);
+    if (from === undefined && !frames.length && inline === undefined) fail(n, '`code` has no code: add `frame`s or the code as a second argument');
+    const srcs = frames.length ? frames.map((f) => ({ code: textOf(f), focus: f.props.focus, transition: f.props.transition })) : [{ code: String(inline ?? ''), focus: undefined, transition: undefined }];
+    const lang = from === undefined && lang0 ? langFromTag(lang0) : undefined;
+    if (from === undefined && !lang) return leaf({ kind: 'code', text: srcs[0].code, lang: lang0 ?? '' }, a, false);
+    const classes = [...flags].filter((f) => f !== 'loop');
+    const opts: Record<string, string> = strs(a, ['id', 'from', 'focus', 'transition', 'anim', 'align', 'valign']);
+    if (a.align !== undefined) opts.halign = String(a.align);
+    if (a.valign !== undefined) opts.valign = String(a.valign);
+    if (flags.has('loop')) opts.loop = 'true';
+    const at = st.stage;
     const block: Block = {
-      id: a.id ?? `b${autoId++}`, explicit: a.id !== undefined, lang: lang ?? '', classes: words(a.class), opts,
-      frames: a.from !== undefined ? [] : frames.map((f, i) => {
+      id: a.id !== undefined ? String(a.id) : `b${autoId++}`, explicit: a.id !== undefined, lang: lang ?? '', classes, opts,
+      frames: from !== undefined ? [] : srcs.map((f, i) => {
         // an autoplay block plays its frames by itself: they take no clicks
-        const fat = i === 0 || a.autoplay !== undefined ? at : /^\d+$/.test(f.attrs.at ?? '') ? parseInt(f.attrs.at, 10) : ++st.clicks;
+        const fat = i === 0 || a.autoplay !== undefined ? at : ++st.clicks;
         st.clicks = Math.max(st.clicks, fat);
-        return { code: f.code, focus: f.attrs.focus ?? a.focus, transition: f.attrs.transition ?? a.transition, at: fat };
+        return { code: f.code, focus: f.focus !== undefined ? String(f.focus) : a.focus !== undefined ? String(a.focus) : undefined, transition: (f.transition ?? a.transition) as string | undefined, at: fat };
       }),
     };
-    if (a.from !== undefined) block.from = a.from;
+    if (from !== undefined) block.from = from;
     st.clicks = Math.max(st.clicks, at);
     st.blocks.push(block);
-    return leaf(st, { kind: 'block', block: st.blocks.length - 1 }, without(a, 'id'), false);
+    return leaf({ kind: 'block', block: st.blocks.length - 1 }, { ...a, id: undefined as never }, false);
   };
 
-  /** the content of a container, as groups: every content tag (or run of loose text) is one group, i.e. one part of a row */
-  const walk = (children: (El | string)[], st: State): Layout[][] => {
-    const groups: Layout[][] = [];
+  const part = (kind: PartKind, layout: Layout): Part => ({ kind, layout });
+  const textPart = (n: KNode, kind: PartKind, tag: string, html: string): Part =>
+    part(kind, placed(n, [leaf({ kind: 'html', html, tag }, n.props)]));
+
+  /** the nodes of a container as parts; a `pause` holds back everything after it inside the container */
+  const walk = (children: KNode[]): Part[] => {
+    const out: Part[] = [];
+    const base = st.stage;
     for (const n of children) {
-      if (typeof n === 'string') {
-        if (n.trim()) throw new MarkupError(`text outside a tag: ${JSON.stringify(n.trim().slice(0, 30))} (put it in a <p>)`, 0);
-        continue;
-      }
-      const a = n.attrs;
-      switch (n.tag) {
-        case 'h1': case 'h2': case 'h3': case 'p': case 'ul': case 'ol': case 'quote': case 'table': case 'tex': {
-          // size / halign / valign on a text tag belong to its part of the layout
-          const g = textLeaves(n, st);
-          groups.push(a.size || a.halign || a.valign ? [{ kind: 'col', opts: layoutOpts(a), children: g }] : g);
+      switch (n.name) {
+        case 'title': case 'heading': case 'subheading': {
+          const level = n.name === 'title' ? 'h1' : n.name === 'heading' ? 'h2' : 'h3';
+          if (!title && n.name !== 'subheading') title = plain(inl(textOf(n)));
+          out.push(textPart(n, n.name === 'title' ? 'title' : 'heading', level, `<${level}${sizeClass(n)}>${inl(textOf(n))}</${level}>`));
           break;
         }
-        case 'code': groups.push([codeLeaf(n, st)]); break;
-        case 'img': {
-          const src = resolve(a.src ?? '', url);
-          groups.push([leaf(st, { kind: 'image', src, alt: a.alt ?? '', attrs: mediaAttrs(a) }, a)]);
+        case 'text': out.push(textPart(n, 'text', 'paragraph', `<p${sizeClass(n)}>${inl(textOf(n))}</p>`)); break;
+        case 'quote': out.push(textPart(n, 'quote', 'blockquote', `<blockquote${sizeClass(n)}>${inl(textOf(n))}${n.props.by !== undefined ? `<footer>${inl(String(n.props.by))}</footer>` : ''}</blockquote>`)); break;
+        case 'table': out.push(textPart(n, 'table', 'table', tableHtml(n))); break;
+        case 'math': out.push(part('math', placed(n, [leaf({ kind: 'html', html: `<div class="math-block">${tex(textOf(n), true)}</div>`, tag: 'math' }, n.props)]))); break;
+        case 'list': {
+          const items = n.children.filter((c) => c.name === '-');
+          if (n.args.includes('steps')) {
+            // item by item, one click each
+            const b = st.stage;
+            const start = n.args.includes('numbered') ? Number(n.props.start) || 1 : 1;
+            const ls = items.map((li, i) => {
+              st.stage = b + 1 + i;
+              return leaf({ kind: 'html', html: listHtml(n, li, start + i), tag: 'list' }, n.props);
+            });
+            st.stage = b;
+            for (const l of ls) out.push(part('list', l));
+          } else out.push(textPart(n, 'list', 'list', listHtml(n)));
           break;
         }
-        case 'video': groups.push([leaf(st, { kind: 'video', src: resolve(a.src ?? '', url), attrs: mediaAttrs(a) }, a)]); break;
-        case 'audio': groups.push([leaf(st, { kind: 'audio', src: resolve(a.src ?? '', url), attrs: mediaAttrs(a) }, a)]); break;
+        case 'code': {
+          const l = codeLeaf(n);
+          // only an animated block is "code" to the layouts; a static block (no grammar) is text
+          out.push(part(l.kind === 'item' && l.item.kind === 'block' ? 'code' : 'text', placed(n, [l])));
+          break;
+        }
+        case 'image': {
+          const attrs = mediaOpts(n, flagsOf(n, 1));
+          out.push(part('image', placed(n, [leaf({ kind: 'image', src: resolve(textOf(n), url), alt: n.props.alt !== undefined ? String(n.props.alt) : '', attrs }, n.props)])));
+          break;
+        }
+        case 'video': out.push(part('video', placed(n, [leaf({ kind: 'video', src: resolve(textOf(n), url), attrs: mediaOpts(n, flagsOf(n, 1)) }, n.props)]))); break;
+        case 'audio': out.push(part('audio', placed(n, [leaf({ kind: 'audio', src: resolve(textOf(n), url), attrs: mediaOpts(n, flagsOf(n, 1)) }, n.props)]))); break;
         case 'chart': {
-          const opts = Object.fromEntries(Object.entries(a).filter(([k]) => !NOT_OPTS.has(k)));
-          groups.push([leaf(st, { kind: 'html', html: `<div class="chart-box" style="${a.width ? `width:${a.width}` : ''}">${renderChart(dedent(rawText(n)), opts)}</div>`, tag: 'chart' }, a)]);
+          const csv = String(n.args[1] ?? '');
+          if (!csv) fail(n, '`chart` needs a type and the data: chart "bar" """ … """');
+          const opts: Record<string, string> = { type: String(n.args[0]), ...(n.props.title !== undefined ? { title: String(n.props.title) } : {}) };
+          out.push(part('chart', placed(n, [leaf({ kind: 'html', html: `<div class="chart-box" style="${n.props.width ? `width:${n.props.width}` : ''}">${renderChart(csv, opts)}</div>`, tag: 'chart' }, n.props)])));
           break;
         }
-        case 'diagram': groups.push([leaf(st, { kind: 'diagram', text: dedent(rawText(n)), attrs: mediaAttrs(a) }, a)]); break;
-        case 'row':
-        case 'col': {
-          const inner = walk(n.children, st);
-          const kids = n.tag === 'row' ? inner.map(part) : inner.flat();
-          groups.push([{ kind: n.tag, opts: layoutOpts(a), children: kids }]);
-          break;
-        }
+        case 'diagram': out.push(part('diagram', placed(n, [leaf({ kind: 'diagram', text: textOf(n), attrs: { classes: [], opts: strs(n.props, ['id', 'anim']) } }, n.props)]))); break;
+        case 'notes': notes.push(textOf(n)); break;
+        case 'pause': st.stage = ++st.clicks; break;
         case 'step': {
-          const base = st.stage;
-          const baseFx = st.fx;
-          const at = /^\d+$/.test(a.at ?? '') ? parseInt(a.at, 10) : st.clicks + 1;
-          st.clicks = Math.max(st.clicks, at);
+          const saved = { stage: st.stage, fx: st.fx };
+          const at = st.clicks + 1;
+          st.clicks = at;
           st.stage = at;
-          st.fx = { ...st.fx, ...fxOf(a, false) };
-          groups.push(...walk(n.children, st));
-          st.stage = base;
-          st.fx = baseFx;
+          st.fx = { ...st.fx, ...(n.props.anim !== undefined ? { anim: String(n.props.anim) } : {}) };
+          out.push(...walk(n.children));
+          st.stage = saved.stage;
+          st.fx = saved.fx;
           break;
         }
-        case 'notes': notes.push(dedent(rawText(n))); break;
+        case 'row': case 'col': case 'grid': {
+          const kids = walk(n.children);
+          const opts: Record<string, string> = {};
+          for (const k of ['size', 'gap', 'class']) if (n.props[k] !== undefined) opts[k] = String(n.props[k]);
+          if (n.props.align !== undefined) opts.halign = String(n.props.align);
+          if (n.props.valign !== undefined) opts.valign = String(n.props.valign);
+          if (n.name === 'grid') {
+            const per = Number(n.props.columns) || 2;
+            const rows: Layout[] = [];
+            for (let k = 0; k < kids.length; k += per) rows.push({ kind: 'row', opts: {}, children: kids.slice(k, k + per).map((p) => (p.layout.kind === 'item' ? { kind: 'col' as const, opts: {}, children: [p.layout] } : p.layout)) });
+            out.push(part('layout', { kind: 'col', opts, children: rows }));
+          } else {
+            const cell = (p: Part): Layout => (p.layout.kind === 'item' ? { kind: 'col', opts: {}, children: [p.layout] } : p.layout);
+            out.push(part('layout', n.name === 'row' ? { kind: 'row', opts, children: kids.map(cell) } : { kind: 'col', opts, children: kids.map((p) => p.layout) }));
+          }
+          break;
+        }
         default: {
-          if (!TAGS[n.tag]?.plugin) throw new MarkupError(`<${n.tag}> is not a tag of the slide markup here`, n.line);
-          const text = n.children.map((c) => (typeof c === 'string' ? c : '')).join('');
-          groups.push([leaf(st, { kind: 'custom', tag: n.tag, attrs: Object.fromEntries(Object.entries(a).filter(([k]) => !FX.includes(k) && k !== 'at' && k !== 'id')), text: dedent(text) }, a)]);
+          if (!NODES[n.name]?.plugin) fail(n, `unknown node \`${n.name}\``);
+          out.push(part('custom', placed(n, [leaf({ kind: 'custom', tag: n.name, attrs: strs(n.props, ['id', 'anim']), text: n.args[0] === undefined ? '' : String(n.args[0]) }, n.props)])));
         }
       }
     }
-    return groups;
-  };
-  /** several things in one part of a row = a col */
-  const part = (g: Layout[]): Layout => (g.length === 1 ? g[0] : { kind: 'col', opts: {}, children: g });
-
-  const section = (children: (El | string)[]): Section => {
-    const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: false };
-    const layout: Layout = { kind: 'col', opts: {}, children: walk(children, st).flat() };
-    return { layout, blocks: st.blocks, stages: st.clicks + 1 };
+    st.stage = base;
+    return out;
   };
 
-  const loose: (El | string)[] = [];
-  const parts: El[] = [];
-  for (const n of nodes) {
-    if (typeof n !== 'string' && n.tag === 'slide') meta = { ...meta, ...parseSettings(rawText(n)) };
-    else if (typeof n !== 'string' && n.tag === 'section') parts.push(n);
-    else loose.push(n);
+  // the slide's properties
+  const p = node.props;
+  const meta: Record<string, string> = {};
+  for (const [k, v] of Object.entries(p)) {
+    if (k === 'align') meta.halign = String(v);
+    else if (k === 'columns' || k === 'layout') continue;
+    else meta[k] = typeof v === 'boolean' ? String(v) : String(v);
   }
-  if (parts.length) {
-    // what sits outside the sections stays on screen while they swap
-    const st: State = { stage: 0, clicks: 0, blocks: [], fx: {}, inHead: true };
-    for (const l of walk(loose, st).flat()) head.push(...leavesOf(l).map((i) => ({ ...i, at: 0 })));
-    for (const p of parts) sections.push(section(p.children));
-  } else {
-    // a slide with nothing in it is still a slide: it shows its background (a cover that is only a picture)
-    sections.push(section(loose));
+  let name = p.layout !== undefined ? String(p.layout) : undefined;
+  const hasSlot = (s: string) => node.children.some((c) => c.name === s);
+  if (!name && (hasSlot('left') || hasSlot('right') || hasSlot('middle'))) name = hasSlot('middle') ? 'three-cols' : 'two-cols';
+  const slotNames = name ? slotsOf(name, ctx.layouts) : undefined;
+  if (name && !slotNames) fail(node, `unknown layout \`${name}\` (built in: ${Object.keys(LAYOUTS).join(', ')}${Object.keys(ctx.layouts).length ? `; own: ${Object.keys(ctx.layouts).join(', ')}` : ''})`);
+
+  const main: Part[] = [];
+  const slots: Record<string, Part[]> = {};
+  // the main parts and the slots are walked in the order they are written, so reveal stages follow the text
+  const mainNodes: KNode[] = [];
+  const flushMain = () => { main.push(...walk(mainNodes.splice(0))); };
+  for (const c of node.children) {
+    if (slotNames?.includes(c.name)) { flushMain(); slots[c.name] = [...(slots[c.name] ?? []), ...walk(c.children)]; }
+    else mainNodes.push(c);
   }
-  return { meta, own: meta, head, sections, notes, title: meta.title || title || '(untitled)', url };
+  flushMain();
+
+  const layoutName = name ?? inferLayout(main, ctx.index === 0);
+  const root = ctx.layouts[layoutName] ? buildOwn(ctx.layouts[layoutName], main, slots) : buildLayout(layoutName, main, slots, p.columns !== undefined ? String(p.columns) : undefined);
+  const own: Record<string, string> = { ...layoutDefaults(layoutName), ...meta, layout: layoutName };
+  return {
+    meta: own, own, head: [], notes, title: own.title || title || '(untitled)', url,
+    sections: [{ layout: root, blocks: st.blocks, stages: st.clicks + 1 }],
+  };
 }
 
-/** `<code from=id />`: fill in the copies (the last frame of the nearest earlier block with that id) */
+/** all the slides of one source text (tests, tools): the deck settings are in `deck` */
+export function parseSlides(src: string, url: string, index = 0): { slides: Slide[]; deck: Partial<DeckMeta> } {
+  const f = parseFile(src);
+  return { deck: f.deck, slides: f.slides.map((n, i) => buildSlide(n, { url, layouts: f.layouts, index: index + i })) };
+}
+
+/** `animate=#true`: what this slide and the one before have in common (the same title, image, text, code `id`) stays or glides */
+export function applyAnimate(slides: Slide[]) {
+  const key = (it: Item): string | undefined => (it.kind === 'html' ? `${it.tag}:${it.html}` : it.kind === 'image' || it.kind === 'video' ? `${it.kind}:${it.src}` : undefined);
+  const mark = (s: Slide) => {
+    for (const it of sectionItems(s.sections[0])) {
+      const k = key(it);
+      if (k && !it.fx?.morph) it.fx = { ...it.fx, morph: k };
+    }
+  };
+  slides.forEach((s, i) => {
+    if (i > 0 && /^(true|yes|on|1)$/i.test(s.own.animate ?? '')) { mark(slides[i - 1]); mark(s); }
+  });
+}
+
+/** `code from=id`: fill in the copies (the last frame of the nearest earlier block with that id) */
 export function resolveRefs(slides: Slide[]) {
   const seen = new Map<string, Block>();
   for (const slide of slides)
@@ -404,7 +446,7 @@ export function resolveRefs(slides: Slide[]) {
       for (const b of sec.blocks) {
         if (b.from !== undefined) {
           const src = seen.get(b.from);
-          if (!src) throw new Error(`<code from=${b.from}>: no earlier block with that id (${slide.url})`);
+          if (!src) throw new Error(`code from="${b.from}": no earlier block with that id (${slide.url})`);
           b.lang = src.lang;
           b.frames = [{ code: src.frames[src.frames.length - 1].code, at: b.frames[0]?.at ?? 0 }];
         } else if (b.explicit) seen.set(b.id, b);
@@ -414,22 +456,36 @@ export function resolveRefs(slides: Slide[]) {
 export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
   const root = new URL(`${base}/${name}/`, document.baseURI).href;
   const meta = await fetchJson<DeckMeta>(fileUrl(root + 'manifest.json'), `The deck "${name}"`);
-  await loadPlugins((meta.plugins ?? []).map((p) => fileUrl(new URL(p, root).href)));
-  if (Object.keys(pluginThemes()).length) meta.themes = { ...pluginThemes(), ...(meta.themes ?? {}) };
-  const slides = await Promise.all(
+  const files = await Promise.all(
     meta.files.map(async (f) => {
       const url = root + encodeURI(f);
-      const text = await (await fetchFile(fileUrl(url), `The slide ${f}`)).text();
-      let slide: Slide;
+      const text = await (await fetchFile(fileUrl(url), `The file ${f}`)).text();
       try {
-        slide = parseSlide(text, url);
+        return { url, ...parseFile(text) };
       } catch (e) {
         throw new Error(`${name}/${f}, ${(e as Error).message}`);
       }
-      slide.meta = { ...(meta.defaults ?? {}), ...slide.own };
-      return slide;
     }),
   );
+  const layouts = Object.assign({}, ...files.map((f) => f.layouts)) as Record<string, KNode>;
+  for (const f of files) {
+    const { vars, themes, ...rest } = f.deck;
+    Object.assign(meta, rest);
+    if (vars) meta.vars = { ...meta.vars, ...vars };
+    if (themes) meta.themes = { ...meta.themes, ...themes };
+  }
+  await loadPlugins((meta.plugins ?? []).map((p) => fileUrl(new URL(p, root).href)));
+  if (Object.keys(pluginThemes()).length) meta.themes = { ...pluginThemes(), ...(meta.themes ?? {}) };
+  let index = 0;
+  const slides = files.flatMap((f) => f.slides.map((n) => {
+    try {
+      return buildSlide(n, { url: f.url, layouts, index: index++ });
+    } catch (e) {
+      throw new Error(`${name}/${decodeURI(f.url.slice(root.length))}, ${(e as Error).message}`);
+    }
+  }));
+  for (const s of slides) s.meta = { ...(meta.defaults ?? {}), ...s.own };
+  applyAnimate(slides);
   resolveRefs(slides);
   return { name, meta, slides };
 }

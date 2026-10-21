@@ -1,18 +1,19 @@
-// The language server of the slide markup: diagnostics (check.ts), completion and hover (schema.ts), over stdio.
-// A hand-written JSON-RPC loop, so the package needs no dependency for it. Plain TypeScript, no framework: `slides lsp`
-// runs it, and any editor with an LSP client can use it.
+// The language server of the .slides language: diagnostics (check.ts), completion and hover (schema.ts), outline, folding and
+// "go to the code block with this id", over stdio. A hand-written JSON-RPC loop, so the package needs no dependency for it.
+// `slides lsp` runs it, and any editor with an LSP client can use it.
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { check } from './check.ts';
+import { check, layoutsOf } from './check.ts';
+import { parseKdl, type KNode } from './kdl.ts';
 import { pluginTags } from './plugin-schema.ts';
-import { childrenOf, extendSchema, FX, SLIDE_SETTINGS, TAGS } from './schema.ts';
+import { childrenOf, extendSchema, LAYOUTS, NODES, PART_NODES } from './schema.ts';
 
 interface Pos { line: number; character: number }
 
 const docs = new Map<string, string>();
 
-/** the tags of the plugins of the deck a file belongs to (read once per folder) */
+/** the nodes of the plugins of the deck a file belongs to (read once per folder) */
 const decks = new Map<string, Promise<void>>();
 const withPlugins = (uri: string): Promise<void> => {
   if (!uri.startsWith('file:')) return Promise.resolve();
@@ -36,153 +37,182 @@ const offsetAt = (text: string, p: Pos) => {
   return Math.min(off + p.character, text.length);
 };
 
-/** the tags that are open at `offset` (raw tags are skipped: what is inside them is not markup), innermost last */
-export function openTags(text: string, offset: number): string[] {
-  const stack: string[] = [];
-  const re = /<(\/?)([a-z][a-z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?)(\/?)>/g;
-  const head = text.slice(0, offset);
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(head))) {
-    const [, close, name, , self] = m;
-    if (!TAGS[name]) continue;
-    if (close) { const i = stack.lastIndexOf(name); if (i >= 0) stack.length = i; continue; }
-    if (self || TAGS[name].empty) continue;
-    if (TAGS[name].raw) {
-      const end = text.indexOf(`</${name}>`, re.lastIndex);
-      if (end < 0 || end >= offset) { stack.push(name); break; } // the cursor is inside the raw content
-      re.lastIndex = end + name.length + 3;
-      continue;
-    }
-    stack.push(name);
-  }
-  return stack;
+/** where the cursor is, read from the text before it (the file may well be unparsable while it is being typed) */
+export interface Ctx {
+  /** the nodes whose `{` is open at the cursor, with their own statement (`slide layout=two-cols`), innermost last */
+  stack: { name: string; head: string }[];
+  /** the statement being typed: from the start of the node to the cursor, strings blanked out */
+  stmt: string;
+  inString: boolean;
 }
 
-const allowedHere = (stack: string[]): string[] =>
-  stack.length === 0 ? Object.keys(TAGS).filter((t) => TAGS[t].in.includes('slide')) : childrenOf(stack[stack.length - 1]);
+const nameOf = (stmt: string) => /^\s*(?:\/-\s*)?([^\s"=;{}()]+)/.exec(stmt)?.[1] ?? '';
+
+export function scan(text: string, off: number): Ctx {
+  const stack: Ctx['stack'] = [];
+  let stmt = '';
+  let i = 0;
+  while (i < off) {
+    const c = text[i];
+    if (c === '/' && text[i + 1] === '/') {
+      const e = text.indexOf('\n', i);
+      if (e < 0 || e >= off) return { stack, stmt, inString: true }; // in a comment: nothing to complete
+      i = e;
+      continue;
+    }
+    if (c === '/' && text[i + 1] === '*') {
+      const e = text.indexOf('*/', i + 2);
+      if (e < 0 || e + 2 > off) return { stack, stmt, inString: true };
+      i = e + 2;
+      continue;
+    }
+    if (c === '"' || (c === '#' && /^#+"/.test(text.slice(i, i + 12)))) {
+      const hashes = /^#*/.exec(text.slice(i))![0].length;
+      const q = i + hashes;
+      const multi = text.startsWith('"""', q);
+      const close = `${multi ? '"""' : '"'}${'#'.repeat(hashes)}`;
+      let j = q + (multi ? 3 : 1);
+      for (;;) {
+        const e = text.indexOf(close, j);
+        if (e < 0 || e >= off) return { stack, stmt, inString: true };
+        if (!hashes && text[e - 1] === '\\' && text[e - 2] !== '\\') { j = e + 1; continue; }
+        i = e + close.length;
+        break;
+      }
+      stmt += '"s"';
+      continue;
+    }
+    if (c === '{') { stack.push({ name: nameOf(stmt), head: stmt }); stmt = ''; }
+    else if (c === '}') { stack.pop(); stmt = ''; }
+    else if (c === ';' || c === '\n') stmt = '';
+    else stmt += c;
+    i++;
+  }
+  return { stack, stmt, inString: false };
+}
 
 const md = (value: string) => ({ kind: 'markdown', value });
+const own = (text: string) => layoutsOf(text);
 
-const tagItem = (name: string) => {
-  const def = TAGS[name];
-  const attrs = Object.entries(def.attrs ?? {}).filter(([k]) => !(k in FX) || name === 'step').map(([k]) => k).slice(0, 6);
+/** the node names allowed where the cursor is */
+function allowedHere(ctx: Ctx, text: string): string[] {
+  const top = ctx.stack.at(-1);
+  if (!top) return ['deck', 'slide', 'layout'];
+  if (top.name === 'slide') {
+    const layout = /\blayout=["#]*([\w-]+)/.exec(top.head)?.[1];
+    const slots = layout ? own(text)[layout] ?? LAYOUTS[layout]?.slots ?? [] : [...new Set([...Object.values(own(text)).flat(), 'left', 'middle', 'right'])];
+    return [...PART_NODES, ...slots];
+  }
+  if (top.name === 'layout') return ['row', 'col', 'grid', 'slot'];
+  if (['row', 'col', 'grid'].includes(top.name) && ctx.stack.some((s) => s.name === 'layout')) return ['row', 'col', 'grid', 'slot'];
+  if (!NODES[top.name]) return PART_NODES; // a slot of a layout
+  return childrenOf(top.name);
+}
+
+/** a node as a completion: with its arguments and braces as a snippet */
+function nodeItem(name: string) {
+  const def = NODES[name];
+  const first = def?.args?.find((a) => !a.optional);
+  let snippet = name;
+  if (name === 'code') snippet = 'code "${1:ts}" {\n  frame #"""\n    $0\n  """#\n}';
+  else if (name === 'list') snippet = 'list {\n  - "$0"\n}';
+  else if (name === 'table') snippet = 'table {\n  head "$1" "$2"\n  - "$3" "$4"\n}';
+  else if (name === 'chart') snippet = 'chart "${1:bar}" #"""\n  $0\n  """#';
+  else if (name === 'diagram' || name === 'math' || name === 'notes') snippet = `${name} #"""\n  $0\n  """#`;
+  else if (name === 'frame') snippet = 'frame #"""\n  $0\n  """#';
+  else if (name === '-') snippet = '- "$0"';
+  else if (name === 'slide' || name === 'layout' || (def?.children && !first)) snippet = `${name}${name === 'layout' ? ' "${1:name}"' : ''} {\n  $0\n}`;
+  else if (first) snippet = `${name} "\${1:${first.name}}"`;
+  else if (!def) snippet = `${name} {\n  $0\n}`; // a slot
   return {
-    label: name, kind: 14, detail: def.empty ? `<${name} … />` : `<${name}>`, documentation: md(def.doc),
-    insertText: def.empty ? `${name} $0/>` : `${name}>$0</${name}>`, insertTextFormat: 2,
-    data: attrs,
+    label: name, kind: 14, detail: def?.args?.length ? `${name} ${def.args.map((a) => (a.optional ? `[${a.name}]` : a.name)).join(' ')}` : name,
+    documentation: md(def?.doc ?? 'A slot of the layout.'), insertText: snippet, insertTextFormat: 2,
   };
-};
+}
 
 function complete(text: string, p: Pos) {
   const off = offsetAt(text, p);
-  const line = text.slice(text.lastIndexOf('\n', off - 1) + 1, off);
-  // inside <slide>: `key: value` lines
-  if (openTags(text, off).at(-1) === 'slide') {
-    const val = /^\s*([\w-]+)\s*:\s*([^\s#]*)$/.exec(line);
-    if (val) return (SLIDE_SETTINGS[val[1]]?.values ?? []).map((v) => ({ label: v, kind: 12 }));
-    if (/^\s*[\w-]*$/.test(line)) return Object.entries(SLIDE_SETTINGS).map(([k, s]) => ({ label: k, kind: 10, documentation: md(s.doc), insertText: `${k}: `, detail: s.values?.join(' | ') }));
-    return [];
-  }
-  // a value: <tag attr=va|
-  const val = /<([a-z][a-z0-9-]*)\b[^>]*?\s([a-z-]+)=["']?([^"'\s>]*)$/.exec(line);
+  const ctx = scan(text, off);
+  if (ctx.inString) return [];
+  const m = /^\s*(?:\/-\s*)?([^\s"=;{}()]*)$/.exec(ctx.stmt);
+  if (m) return allowedHere(ctx, text).map(nodeItem);
+  const name = nameOf(ctx.stmt);
+  const def = NODES[name] ?? (name === 'slot' ? NODES.slot : undefined);
+  if (!def) return [];
+  // a property value: key=va|
+  const val = /(?:^|\s)([\w-]+)=([^\s"]*)$/.exec(ctx.stmt);
   if (val) {
-    const a = TAGS[val[1]]?.attrs?.[val[2]] ?? (FX as Record<string, { values?: string[] }>)[val[2]];
-    return (a?.values ?? []).map((v) => ({ label: v, kind: 12 }));
+    if (val[1] === 'layout' && name === 'slide') return [...Object.keys(LAYOUTS), ...Object.keys(own(text))].map((v) => ({ label: v, kind: 12, documentation: md(LAYOUTS[v]?.doc ?? 'An own layout.') }));
+    const values = def.props?.[val[1]]?.values ?? [];
+    return values.map((v) => ({ label: v, kind: 12 }));
   }
-  // an attribute: <tag att|
-  const attr = /<([a-z][a-z0-9-]*)\s(?:[^>]*\s)?([a-z-]*)$/.exec(line);
-  if (attr && !line.slice(line.lastIndexOf('<')).includes('>')) {
-    const have = new Set([...line.slice(line.lastIndexOf('<')).matchAll(/\s([a-z-]+)(?==|\s|$)/g)].map((m) => m[1]));
-    return Object.entries(TAGS[attr[1]]?.attrs ?? {}).filter(([k]) => !have.has(k) || k === attr[2]).map(([k, a]) => ({
-      label: k, kind: 5, detail: a.values ? a.values.join(' | ') : a.flag ? 'flag' : undefined, documentation: md(a.doc),
-      insertText: a.flag ? k : `${k}=`, sortText: k in FX ? `z${k}` : k,
-    }));
-  }
-  // a tag name: <na| or </na|
-  const tag = /<(\/?)([a-z0-9-]*)$/.exec(line);
-  if (tag) {
-    const stack = openTags(text, off - tag[0].length);
-    if (tag[1]) return stack.length ? [{ label: stack[stack.length - 1], kind: 14, insertText: `${stack[stack.length - 1]}>` }] : [];
-    return allowedHere(stack).map(tagItem);
-  }
-  return [];
+  // a property or a flag
+  const have = new Set([...ctx.stmt.matchAll(/(?:^|\s)([\w-]+)(?==|\s|$)/g)].map((x) => x[1]));
+  return [
+    ...Object.entries(def.props ?? {}).filter(([k]) => !have.has(k)).map(([k, d]) => ({
+      label: k, kind: 5, detail: d.values?.join(' | ') ?? (d.type === 'number' ? 'number' : undefined), documentation: md(d.doc), insertText: `${k}=`,
+      sortText: k === 'anim' || k === 'id' ? `z${k}` : k,
+    })),
+    ...Object.entries(def.flags ?? {}).filter(([k]) => !have.has(k)).map(([k, d]) => ({ label: k, kind: 12, detail: 'flag', documentation: md(d) })),
+  ];
 }
 
 function hover(text: string, p: Pos) {
   const off = offsetAt(text, p);
-  if (openTags(text, off).at(-1) === 'slide') {
-    const key = /^\s*([\w-]+)\s*:/.exec(text.slice(text.lastIndexOf('\n', off - 1) + 1, text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off)))?.[1];
-    const s = key && SLIDE_SETTINGS[key];
-    return s ? { contents: md(`**${key}**: ${s.doc}${s.values ? `\n\nOne of: ${s.values.map((v) => `\`${v}\``).join(', ')}` : ''}`) } : null;
-  }
   const ls = text.lastIndexOf('\n', off - 1) + 1;
   const le = text.indexOf('\n', off) < 0 ? text.length : text.indexOf('\n', off);
   const line = text.slice(ls, le);
   const col = off - ls;
-  for (const m of line.matchAll(/<\/?([a-z][a-z0-9-]*)([^<>]*)/g)) {
-    const start = m.index!;
-    const nameEnd = start + m[0].indexOf(m[1]) + m[1].length;
-    const def = TAGS[m[1]];
-    if (!def) continue;
-    if (col >= start && col <= nameEnd) {
-      const attrs = Object.entries(def.attrs ?? {}).map(([k, a]) => `- \`${k}\`: ${a.doc}`).join('\n');
-      return { contents: md(`**<${m[1]}>**: ${def.doc}${attrs ? `\n\n${attrs}` : ''}`) };
-    }
-    for (const a of m[2].matchAll(/\s([a-z-]+)/g)) {
-      const s = start + m[0].indexOf(m[2]) + a.index! + 1;
-      if (col >= s && col <= s + a[1].length) {
-        const ad = def.attrs?.[a[1]];
-        if (ad) return { contents: md(`**${a[1]}**: ${ad.doc}${ad.values ? `\n\nOne of: ${ad.values.map((v) => `\`${v}\``).join(', ')}` : ''}`) };
-      }
-    }
+  if (scan(text, ls).inString) return null;
+  // the word under the cursor
+  const left = /[\w-]*$/.exec(line.slice(0, col))![0];
+  const word = left + /^[\w-]*/.exec(line.slice(col))![0];
+  if (!word) return null;
+  const before = line.slice(0, col - left.length);
+  if ((before.match(/(?<!\\)"/g) ?? []).length % 2) return null; // inside a string
+  const after = line.slice(col - left.length + word.length);
+  if (/(^|[{};])\s*(?:\/-\s*)?$/.test(before)) {
+    // a node name
+    const def = NODES[word];
+    if (!def) return null;
+    const props = Object.entries(def.props ?? {}).map(([k, a]) => `- \`${k}\`: ${a.doc}`).join('\n');
+    const flags = Object.entries(def.flags ?? {}).map(([k, d]) => `- \`${k}\` (flag): ${d}`).join('\n');
+    return { contents: md(`**${word}**: ${def.doc}${props ? `\n\n${props}` : ''}${flags ? `\n\n${flags}` : ''}`) };
   }
+  const stmt = before.slice(Math.max(before.lastIndexOf('{'), before.lastIndexOf(';'), before.lastIndexOf('}')) + 1);
+  const def = NODES[nameOf(stmt)];
+  if (!def) return null;
+  const prop = after.startsWith('=') ? def.props?.[word] : undefined;
+  if (prop) return { contents: md(`**${word}**: ${prop.doc}${prop.values ? `\n\nOne of: ${prop.values.map((v) => `\`${v}\``).join(', ')}` : ''}`) };
+  if (def.flags?.[word]) return { contents: md(`**${word}**: ${def.flags[word]}`) };
+  if (word in LAYOUTS && /layout=\S*$/.test(before)) return { contents: md(`**${word}**: ${LAYOUTS[word].doc}`) };
   return null;
 }
 
 interface Sym { name: string; kind: number; range: { start: Pos; end: Pos }; selectionRange: { start: Pos; end: Pos }; children: Sym[] }
 
-const SYMBOL_KIND: Record<string, number> = { section: 3, row: 23, col: 23, step: 24, code: 5, slide: 2, h1: 15, h2: 15, h3: 15, chart: 5, diagram: 5 };
+const SYMBOL_KIND: Record<string, number> = { deck: 3, slide: 2, layout: 11, row: 23, col: 23, grid: 23, step: 24, code: 5, title: 15, heading: 15, chart: 5, diagram: 5 };
 
-/** the structure of a file: sections, rows, cols, steps, code blocks and headings, as a tree with ranges (outline and folding) */
+/** the structure of a file: slides, layouts, rows, columns, steps, code blocks and headings, as a tree with ranges (outline and folding) */
 export function outline(text: string): Sym[] {
-  const roots: Sym[] = [];
-  const stack: { name: string; sym?: Sym; start: Pos }[] = [];
-  const lineOf = (i: number) => text.slice(0, i).split('\n').length - 1;
-  const colOf = (i: number) => i - (text.lastIndexOf('\n', i - 1) + 1);
-  const pos = (i: number): Pos => ({ line: lineOf(i), character: colOf(i) });
-  const re = /<(\/?)([a-z][a-z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?)(\/?)>/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    const [all, close, name, attrs, self] = m;
-    if (!TAGS[name]) continue;
-    if (close) {
-      const i = stack.map((s) => s.name).lastIndexOf(name);
-      if (i < 0) continue;
-      const [top] = stack.splice(i);
-      if (top.sym) top.sym.range = { start: top.sym.range.start, end: pos(m.index + all.length) };
-      continue;
-    }
-    let sym: Sym | undefined;
-    if (SYMBOL_KIND[name]) {
-      const lang = /\blang=["']?([\w+#.-]+)/.exec(attrs)?.[1];
-      const id = /\bid=["']?([\w-]+)/.exec(attrs)?.[1];
-      const head = /^h[1-3]$/.test(name) ? text.slice(re.lastIndex, text.indexOf('</', re.lastIndex)).replace(/<[^>]*>/g, '').trim() : '';
-      const label = head || [name, lang, id && `#${id}`].filter(Boolean).join(' ');
-      sym = { name: label || name, kind: SYMBOL_KIND[name], range: { start: pos(m.index), end: pos(m.index + all.length) }, selectionRange: { start: pos(m.index), end: pos(m.index + all.length) }, children: [] };
-      (stack.map((s) => s.sym).filter(Boolean).at(-1)?.children ?? roots).push(sym);
-    }
-    if (self || TAGS[name].empty) { continue; }
-    if (TAGS[name].raw) {
-      const end = text.indexOf(`</${name}>`, re.lastIndex);
-      if (end >= 0) {
-        if (sym) sym.range = { start: sym.range.start, end: pos(end + name.length + 3) };
-        re.lastIndex = end + name.length + 3;
-      }
-      continue;
-    }
-    stack.push({ name, sym, start: pos(m.index) });
-  }
-  return roots;
+  let nodes: KNode[];
+  try { nodes = parseKdl(text); } catch { return []; }
+  const lines = text.split('\n');
+  let slideNo = 0;
+  const conv = (n: KNode, inSlide: boolean): Sym | undefined => {
+    if (!SYMBOL_KIND[n.name]) return undefined;
+    const first = n.children.find((c) => c.name === 'title' || c.name === 'heading');
+    let name: string = n.name;
+    if (n.name === 'slide') name = `${++slideNo}. ${n.props.title ?? (first?.args[0] ? String(first.args[0]) : 'slide')}`;
+    else if (n.name === 'title' || n.name === 'heading') name = String(n.args[0] ?? n.name);
+    else if (n.name === 'layout') name = `layout ${n.args[0] ?? ''}`.trim();
+    else if (n.name === 'code') name = [n.name, typeof n.args[0] === 'string' ? n.args[0] : '', n.props.id !== undefined ? `#${n.props.id}` : ''].filter(Boolean).join(' ');
+    const l0 = n.line - 1;
+    const l1 = Math.max(l0, n.endLine - 1);
+    const range = { start: { line: l0, character: n.col - 1 }, end: { line: l1, character: lines[l1]?.length ?? 0 } };
+    return { name, kind: SYMBOL_KIND[n.name], range, selectionRange: { start: range.start, end: { line: l0, character: lines[l0]?.length ?? 0 } }, children: n.children.map((c) => conv(c, inSlide || n.name === 'slide')).filter((x): x is Sym => !!x) };
+  };
+  return nodes.map((n) => conv(n, false)).filter((x): x is Sym => !!x);
 }
 
 const flatten = (syms: Sym[]): Sym[] => syms.flatMap((s) => [s, ...flatten(s.children)]);
@@ -196,24 +226,35 @@ function definition(uri: string, text: string, p: Pos) {
   if (!hit || !uri.startsWith('file:')) return [];
   const dir = dirname(fileURLToPath(uri));
   const out: { uri: string; range: { start: Pos; end: Pos } }[] = [];
-  for (const f of readdirSync(dir).filter((f) => f.endsWith('.slide')).sort()) {
+  for (const f of readdirSync(dir).filter((f) => f.endsWith('.slides')).sort()) {
     const fileUri = pathToFileURL(join(dir, f)).href;
     const src = fileUri === uri ? text : readFileSync(join(dir, f), 'utf8');
     src.split('\n').forEach((l, i) => {
-      const m = new RegExp(`<code\\b[^>]*\\bid=["']?${hit[1]}(?![\\w-])`).exec(l);
+      const m = new RegExp(`\\bcode\\b[^\\n]*\\bid=["']?${hit[1]}(?![\\w-])`).exec(l);
       if (m && !(fileUri === uri && i === p.line)) out.push({ uri: fileUri, range: { start: { line: i, character: m.index }, end: { line: i, character: l.length } } });
     });
   }
   return out;
 }
 
+/** the own layouts of the other files of the deck */
+function siblingLayouts(uri: string): Record<string, string[]> {
+  if (!uri.startsWith('file:')) return {};
+  const file = fileURLToPath(uri);
+  const dir = dirname(file);
+  try {
+    return Object.assign({}, ...readdirSync(dir).filter((f) => f.endsWith('.slides') && join(dir, f) !== file).map((f) => layoutsOf(readFileSync(join(dir, f), 'utf8'))));
+  } catch {
+    return {};
+  }
+}
+
 function validate(uri: string) {
   const text = docs.get(uri) ?? '';
   const lines = text.split('\n');
-  const diagnostics = check(text).map((p) => {
+  const diagnostics = check(text, siblingLayouts(uri)).map((p) => {
     const l = Math.max(0, Math.min(lines.length - 1, p.line - 1));
-    const first = lines[l].search(/\S/);
-    return { range: { start: { line: l, character: Math.max(0, first) }, end: { line: l, character: lines[l].length } }, severity: 1, source: 'slides', message: p.message };
+    return { range: { start: { line: l, character: Math.max(0, p.col - 1) }, end: { line: l, character: lines[l].length } }, severity: 1, source: 'slides', message: p.message };
   });
   send({ method: 'textDocument/publishDiagnostics', params: { uri, diagnostics } });
 }
@@ -222,7 +263,7 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
   const { id, method, params } = msg;
   switch (method) {
     case 'initialize':
-      send({ id, result: { capabilities: { textDocumentSync: 1, hoverProvider: true, documentSymbolProvider: true, foldingRangeProvider: true, definitionProvider: true, completionProvider: { triggerCharacters: ['<', ' ', '=', '"', '/'] } }, serverInfo: { name: 'slides' } } });
+      send({ id, result: { capabilities: { textDocumentSync: 1, hoverProvider: true, documentSymbolProvider: true, foldingRangeProvider: true, definitionProvider: true, completionProvider: { triggerCharacters: [' ', '=', '/'] } }, serverInfo: { name: 'slides' } } });
       break;
     case 'shutdown': send({ id, result: null }); break;
     case 'exit': process.exit(0); break;
@@ -248,7 +289,7 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
       send({ id, result: outline(docs.get(params.textDocument.uri) ?? '') });
       break;
     case 'textDocument/foldingRange':
-      send({ id, result: flatten(outline(docs.get(params.textDocument.uri) ?? '')).filter((s) => s.range.end.line > s.range.start.line).map((s) => ({ startLine: s.range.start.line, endLine: s.range.end.line - 1 })) });
+      send({ id, result: flatten(outline(docs.get(params.textDocument.uri) ?? '')).filter((s) => s.range.end.line > s.range.start.line + 1).map((s) => ({ startLine: s.range.start.line, endLine: s.range.end.line - 1 })) });
       break;
     case 'textDocument/definition':
       send({ id, result: definition(params.textDocument.uri, docs.get(params.textDocument.uri) ?? '', params.position) });
@@ -276,3 +317,4 @@ export function serve() {
   });
   process.stdin.on('end', () => process.exit(0));
 }
+

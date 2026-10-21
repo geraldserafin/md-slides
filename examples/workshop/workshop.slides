@@ -1,0 +1,107 @@
+slide theme=crust layout=cover align=center valign=middle justify=#false background="radial-gradient(circle at 30% 10%, #c98a4b 0%, #5a3a1e 60%, #2a1d14 100%)" {
+  title "Sourdough 101"
+  text "A loaf, a starter and one slow afternoon"
+  notes #"""
+    A workshop deck: grids, steps on click, a timeline.
+    """#
+}
+
+slide {
+  heading "What you need"
+  row {
+    col {
+      subheading "Flour"
+      text "500 g, bread flour if you can."
+    }
+    col {
+      subheading "Water"
+      text "375 g, lukewarm."
+    }
+    col {
+      subheading "Starter"
+      text "100 g, bubbly and fed 6 hours ago."
+    }
+  }
+  row {
+    col {
+      subheading "Salt"
+      text "10 g."
+    }
+    col {
+      subheading "A pot"
+      text "A heavy lidded pot that goes in the oven."
+    }
+    col {
+      subheading "Patience"
+      text "Most of the work is waiting."
+    }
+  }
+}
+
+slide {
+  heading "The day"
+  diagram width="100%" #"""
+    flowchart LR
+      A[Mix<br/>9:00] --> B[Rest<br/>30 min]
+      B --> C[Fold<br/>4 times]
+      C --> D[Shape<br/>13:00]
+      D --> E[Chill<br/>overnight]
+      E --> F[Bake<br/>250°C]
+    """#
+}
+
+slide --text-size="4vmin" {
+  heading "Step 1: mix"
+  list numbered {
+    - "Stir flour and water until no dry flour is left"
+  }
+  step {
+    list numbered start=2 anim=left {
+      - "Rest for 30 minutes"
+    }
+  }
+  step {
+    list numbered start=3 anim=left {
+      - "Add starter and salt, squeeze them in with wet hands"
+    }
+  }
+  step {
+    text "**Do not knead.** The folds do the work." anim=pop
+  }
+}
+
+slide {
+  heading "Hydration"
+  text "Bakers describe a dough by its water as a share of the flour:"
+  math "\\text{hydration} = \\frac{\\text{water}}{\\text{flour}} \\times 100\\% = \\frac{375}{500} \\times 100\\% = 75\\%"
+}
+
+slide {
+  heading "Compare doughs"
+  text "Wetter dough, more open crumb, harder to handle:"
+  chart "bar" title="Typical hydration (%)" width="85%" #"""
+    dough, hydration
+    Bagel, 55
+    Pizza, 62
+    Sourdough, 75
+    Ciabatta, 80
+    """#
+}
+
+slide {
+  heading "Troubleshooting"
+  table {
+    head "It looks like" "Probably" "Try"
+    - "Flat loaf" "Over-proofed" "Shorter rest, colder fridge"
+    - "Dense crumb" "Weak starter" "Feed it twice before baking"
+    - "Pale crust" "Oven too cool" "Bake hotter, lid on for 20 min"
+  }
+}
+
+slide valign=middle --text-size="4.6vmin" {
+  heading "Your turn"
+  text "Mix your dough now. We fold at 10:00."
+  step {
+    text "*Questions? Ask while the flour is still on your hands.*" anim=fade
+  }
+}

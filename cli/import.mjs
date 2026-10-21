@@ -254,22 +254,20 @@ export async function importPptx(file, outDir, { title } = {}) {
     theme: base,
     vars: { '--text-size': 'clamp(21px, 3.5vmin, 46px)', '--heading-size': 'clamp(34px, 5.8vmin, 76px)', ...themeVars, ...fonts },
     defaults: { ...(contentBg ? { background: asset(contentBg) } : {}), ...(margin ? { margin } : {}) },
-    columns: { valign: 'center' },
     ...bar,
   };
   writeFileSync(join(outDir, 'deck.json'), JSON.stringify(deck, null, 2) + '\n');
 
   // one example slide, on the content background
-  writeFileSync(join(outDir, '01-hello.slide'), `<h1>Hello world</h1>
-
-<p>The background, colors and margins of the template are in place.</p>
-
-<ul steps>
-  <li>Text stays inside the free area of the slide</li>
-  <li>Each <c>.slide</c> file is one slide; add more next to this one</li>
-</ul>
-
-<notes>Edit or delete this slide.</notes>
+  writeFileSync(join(outDir, `${basename(outDir)}.slides`), `slide {
+  title "Hello world"
+  text "The background, colors and margins of the template are in place."
+  list steps {
+    - "Text stays inside the free area of the slide"
+    - "Each \`slide\` is one slide; add more below this one"
+  }
+  notes "Edit or delete this slide."
+}
 `);
 
   const fence = '```';
@@ -289,12 +287,10 @@ export async function importPptx(file, outDir, { title } = {}) {
     '## Using a background on one slide',
     '',
     fence,
-    '<slide>',
-    '  background: assets/cover.jpg',
-    '</slide>',
+    'slide background="assets/cover.jpg"',
     fence,
     '',
-    'A slide with nothing else in it shows only its background: the title slide of the template, for example. For a slide with text on a dark background add `layout: cover`, `text-color: #ffffff` and `heading-color: #ffffff`.',
+    'A slide with nothing else in it shows only its background: the title slide of the template, for example. For a slide with text on a dark background add `layout=cover --fg="#ffffff" --heading="#ffffff"`.',
     ...notes.map(note),
     '',
   ].join('\n');

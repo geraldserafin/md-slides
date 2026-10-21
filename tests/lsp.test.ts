@@ -32,84 +32,86 @@ const open = (uri: string, text: string) => write({ method: 'textDocument/didOpe
 afterAll(() => { proc.kill(); });
 
 describe('slides lsp', () => {
-  const uri = 'file:///t/a.slide';
+  const uri = 'file:///t/a.slides';
+  const complete = (u: string, line: number, character: number) => request('textDocument/completion', { textDocument: { uri: u }, position: { line, character } });
+  const labels = (r: any) => r.items.map((i: any) => i.label);
+
   it('initializes with completion, hover and diagnostics', async () => {
     const r = await request('initialize', { capabilities: {} });
     expect(r.capabilities).toMatchObject({ hoverProvider: true, textDocumentSync: 1 });
   });
   it('publishes diagnostics with the line', async () => {
-    open(uri, '<p>a</p>\n<div>x</div>\n');
+    open(uri, 'slide {\n  titel "a"\n}\n');
     const m = await until((x) => x.method === 'textDocument/publishDiagnostics' && x.params.uri === uri && x.params.diagnostics.length > 0);
-    expect(m.params.diagnostics[0]).toMatchObject({ message: 'unknown tag <div>', range: { start: { line: 1 } } });
+    expect(m.params.diagnostics[0]).toMatchObject({ message: 'unknown node `titel` (did you mean `title`?)', range: { start: { line: 1 } } });
   });
-  it('completes tag names inside a row, and not text tags inside a ul', async () => {
-    open('file:///t/b.slide', '<row>\n  <\n</row>');
-    const r = await request('textDocument/completion', { textDocument: { uri: 'file:///t/b.slide' }, position: { line: 1, character: 3 } });
-    const labels = r.items.map((i: any) => i.label);
-    expect(labels).toContain('code');
-    expect(labels).not.toContain('li');
-    open('file:///t/c.slide', '<ul>\n  <\n</ul>');
-    const r2 = await request('textDocument/completion', { textDocument: { uri: 'file:///t/c.slide' }, position: { line: 1, character: 3 } });
-    expect(r2.items.map((i: any) => i.label)).toEqual(['li']);
+  it('completes node names by where the cursor is', async () => {
+    open('file:///t/b.slides', 'slide {\n  row {\n    \n  }\n}');
+    const inRow = labels(await complete('file:///t/b.slides', 2, 4));
+    expect(inRow).toContain('code');
+    expect(inRow).not.toContain('frame');
+    open('file:///t/c.slides', 'slide {\n  list {\n    \n  }\n}');
+    expect(labels(await complete('file:///t/c.slides', 2, 4))).toEqual(['-']);
+    open('file:///t/c2.slides', '\n');
+    expect(labels(await complete('file:///t/c2.slides', 0, 0))).toEqual(['deck', 'slide', 'layout']);
   });
-  it('completes attributes and values', async () => {
-    open('file:///t/d.slide', '<code la');
-    let r = await request('textDocument/completion', { textDocument: { uri: 'file:///t/d.slide' }, position: { line: 0, character: 8 } });
-    expect(r.items.map((i: any) => i.label)).toContain('lang');
-    open('file:///t/e.slide', '<p anim=');
-    r = await request('textDocument/completion', { textDocument: { uri: 'file:///t/e.slide' }, position: { line: 0, character: 8 } });
-    expect(r.items.map((i: any) => i.label)).toContain('zoom');
+  it('completes properties, flags and values', async () => {
+    open('file:///t/d.slides', 'slide {\n  video "a.mp4" \n  text "x" anim=\n}');
+    const r = await complete('file:///t/d.slides', 1, 16);
+    expect(labels(r)).toContain('autoplay');
+    expect(r.items.find((i: any) => i.label === 'width').insertText).toBe('width=');
+    expect(labels(await complete('file:///t/d.slides', 2, 16))).toContain('zoom');
+    open('file:///t/d2.slides', 'slide layout=');
+    expect(labels(await complete('file:///t/d2.slides', 0, 13))).toContain('two-cols');
   });
-  it('closes the innermost open tag after </', async () => {
-    open('file:///t/f.slide', '<row>\n<col>\n</');
-    const r = await request('textDocument/completion', { textDocument: { uri: 'file:///t/f.slide' }, position: { line: 2, character: 2 } });
-    expect(r.items.map((i: any) => i.label)).toEqual(['col']);
+  it('does not complete inside a string or a comment', async () => {
+    open('file:///t/s.slides', 'slide {\n  text "a b \n}\n');
+    expect(labels(await complete('file:///t/s.slides', 1, 10))).toEqual([]);
+    open('file:///t/s2.slides', 'slide {\n  // a comment\n}');
+    expect(labels(await complete('file:///t/s2.slides', 1, 8))).toEqual([]);
   });
-  it('knows the tags of the plugins of the deck a file belongs to', async () => {
+  it('offers the slots of the layout of the slide', async () => {
+    open('file:///t/l.slides', 'slide layout=two-cols {\n  \n}');
+    expect(labels(await complete('file:///t/l.slides', 1, 2))).toEqual(expect.arrayContaining(['left', 'right', 'title']));
+    open('file:///t/l2.slides', 'layout "side" { row { slot "nav"; slot } }\nslide layout=side {\n  \n}');
+    expect(labels(await complete('file:///t/l2.slides', 2, 2))).toContain('nav');
+  });
+  it('knows the nodes of the plugins of the deck a file belongs to', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-lsp-'));
     writeFileSync(join(dir, 'deck.json'), JSON.stringify({ plugins: ['./p.js'] }));
-    writeFileSync(join(dir, 'p.js'), "export default { tags: { sparkle: { doc: 'Sparkles.', empty: true } } };");
-    const uri = pathToFileURL(join(dir, 'a.slide')).href;
-    open(uri, '<sparkle />\n<');
-    const diag = await until((x) => x.method === 'textDocument/publishDiagnostics' && x.params.uri === uri);
-    expect(diag.params.diagnostics.map((d: any) => d.message).join()).not.toMatch(/unknown tag <sparkle>/);
-    const r = await request('textDocument/completion', { textDocument: { uri }, position: { line: 1, character: 1 } });
-    expect(r.items.map((i: any) => i.label)).toContain('sparkle');
+    writeFileSync(join(dir, 'p.js'), "export default { tags: { sparkle: { doc: 'Sparkles.' } } };");
+    const u = pathToFileURL(join(dir, 'a.slides')).href;
+    open(u, 'slide {\n  sparkle\n  \n}');
+    const diag = await until((x) => x.method === 'textDocument/publishDiagnostics' && x.params.uri === u);
+    expect(diag.params.diagnostics.map((d: any) => d.message).join()).not.toMatch(/unknown node `sparkle`/);
+    expect(labels(await complete(u, 2, 2))).toContain('sparkle');
   });
-  it('completes the keys and values of a <slide> block', async () => {
-    open('file:///t/h.slide', '<slide>\n  th\n  halign: \n</slide>');
-    const keys = await request('textDocument/completion', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 1, character: 4 } });
-    expect(keys.items.map((i: any) => i.label)).toContain('theme');
-    const vals = await request('textDocument/completion', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 2, character: 10 } });
-    expect(vals.items.map((i: any) => i.label)).toEqual(['start', 'center', 'end']);
-    const hov = await request('textDocument/hover', { textDocument: { uri: 'file:///t/h.slide' }, position: { line: 2, character: 4 } });
-    expect(hov.contents.value).toMatch(/horizontally/);
+  it('hovers a node, a property and a flag', async () => {
+    open('file:///t/g.slides', 'slide {\n  code "ts" id=x loop {\n  }\n}');
+    const hov = (line: number, character: number) => request('textDocument/hover', { textDocument: { uri: 'file:///t/g.slides' }, position: { line, character } });
+    expect((await hov(1, 4)).contents.value).toMatch(/One animated code block/);
+    expect((await hov(1, 13)).contents.value).toMatch(/morph id/);
+    expect((await hov(1, 20)).contents.value).toMatch(/forth and back/);
+    expect(await hov(1, 10)).toBeNull(); // inside the string
   });
   it('outlines the structure and folds it', async () => {
-    const src = '<h2>Title</h2>\n<section>\n  <row>\n    <p>a</p>\n    <code lang=ts id=x>\n      let a;\n    </code>\n  </row>\n</section>';
-    open('file:///t/i.slide', src);
-    const syms = await request('textDocument/documentSymbol', { textDocument: { uri: 'file:///t/i.slide' } });
-    expect(syms.map((s: any) => s.name)).toEqual(['Title', 'section']);
-    expect(syms[1].children[0].name).toBe('row');
-    expect(syms[1].children[0].children.map((s: any) => s.name)).toEqual(['code ts #x']);
-    const folds = await request('textDocument/foldingRange', { textDocument: { uri: 'file:///t/i.slide' } });
-    expect(folds).toContainEqual({ startLine: 1, endLine: 7 });
-    expect(folds).toContainEqual({ startLine: 4, endLine: 5 });
+    const src = 'slide {\n  title "Intro"\n  row {\n    text "a"\n    code "ts" id=x {\n      frame "let a;"\n    }\n  }\n}\nslide {\n  title "Two"\n}';
+    open('file:///t/i.slides', src);
+    const syms = await request('textDocument/documentSymbol', { textDocument: { uri: 'file:///t/i.slides' } });
+    expect(syms.map((s: any) => s.name)).toEqual(['1. Intro', '2. Two']);
+    expect(syms[0].children.map((s: any) => s.name)).toEqual(['Intro', 'row']);
+    expect(syms[0].children[1].children.map((s: any) => s.name)).toEqual(['code ts #x']);
+    const folds = await request('textDocument/foldingRange', { textDocument: { uri: 'file:///t/i.slides' } });
+    expect(folds).toContainEqual({ startLine: 0, endLine: 7 });
+    expect(folds).toContainEqual({ startLine: 2, endLine: 6 });
   });
   it('goes from a code id to the blocks that share it, in the files of the deck', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-def-'));
-    writeFileSync(join(dir, '01.slide'), '<code lang=ts id=cart>a;</code>');
-    writeFileSync(join(dir, '02.slide'), '<code lang=ts id=cart>b;</code>\n<code lang=ts from=cart />');
-    const uri = pathToFileURL(join(dir, '02.slide')).href;
-    open(uri, '<code lang=ts id=cart>b;</code>\n<code lang=ts from=cart />');
-    const r = await request('textDocument/definition', { textDocument: { uri }, position: { line: 1, character: 22 } });
-    expect(r.map((x: any) => x.uri.split('/').pop() + ':' + x.range.start.line)).toEqual(['01.slide:0', '02.slide:0']);
-  });
-  it('hovers a tag and an attribute', async () => {
-    open('file:///t/g.slide', '<code lang=ts>x</code>');
-    const tag = await request('textDocument/hover', { textDocument: { uri: 'file:///t/g.slide' }, position: { line: 0, character: 3 } });
-    expect(tag.contents.value).toMatch(/One animated code block/);
-    const attr = await request('textDocument/hover', { textDocument: { uri: 'file:///t/g.slide' }, position: { line: 0, character: 8 } });
-    expect(attr.contents.value).toMatch(/the language/);
+    writeFileSync(join(dir, '01.slides'), 'slide { code "ts" "a;" id=cart }');
+    writeFileSync(join(dir, '02.slides'), 'slide { code "ts" "b;" id=cart }\nslide { code from=cart }');
+    const u = pathToFileURL(join(dir, '02.slides')).href;
+    open(u, 'slide { code "ts" "b;" id=cart }\nslide { code from=cart }');
+    const r = await request('textDocument/definition', { textDocument: { uri: u }, position: { line: 1, character: 22 } });
+    expect(r.map((x: any) => x.uri.split('/').pop() + ':' + x.range.start.line)).toEqual(['01.slides:0', '02.slides:0']);
   });
 });

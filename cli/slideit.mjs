@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// slides -- a .slide markup -> presentation compiler.
+// slides -- a .slides language (KDL) -> presentation compiler.
 //   slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /sciezka/]
 //   slides dev   <deck...> [--port N] [--open]
 //   slides new   <folder> [--title "My talk"]
 //   slides check <deck...>     slides schema     slides import <file.pptx> <folder>
-// A deck = a folder of .slide files (+ deck.json, images, videos...). See README.md.
+// A deck = a .slides file, or a folder of them (+ images, videos...). See README.md.
 import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -18,12 +18,13 @@ const TARGETS = ['static', 'single', 'pdf', 'exe'];
 const USAGE = `slides build <deck...> [-o out] [--target static|single|pdf|exe] [--steps] [--base /path/]
 slides dev   <deck...> [--port N] [--open] [--vite] [--stop-with-parent]
 slides new   <folder> [--title "My talk"]       a starter deck to edit
-slides check <deck...>                          find mistakes in the .slide files (file:line: message)
+slides check <deck...>                          find mistakes in the .slides files (file:line: message)
 slides import <file.pptx> <folder>               start a deck from a PowerPoint template (backgrounds, logos, colors, margins)
-slides schema                                   the markup as JSON (tags, attributes), for editor tooling
+slides schema                                   the language as JSON (nodes, properties, layouts), for editor tooling
+slides migrate <folder> [--split] [--remove]    turn an old deck (.slide tags) into .slides
 slides lsp                                      the language server (stdio): diagnostics, completion, hover
 
-  <deck> is a folder of .slide files, or a folder of such folders (each one becomes a deck).
+  <deck> is a folder of .slides files, or a folder of such folders (each one becomes a deck).
   A folder of decks may hold a hub.json that customizes the deck chooser (title, subtitle, logo, theme...);
   for other layouts point at it with --hub <folder>.
 
@@ -46,23 +47,25 @@ function parseArgs(argv) {
     else if (a === '--open') o.open = true;
     else if (a === '--vite') o.vite = true;
     else if (a === '--stop-with-parent') o.stopWithParent = true;
+    else if (a === '--split') o.split = true;
+    else if (a === '--remove') o.remove = true;
     else if (a.startsWith('-')) throw new Error(`unknown option: ${a}`);
     else o.decks.push(a);
   }
   return o;
 }
 
-/** does any deck use a <diagram> tag? (the diagram library is left out of the build otherwise) */
+/** does any deck use a `diagram` node? (the diagram library is left out of the build otherwise) */
 function usesMermaid(dirs) {
-  return dirs.some((d) => readdirSync(d).some((f) => f.endsWith('.slide') && /<diagram[\s>]/.test(readFileSync(join(d, f), 'utf8'))));
+  return dirs.some((d) => readdirSync(d).some((f) => f.endsWith('.slides') && /(^|[\s{;])diagram[\s"#]/m.test(readFileSync(join(d, f), 'utf8'))));
 }
 
-/** languages used by the decks' <code> tags (to drop unused grammars from the single target) */
+/** languages used by the decks' `code` nodes (to drop unused grammars from the single target) */
 function usedLanguages(dirs) {
   const used = new Set();
   for (const d of dirs)
-    for (const f of readdirSync(d).filter((f) => f.endsWith('.slide')))
-      for (const m of readFileSync(join(d, f), 'utf8').matchAll(/<code\b[^>]*?\blang=["']?([\w+#.-]+)/g))
+    for (const f of readdirSync(d).filter((f) => f.endsWith('.slides')))
+      for (const m of readFileSync(join(d, f), 'utf8').matchAll(/\bcode\s+"([\w+#.-]+)"/g))
         if (tags[m[1].toLowerCase()]) used.add(tags[m[1].toLowerCase()]);
   return used;
 }
@@ -73,20 +76,20 @@ function hubFolder(args, hub) {
     const p = resolve(hub);
     return existsSync(p) && statSync(p).isFile() ? dirname(p) : p;
   }
-  const hasMd = (d) => readdirSync(d).some((f) => f.endsWith('.slide'));
+  const hasMd = (d) => readdirSync(d).some((f) => f.endsWith('.slides'));
   return args.map((a) => resolve(a)).find((d) => existsSync(join(d, 'hub.json')) && !hasMd(d));
 }
 
-/** A folder with .slide files is a deck; a folder of such folders expands to its decks. */
+/** A folder with .slides files is a deck; a folder of such folders expands to its decks. */
 function expandDecks(args) {
-  const hasMd = (d) => existsSync(d) && readdirSync(d).some((f) => f.endsWith('.slide'));
+  const hasMd = (d) => existsSync(d) && readdirSync(d).some((f) => f.endsWith('.slides'));
   return args.flatMap((a) => {
     const dir = resolve(a);
     if (!existsSync(dir)) throw new Error(`deck folder not found: ${a}`);
     if (hasMd(dir)) return [dir];
     const subs = readdirSync(dir, { withFileTypes: true })
       .filter((e) => e.isDirectory() && hasMd(join(dir, e.name))).map((e) => join(dir, e.name)).sort();
-    if (!subs.length) throw new Error(`no .slide files in: ${a}`);
+    if (!subs.length) throw new Error(`no .slides files in: ${a}`);
     return subs;
   });
 }
@@ -218,17 +221,18 @@ function openBrowser(url) {
 
 async function cmdCheck(o) {
   if (!o.decks.length) throw new Error(`give a deck folder\n${USAGE}`);
-  const { check } = await loadLib('check');
+  const { check, layoutsOf } = await loadLib('check');
   const { extendSchema } = await loadLib('schema');
   const { pluginTags } = await loadLib('plugin-schema');
   let n = 0;
   let files = 0;
   const seen = new Set();
   for (const d of expandDecks(o.decks))
-    for (const f of readdirSync(d).filter((f) => f.endsWith('.slide')).sort()) {
+    for (const f of readdirSync(d).filter((f) => f.endsWith('.slides')).sort()) {
       if (!seen.has(d)) { seen.add(d); extendSchema(await pluginTags(d)); }
       files++;
-      for (const p of check(readFileSync(join(d, f), 'utf8'))) { console.log(`${join(d, f)}:${p.line}: ${p.message}`); n++; }
+      const others = Object.assign({}, ...readdirSync(d).filter((g) => g.endsWith('.slides') && g !== f).map((g) => layoutsOf(readFileSync(join(d, g), 'utf8'))));
+      for (const p of check(readFileSync(join(d, f), 'utf8'), others)) { console.log(`${join(d, f)}:${p.line}:${p.col}: ${p.message}`); n++; }
     }
   console.log(n ? `${n} problem${n === 1 ? '' : 's'} in ${files} files` : `ok: ${files} files`);
   if (n) process.exit(1);
@@ -247,9 +251,16 @@ async function cmdImport(o) {
   console.log(`next: slides dev ${o.decks[1]}`);
 }
 
+async function cmdMigrate(o) {
+  if (o.decks.length !== 1) throw new Error(`give the deck folder\n${USAGE}`);
+  const { migrateDeck } = await import('./migrate.mjs');
+  for (const f of migrateDeck(o.decks[0], { split: o.split, remove: o.remove })) console.log(`wrote ${f}`);
+  console.log(`next: slides check ${o.decks[0]}${o.remove ? '' : ' (the old .slide files are still there: delete them, or run again with --remove)'}`);
+}
+
 async function cmdSchema() {
-  const { TAGS } = await loadLib('schema');
-  console.log(JSON.stringify(TAGS, null, 2));
+  const { NODES, LAYOUTS } = await loadLib('schema');
+  console.log(JSON.stringify({ nodes: NODES, layouts: LAYOUTS }, null, 2));
 }
 
 async function cmdNew(o) {
@@ -266,6 +277,7 @@ try {
   else if (cmd === 'new') await cmdNew(parseArgs(rest));
   else if (cmd === 'check') await cmdCheck(parseArgs(rest));
   else if (cmd === 'import') await cmdImport(parseArgs(rest));
+  else if (cmd === 'migrate') await cmdMigrate(parseArgs(rest));
   else if (cmd === 'schema') await cmdSchema();
   else if (cmd === 'lsp') await cmdLsp();
   else { console.log(USAGE); process.exit(cmd && cmd !== '--help' && cmd !== '-h' ? 1 : 0); }

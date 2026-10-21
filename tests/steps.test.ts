@@ -1,17 +1,17 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { parseSlide } from '../src/deck';
+import { parseSlides } from '../src/deck';
 import { buildSteps } from '../src/steps';
 import { setupNodeGrammars } from './nodeGrammars';
 
 beforeAll(setupNodeGrammars);
 
-const deckOf = (...mds: string[]) => ({ name: 't', meta: { files: [] }, slides: mds.map((m) => parseSlide(m, 'http://x/s.slide')) });
+const deckOf = (...srcs: string[]) => ({ name: 't', meta: { files: [] }, slides: srcs.flatMap((s) => parseSlides(s, 'http://x/s.slides').slides) });
 const keysOf = (st: { keys: Map<number, string> }) => new Set(st.keys.values());
 const shared = (a: { keys: Map<number, string> }, b: { keys: Map<number, string> }) => [...keysOf(b)].filter((k) => keysOf(a).has(k)).length;
 
 describe('steps of code groups', () => {
   const frames = (opt: string) =>
-    `<code lang=ts ${opt}>\n<frame>function f(a) { return a + 1; }</frame>\n<frame>function f(a) { return a + 2; }</frame>\n</code>`;
+    `slide { code "ts" ${opt} { frame "function f(a) { return a + 1; }"; frame "function f(a) { return a + 2; }" } }`;
 
   it('frames of a group morph: tokens are shared', async () => {
     const steps = await buildSteps(deckOf(frames('')));
@@ -33,39 +33,39 @@ describe('steps of code groups', () => {
   });
 
   it('blocks without an id are independent (no morph, both on screen)', async () => {
-    const steps = await buildSteps(deckOf('<code lang=ts>let a = 1;</code>\n<code lang=ts>let a = 2;</code>'));
+    const steps = await buildSteps(deckOf('slide { code "ts" "let a = 1;"; code "ts" "let a = 2;" }'));
     expect(steps).toHaveLength(1);
     expect(steps[0].blocks).toHaveLength(2);
     expect(shared(steps[0].blocks[0], steps[0].blocks[1])).toBe(0);
   });
 
-  it('a <step> reveals a block on the next step', async () => {
-    const steps = await buildSteps(deckOf('<p>text</p>\n<step><code lang=ts>let a = 1;</code></step>'));
+  it('a step reveals a block on the next step', async () => {
+    const steps = await buildSteps(deckOf('slide { text "text"; step { code "ts" "let a = 1;" } }'));
     expect(steps.map((s) => s.blocks.length)).toEqual([0, 1]);
   });
 
   it('a group id continues across slides', async () => {
-    const steps = await buildSteps(deckOf('<code lang=ts id=k>let a = 1;</code>', '<code lang=ts id=k>let a = 2;</code>'));
+    const steps = await buildSteps(deckOf('slide { code "ts" "let a = 1;" id=k }\nslide { code "ts" "let a = 2;" id=k }'));
     expect(steps).toHaveLength(2);
     expect(shared(steps[0].blocks[0], steps[1].blocks[0])).toBeGreaterThan(2);
   });
 
   it('different ids do not morph across slides', async () => {
-    const steps = await buildSteps(deckOf('<code lang=ts id=k>let a = 1;</code>', '<code lang=ts id=m>let a = 2;</code>'));
+    const steps = await buildSteps(deckOf('slide { code "ts" "let a = 1;" id=k }\nslide { code "ts" "let a = 2;" id=m }'));
     expect(shared(steps[0].blocks[0], steps[1].blocks[0])).toBe(0);
   });
 });
 
 describe('slides without content', () => {
   it('take a step of their own', async () => {
-    const steps = await buildSteps(deckOf('<slide>\n  background: x.jpg\n</slide>', '<h1>B</h1>'));
+    const steps = await buildSteps(deckOf('slide background="x.jpg"\nslide { title "B" }'));
     expect(steps.map((s) => s.slide)).toEqual([0, 1]);
   });
 });
 
 describe('hidden slides', () => {
   it('are left out of the steps', async () => {
-    const d = deckOf('<h1>A</h1>', '<h1>B</h1>', '<h1>C</h1>');
+    const d = deckOf('slide { title "A" }\nslide { title "B" }\nslide { title "C" }');
     d.slides[1].meta = { hidden: 'true' };
     const steps = await buildSteps(d);
     expect(steps.map((s) => s.slide)).toEqual([0, 2]);
@@ -74,7 +74,7 @@ describe('hidden slides', () => {
 
 describe('autoplay blocks', () => {
   it('are one step; the frames are states the viewer plays', async () => {
-    const d = deckOf('<code lang=ts autoplay=1><frame>let a = 1;</frame><frame>let a = 2;</frame></code>');
+    const d = deckOf('slide { code "ts" autoplay=1 { frame "let a = 1;"; frame "let a = 2;" } }');
     const steps = await buildSteps(d);
     expect(steps).toHaveLength(1);
     const st = steps[0].blocks[0];

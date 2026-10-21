@@ -1,0 +1,77 @@
+slide theme=chalk layout=cover align=center valign=middle justify=#false background="radial-gradient(circle at 70% 20%, #2f4a43 0%, #1c2a27 65%)" {
+  title "Waves"
+  text "Physics 101 · lecture 7"
+  notes #"""
+    Math in the notes of this deck is rendered with KaTeX.
+    """#
+}
+
+slide valign=middle --text-size="4.6vmin" {
+  heading "What is a wave?"
+  text "A wave carries **energy** from one place to another without carrying the matter along."
+  step {
+    text "A stadium wave travels around the stadium. Nobody leaves their seat." anim=rise
+  }
+}
+
+slide {
+  heading "Two families"
+  diagram width="100%" #"""
+    flowchart TD
+      W[Waves] --> T[Transverse]
+      W --> L[Longitudinal]
+      T --> T1[Light]
+      T --> T2[String]
+      L --> L1[Sound]
+      L --> L2[Slinky]
+    """#
+}
+
+slide {
+  heading "Speed, frequency, wavelength"
+  text "One equation ties them together:"
+  math "v = f\\,\\lambda"
+  step {
+    text "where $v$ is the speed in m/s, $f$ the frequency in hertz and $\\lambda$ the wavelength in metres."
+  }
+}
+
+slide {
+  heading "Sound in air"
+  text "At about $343\\ \\mathrm{m/s}$, doubling the frequency halves the wavelength:"
+  chart "line" title="Wavelength (m) of sound at frequency f" width="95%" #"""
+    frequency, wavelength
+    100 Hz, 3.43
+    200 Hz, 1.72
+    400 Hz, 0.86
+    800 Hz, 0.43
+    1600 Hz, 0.21
+    """#
+}
+
+slide {
+  heading "Energy and amplitude"
+  text "The energy a wave carries grows with the **square of its amplitude**:"
+  math "E \\propto A^2"
+  step {
+    text "Twice the amplitude, four times the energy." anim=zoom
+  }
+}
+
+slide valign=middle --text-size="4.2vmin" {
+  heading "Quick check"
+  text "A note vibrates at $440\\ \\mathrm{Hz}$. What is the wavelength in air?"
+  step {
+    math "\\lambda = \\frac{v}{f} = \\frac{343}{440} \\approx 0.78\\ \\mathrm{m}"
+  }
+}
+
+slide --text-size="4.2vmin" {
+  heading "Summary"
+  list steps {
+    - "A wave moves energy, not matter"
+    - "Transverse or longitudinal"
+    - "$v = f\\lambda$"
+    - "Energy goes with $A^2$"
+  }
+}
