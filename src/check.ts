@@ -106,7 +106,7 @@ export function check(src: string, extraLayouts: Record<string, string[]> = {}):
       }
       if (n.name === 'slot' && parent !== 'layout' && parent !== 'row' && parent !== 'col' && parent !== 'grid') add(n, '`slot` belongs in a `layout`');
       if (n.children.length) {
-        if (def.children) walk(n.children, n.name);
+        if (def.children || n.name === 'themes') walk(n.children, n.name);
         else add(n.children[0], `\`${n.name}\` has no children`);
       }
     }

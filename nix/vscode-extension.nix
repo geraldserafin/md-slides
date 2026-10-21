@@ -15,7 +15,7 @@ let
       src = ../editors/vscode;
       filter = name: _: !(lib.hasSuffix ".vsix" name) && baseNameOf name != "node_modules";
     };
-    npmDepsHash = "sha256-U3vWIoExbfGeM8RPp8edB8GSPqR9Kx2ySPCNLt44AiU=";
+    npmDepsHash = "sha256-F1hRGwT3j2FedMCNMLIPrfXgWKxr6zjx+rhMyth4dDY=";
     dontNpmBuild = true;
     npmFlags = [
       "--omit=dev"
@@ -46,7 +46,7 @@ vscode-utils.buildVscodeExtension {
     runHook postUnpack
   '';
   meta = {
-    description = "slideit: highlighting, diagnostics, completion and live preview for .slide presentations";
+    description = "slideit: highlighting, diagnostics, completion and live preview for .slides presentations";
     license = lib.licenses.bsd3;
   };
 }

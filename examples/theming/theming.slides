@@ -23,46 +23,40 @@ slide --text-size="4vmin" {
 
 slide {
   heading "Slide settings"
-  text "An optional `<slide>` block at the top of a slide, one `key: value` per line. Every key applies to that slide only."
+  text "The properties of a `slide` node. Every one applies to that slide only."
   code "text" {
     frame #"""
-      <slide>
-        layout: cover           cover (a title slide, no header/footer, big heading)
-        theme: light            built-in or custom theme name
-        background: bg.jpg      image path/URL or any CSS value
-        halign: center          start | center | end (default start)
-        valign: center          start | center | end (default start)
-        justify: true           justified paragraphs
-        class: spotlight        extra CSS class on the stage
-        title: Short title      shown in the presenter view
-        transition: slide       how the slide comes in: fade | slide | slide-right | slide-left | zoom | none
-        section-transition: slide-right   the same for the swaps between its sections
-        stagger: 0.12           seconds between text blocks
-        margin: 6vmin           space around the content (gap: / col-gap: between the parts)
-        heading-size: 56        px or any CSS length (also: text-size, spacing)
-        accent: #ff9e64         also heading-color, text-color
-        footer: off             hide the deck's footer/header on this slide
-        --accent: #ff9e64       any CSS variable
-      </slide>
+      slide layout=cover          cover (a title slide, no header/footer, big heading)
+            theme=light           built-in or custom theme name
+            background="bg.jpg"   image path/URL or any CSS value
+            align=center          left | center | right (default left)
+            valign=middle         top | middle | bottom (default top)
+            justify=#true         justified paragraphs
+            class=spotlight       extra CSS class on the stage
+            title="Short title"   shown in the presenter view
+            transition=slide      fade | slide | slide-right | slide-left | zoom | none
+            animate=#true         continue the previous slide
+            footer=off            hide the deck's footer/header on this slide
+            --accent="#ff9e64"    any CSS variable
       """#
   }
   notes #"""
-    The next slides demonstrate theme, background, class/valign and transitions.
+    The next slides demonstrate theme, background, class, valign and transitions.
     """#
 }
 
 slide justify=#true align=left valign=top {
   heading "Alignment: everything starts at the top left"
-  text "Every box starts at the **start**, both ways: text at the left edge, at the top. Say otherwise with `halign` and `valign`, each `start`, `center` or `end`. They work in the `<slide>` block of a slide, on a row, a col or a text tag, in `defaults` in `deck.json`, and on a `<code>` (`halign=center`, `valign=end`)."
-  text "`justify: true` stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start. This slide uses it. `defaults` in `deck.json` can switch it on for a whole deck."
-  text "`deck.json` can set defaults for the two shapes of slide: `columns` for slides with two columns (text next to code), for example `{\"valign\": \"center\"}`, and `textOnly` for slides without code, for example `{\"halign\": \"center\", \"valign\": \"center\"}`. This deck centers its text-only slides; this one opts out with `halign: start` and `valign: start`."
+  text "Every box starts at the **start**, both ways: text at the left edge, at the top. Say otherwise with `align` (`left`, `center`, `right`) and `valign` (`top`, `middle`, `bottom`). They work on a `slide`, on a `row`, a `col` or a text node, in `defaults` of the `deck`, and on a `code`."
+  text "`justify=#true` stretches every line of a paragraph to the full column width, like in a printed document; the last line stays at the start. This slide uses it. `defaults justify=#true` in the `deck` switches it on for a whole deck."
+  text "The built-in layouts choose their own alignment: `cover`, `quote` and `center` center everything, the column layouts center their columns vertically. This slide has none of these: it starts at the top left, and says so with `align=left valign=top`."
   notes #"""
-    start/center/end are also accepted as left/right/top/middle/bottom.
+    start and end are accepted too: start = left/top, end = right/bottom.
     """#
 }
 
 slide align=right {
-  heading "halign: end"
+  heading "align=right"
   text "The heading, the text and the media all sit on the right edge."
   list {
     - "lists follow"
@@ -73,7 +67,7 @@ slide align=right {
 }
 
 slide align=center valign=middle {
-  heading "halign: center, valign: center"
+  heading "align=center valign=middle"
   text "The whole block is centered, both ways. Good for a title, a quote or a closing slide."
   notes #"""
     Only this slide: the deck default stays start/start.
@@ -81,21 +75,21 @@ slide align=center valign=middle {
 }
 
 slide valign=bottom {
-  heading "valign: end"
+  heading "valign=bottom"
   text "The text sits at the bottom of the slide, above the footer."
 }
 
 slide --heading-size="72px" --text-size="28px" --item-gap="26px" --stage-padding="8vmin 12vmin" --accent="#ffb454" {
   heading "Sizes and spacing"
-  text "Slide settings: shorthands for the most common knobs:"
+  text "CSS variables as properties of the slide: the knobs of the theme, for this slide only:"
   list {
-    - "`heading-size: 72` and `text-size: 28` (plain numbers are pixels)"
-    - "`spacing: 26` — the gap between text blocks"
-    - "`padding: 8vmin 12vmin` — the slide's inner margin"
-    - "`accent: #ffb454`, `heading-color`, `text-color` — colors for this slide"
+    - "`--heading-size` and `--text-size`: any CSS length"
+    - "`--item-gap`: the gap between text blocks"
+    - "`--stage-padding`: the slide's inner margin"
+    - "`--accent`, `--heading`, `--fg`: colors for this slide"
   }
   notes #"""
-    Any CSS length works: 4vmin, 2rem, 30px. The same keys work in "defaults" in deck.json.
+    Any CSS length works: 4vmin, 2rem, 30px. Deck-wide values go in `vars` of the deck.
     """#
 }
 
@@ -103,7 +97,7 @@ slide {
   row {
     col size="34%" {
       heading "Column widths: `size`"
-      text "In a `<row>` every part takes an equal share of the width. `size=34%` makes this one narrower, here for a short note next to wider code. `size=2` would be a weight: twice as wide."
+      text "In a `row` every part takes an equal share of the width. `size=34%` makes this one narrower, here for a short note next to wider code. `size=2` would be a weight: twice as wide."
     }
     code "typescript" {
       frame #"""
@@ -120,13 +114,13 @@ slide theme=midnight layout=cover background="bg.svg" {
   title "`cover`"
   text "Large centered heading, ideal with a background image."
   notes #"""
-    background: accepts an image path (relative to the .slide file) or any CSS background value.
+    background accepts an image path (relative to the .slides file) or any CSS background value.
     """#
 }
 
 slide theme=paper background="linear-gradient(160deg, #f4ecd8, #e8d9b5)" {
   heading "Per-slide theme and background"
-  text "`theme: paper` and a CSS gradient background, for this slide only. The next slide goes back to the deck theme; the change crossfades."
+  text "`theme=paper` and a CSS gradient background, for this slide only. The next slide goes back to the deck theme; the change crossfades."
   notes #"""
     Themes are sets of CSS variables, so a theme switch also recolors the code tokens.
     """#
@@ -207,13 +201,13 @@ slide theme=midnight background="radial-gradient(circle at 20% 15%, #7a3a5f, #3b
 
 slide theme=midnight background="repeating-linear-gradient(45deg, #14142b 0 24px, #191936 24px 48px)" {
   heading "Backgrounds: patterns"
-  text "Any CSS works, including `repeating-linear-gradient(...)`. Or point `background:` at an image file, as the cover slides of these decks do with `bg.svg`."
+  text "Any CSS works, including `repeating-linear-gradient(...)`. Or point `background=` at an image file, as the cover slides of these decks do with `bg.svg`."
 }
 
 slide class=spotlight valign=middle {
   heading "class: spotlight"
-  text "This slide adds the CSS class `spotlight`, defined in the deck's own `deck.css` (loaded via `\"css\": \"deck.css\"` in `deck.json`)."
-  text "`valign: center` centers this slide's content vertically."
+  text "This slide adds the CSS class `spotlight`, defined in the deck's own `deck.css` (loaded by `css \"deck.css\"` in the `deck` node)."
+  text "`valign=middle` centers this slide's content vertically."
   notes #"""
     deck.css can restyle anything: .stage.spotlight .item h2 { ... }
     """#
@@ -221,10 +215,10 @@ slide class=spotlight valign=middle {
 
 slide transition=slide {
   heading "Text transitions"
-  text "`transition:` sets how a slide's text enters: `fade` (default), `slide`, `slide-right`, `slide-left`, `zoom`, `none`. `stagger:` delays each block after the previous one."
-  text "This slide: `slide` with a stagger of `0.18`."
+  text "`transition=` sets how a slide's text enters: `fade` (default), `slide`, `slide-right`, `slide-left`, `zoom`, `none`. `animation stagger=` in the deck delays each block after the previous one."
+  text "This slide: `slide`."
   notes #"""
-    Defaults for the whole deck: "animation": { "textTransition": ..., "textStagger": ... } in deck.json.
+    Defaults for the whole deck: `animation transition=… stagger=…` in the deck node.
     """#
 }
 
@@ -240,7 +234,7 @@ slide transition=zoom {
 
 slide transition=slide-left {
   heading "slide-left"
-  text "The content travels to the left: the new section comes in from the right, the old one leaves to the left. `slide-right` is the mirror image, and it moves the code along with the text."
+  text "The content travels to the left: the new slide comes in from the right, the old one leaves to the left. `slide-right` is the mirror image, and it moves the code along with the text."
 }
 
 slide transition=none {
@@ -259,7 +253,7 @@ slide transition=none {
 
 slide --move-dur="1.6s" --fade-dur="0.9s" {
   heading "Slow motion"
-  text "Every animation knob is a CSS variable, so a slide can override it: `--move-dur: 1.6s` and `--fade-dur: 0.9s` in the `<slide>` block."
+  text "Every animation knob is a CSS variable, so a slide can override it: `--move-dur=\"1.6s\"` and `--fade-dur=\"0.9s\"` on the `slide`."
   code "typescript" id=g1 {
     frame #"""
       function area(w: number, h: number) {
@@ -338,7 +332,7 @@ slide {
 
 slide --tok-keyword="#ff5d8f" --tok-ident="#ffe66d" --tok-type="#4ecdc4" --tok-builtin="#ff9f1c" --tok-punct="#8d99ae" --accent="#4ecdc4" {
   heading "Recolor syntax per slide"
-  text "The `<slide>` block of this slide sets `--tok-keyword`, `--tok-ident`, `--tok-type`, `--tok-builtin` and `--tok-punct`. No theme needed."
+  text "This `slide` sets `--tok-keyword`, `--tok-ident`, `--tok-type`, `--tok-builtin` and `--tok-punct` as properties. No theme needed."
   code "typescript" id=g1 {
     frame #"""
       interface Point { x: number; y: number }
@@ -360,26 +354,23 @@ slide --tok-keyword="#ff5d8f" --tok-ident="#ffe66d" --tok-type="#4ecdc4" --tok-b
 slide --font-heading="Georgia, 'Times New Roman', serif" --heading-size="64px" --text-size="26px" --accent="#e07a5f" {
   heading "A different voice"
   text "`--font-heading`, `--heading-size` and `--text-size` change typography for one slide."
-  text "Serif headings and bigger body text, straight from the `<slide>` block."
+  text "Serif headings and bigger body text, straight from the slide's properties."
   notes #"""
-    Deck-wide defaults go in "vars" in deck.json.
+    Deck-wide defaults go in `vars` of the deck.
     """#
 }
 
 slide {
   heading "Header, footer and logo"
-  text "The bar at the bottom of this very slide is the deck's **footer**. Define a `header` and/or a `footer` in `deck.json`: each has a `left`, `center` and `right` slot holding text, images, or a list of both."
-  code "jsonc" {
+  text "The bar at the bottom of this very slide is the deck's **footer**. Define a `header` and/or a `footer` in the `deck` node: each has a `left`, `center` and `right` slot holding text or an image (a list of both in `deck.json`)."
+  code "text" {
     frame #"""
-      "footer": {
-        "left": ["logo.svg", "ACME Corp · Confidential"],
-        "right": "{slide} / {slides}",
-        "height": 42, "border": true,
-        "background": "#0b1d2a", "color": "#9db4c0"
+      deck {
+        footer left="logo.svg" right="{slide} / {slides}" height=42 border=#true background="#0b1d2a" color="#9db4c0"
       }
       """#
   }
-  text "Text can use `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}`. A slot value that ends in `.svg` `.png` `.jpg` `.webp` is an image, relative to the deck folder. Bars are hidden on `layout: cover` slides unless you set `\"cover\": true`; any slide can opt out with `footer: off` or `header: off`."
+  text "Text can use `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}`. A slot value that ends in `.svg` `.png` `.jpg` `.webp` is an image, relative to the deck folder. Bars are hidden on `cover` slides unless you set `cover=#true`; any slide can opt out with `footer=off` or `header=off`."
   notes #"""
     Typical use: a school or company theme. Put the logo in the footer or header, add the name and the slide number.
     """#
@@ -387,40 +378,32 @@ slide {
 
 slide footer=off {
   heading "This slide has no footer"
-  text "`footer: off` in the `<slide>` block hides the bar for one slide, for example in front of a full-screen demo. The bar fades out and the built-in slide counter comes back. The space stays reserved, so nothing on the slide moves when a bar appears or disappears."
+  text "`footer=off` on the `slide` hides the bar for one slide, for example in front of a full-screen demo. The bar fades out and the built-in slide counter comes back. The space stays reserved, so nothing on the slide moves when a bar appears or disappears."
   notes #"""
-    Same for header: off.
+    Same for header=off.
     """#
 }
 
 slide {
   heading "Deck-wide defaults"
-  text "`defaults` in `deck.json` is a `<slide>` block applied to **every** slide; `columns` is the same for slides that show two columns and `textOnly` for slides without code. A slide's own settings win."
-  code "jsonc" {
+  text "`defaults` in the `deck` node gives properties to **every** slide. A slide's own properties win."
+  code "text" {
     frame #"""
-      "defaults": {
-        "justify": "true",
-        "padding": "9vmin 12vmin",
-        "heading-size": "56"
-      },
-      "columns": {
-        "valign": "center"
-      },
-      "textOnly": {
-        "halign": "center",
-        "valign": "center"
+      deck {
+        defaults justify=#true margin="9vmin 12vmin" align=left
+        vars --heading-size="56px"
       }
       """#
   }
   text "Together with `themes`, `vars`, `header`/`footer` and `css` it is enough to build a house style once and reuse it for every deck of a school or company."
   notes #"""
-    Defaults accept any key a slide accepts: layout, theme, background, transition, --variables.
+    Defaults take align, valign, background, margin, justify and transition.
     """#
 }
 
 slide {
   heading "deck.json"
-  text "Optional, next to the slides."
+  text "Optional, next to the slides. Everything in it can also be written in a `deck` node of a `.slides` file; where both say something, the `deck` node wins."
   code "jsonc" {
     frame #"""
       {
@@ -444,7 +427,7 @@ slide {
 
 slide {
   heading "Animation knobs"
-  text "Under `animation` in `deck.json` (seconds):"
+  text "Under `animation` in the deck (seconds; in `deck.json` also `moveDelay`, `fadeInDelay`, `slideFade`, `textDrift`):"
   list {
     - "`move` — how long tokens glide to a new position"
     - "`fade` — fade in / out of tokens"
@@ -463,10 +446,10 @@ slide {
 slide {
   heading "Fonts, variables and CSS"
   list {
-    - "`vars` — CSS variables for the whole deck: `--font-text`, `--font-heading`, `--font-code`, `--text-size`, `--heading-size`, `--move-dur`"
+    - "`vars` — CSS variables for the whole deck (`vars --text-size=\"28px\"`): `--font-text`, `--font-heading`, `--font-code`, `--text-size`, `--heading-size`, `--move-dur`"
     - "`fonts` — local font files (path relative to the deck folder)"
     - "`googleFonts` — families loaded from Google Fonts"
-    - "`css` — a stylesheet for anything else; combine with `class:` in the `<slide>` block"
+    - "`css` — a stylesheet for anything else; combine with `class=` on a `slide`"
   }
   text "Code is drawn in the monospace font `--font-code` (Iosevka by default); the layout measures it, so use monospace fonts."
 }
@@ -474,7 +457,7 @@ slide {
 slide theme=midnight layout=cover align=center valign=middle justify=#false background="bg.svg" transition=zoom {
   title "That's all"
   text "More decks in this series: **Showcase**, **Writing slides**, **Code animation**, **Presenting and shipping**."
-  text "Start your own: `slideit dev my-talk/`"
+  text "Start your own: `slides new my-talk`"
   notes #"""
     The end.
     """#

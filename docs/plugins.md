@@ -1,18 +1,20 @@
-# Writing a slideit plugin
+# Writing a slides plugin
 
-A plugin is an ES module that a deck lists in `deck.json`:
+A plugin is an ES module that a deck lists in its `deck` node (or in `deck.json`):
 
-```json
-{ "plugins": ["./demo.js", "@someone/slideit-plugin-qr"] }
+```kdl
+deck {
+  plugins "./demo.js" "@someone/slideit-plugin-qr"
+}
 ```
 
-The viewer imports it **before** it parses the slides, so a plugin can add tags the markup then understands. A plugin runs in the
+The viewer imports it **before** it reads the slides, so a plugin can add nodes the language then understands. A plugin runs in the
 page with the same power as the deck's own scripts: add only plugins you trust, as you would an npm dependency.
 
 ```js
 export default {
   name: 'demo',
-  tags:      { /* new tags */ },
+  tags:      { /* new nodes */ },
   themes:    { /* name -> CSS variables */ },
   languages: [ /* tree-sitter grammars */ ],
   tools:     [ /* toolbox buttons */ ],
@@ -20,17 +22,15 @@ export default {
 };
 ```
 
-Everything is optional. `examples/plugin-demo` is a working deck with a plugin (`<timer>`, `<badge>`, a theme, a button, a hook).
+Everything is optional. `examples/plugin-demo` is a working deck with a plugin (`timer`, `badge`, a theme, a button, a hook).
 
-## Tags
+## Nodes
 
 ```js
 tags: {
   badge: {
     doc: 'A small colored label.',                    // shown by the editor tooling
     attrs: { color: { doc: 'a CSS color', values: ['orange', 'green'] } },
-    // raw: true,    the content is not parsed (like <code>): `<` and `&` need no escaping, `text` is all of it
-    // empty: true,  no content, written <badge />
     render({ tag, attrs, text, el, base }) {
       return `<b>${text}</b>`;                         // a string of HTML, a Node, or nothing (if you filled `el` yourself)
     },
@@ -38,19 +38,21 @@ tags: {
 }
 ```
 
-- A tag takes the animation attributes of every tag (`anim`, `delay`, `dur`, `at`, `out`, `id`) and sits wherever a `<p>` may (the
-  slide, a section, a row, a col, a step). It cannot sit inside text tags, and it cannot replace a built-in tag.
-- `attrs` are the attributes of the tag as written (`color=green` → `attrs.color === 'green'`; a bare word is `'true'`).
-- `text` is the text directly inside the tag; for a `raw` tag, everything inside, with the common indentation removed.
+It is written `badge "new" color=green` in a deck.
+
+- A node takes the animation properties of every node (`anim`, `id`) and sits wherever a `text` may (a slide, a `row`, a `col`, a
+  `step`, a slot). It cannot replace a built-in node.
+- `attrs` are the properties of the node as written (`color=green` → `attrs.color === 'green'`; numbers and booleans arrive as strings).
+- `text` is the first argument of the node (`"new"`), or an empty string.
 - `render` may be `async`; the slide is laid out again when the promise resolves. A thrown error shows up on the slide as a red note
-  with the tag name, not as a blank page.
+  with the node name, not as a blank page.
 - `el` is the element of the item. To keep timers or listeners from outliving the slide, stop them when `el.isConnected` turns false.
-- `base` is the URL of the deck folder (ends in `/`), for files the tag refers to.
+- `base` is the URL of the deck folder (ends in `/`), for files the node refers to.
 
 ## Themes, tools, hooks
 
 ```js
-themes: { sepia: { '--bg': '#f4ecd8', '--fg': '#433422' } },        // join the `t` key cycle, like deck.json "themes"
+themes: { sepia: { '--bg': '#f4ecd8', '--fg': '#433422' } },        // join the `t` key cycle, like `themes` in the deck
 tools:  [{ title: 'Next', icon: '<svg viewBox="0 0 24 24" …/>', run: (api) => api.player.next() }],   // toolbox buttons
 hooks:  { step: (api, { step, slide }) => { /* the viewer moved */ } },
 ```
@@ -64,7 +66,7 @@ meta). The icon is an inline SVG drawn with `currentColor`.
 languages: [{ name: 'zig', tags: ['zig'], wasm: './tree-sitter-zig.wasm' }]   // wasm is relative to the plugin file
 ```
 
-`<code lang=zig>` is then parsed with that grammar, so the code morphs like any other language.
+`code "zig"` is then parsed with that grammar, so the code morphs like any other language.
 
 ## Packaging
 
@@ -75,9 +77,9 @@ languages: [{ name: 'zig', tags: ['zig'], wasm: './tree-sitter-zig.wasm' }]   //
 - Keep a plugin **one self-contained file**: a plugin that imports other files breaks in the `single` target (the whole deck is one
   HTML file, and a module loaded from a `data:` URL cannot import its neighbours).
 
-### Telling the editor about your tags
+### Telling the editor about your nodes
 
-`slides check` and the language server (completion, hover, diagnostics) need to know a plugin's tags without running a browser. For an npm
+`slides check` and the language server (completion, hover, diagnostics) need to know a plugin's nodes without running a browser. For an npm
 package describe them as data in `package.json`:
 
 ```json
@@ -86,7 +88,7 @@ package describe them as data in `package.json`:
   "slideit": {
     "entry": "dist/plugin.js",
     "tags": {
-      "qr": { "doc": "A QR code.", "empty": true, "attrs": { "value": { "doc": "what it encodes" } } }
+      "qr": { "doc": "A QR code.", "props": { "value": { "doc": "what it encodes" } } }
     }
   }
 }

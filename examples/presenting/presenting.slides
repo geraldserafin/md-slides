@@ -36,8 +36,8 @@ slide --text-size="3.8vmin" {
 
 slide {
   heading "Presenter window, notes and tools"
-  text "Press **p**: a second window shows your notes (the HTML comments), the next slide and a timer. It stays in sync with the audience window, both ways — you can drive from either."
-  text "On the slide itself: **l** a laser pointer, **d** draw (**c** clears, **Esc** stops), **z** a 2× magnifier, **a** autoplay (or `\"autoplay\": 5` in `deck.json`, `?autoplay=5` in the URL). A slide with `hidden: true` in its `<slide>` block is skipped in the show and the PDF."
+  text "Press **p**: a second window shows your notes (the `notes` nodes), the next slide and a timer. It stays in sync with the audience window, both ways — you can drive from either."
+  text "On the slide itself: **l** a laser pointer, **d** draw (**c** clears, **Esc** stops), **z** a 2× magnifier, **a** autoplay (or `autoplay=5` on the `deck`, `?autoplay=5` in the URL). A slide with `hidden=#true` is skipped in the show and the PDF."
   code "typescript" {
     frame #"""
       // the presenter view lists the HTML comments of the current slide
@@ -104,16 +104,16 @@ slide {
 
 slide {
   heading "Write decks with an LLM"
-  text "The site serves `llms.txt`, a compact syntax reference written for language models, and `llms-full.txt`, this manual in one file. Give a model the URL, describe your talk, and ask for a deck folder:"
+  text "The site serves `llms.txt`, a compact language reference written for language models, and `llms-full.txt`, this manual in one file. Give a model the URL, describe your talk, and ask for a deck folder:"
   code "text" {
     frame #"""
       Read https://geraldserafin.github.io/md-slides/llms.txt,
       then write me a deck about how Git branches work.
       """#
   }
-  text "Review it with `slideit dev`, adjust, and ship it."
+  text "Review it with `slides dev`, adjust, and ship it."
   notes #"""
-    One .slide file per slide plus a deck.json: easy for a model to produce and easy to diff when you edit its draft.
+    One .slides file: easy for a model to produce and easy to diff when you edit its draft.
     """#
 }
 

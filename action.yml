@@ -1,5 +1,5 @@
 name: slideit
-description: Build a deck of .slide presentations into a website (and a PDF) and upload it for GitHub Pages
+description: Build a deck of .slides presentations into a website (and a PDF) and upload it for GitHub Pages
 author: Gerald Serafin
 branding:
   icon: play-circle
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   deck:
-    description: A folder of .slide files, or a folder of such folders (each one becomes a deck, with a chooser page)
+    description: A folder of .slides files, or a folder of such folders (each one becomes a deck, with a chooser page)
     default: '.'
   output:
     description: Where the site is written
@@ -16,7 +16,7 @@ inputs:
     description: Also export a PDF per deck into the site (needs Chrome; the GitHub runners have it)
     default: 'false'
   check:
-    description: Fail on mistakes in the .slide files (slides check)
+    description: Fail on mistakes in the .slides files (slides check)
     default: 'true'
   pages:
     description: Upload the site as the GitHub Pages artifact (deploy it with actions/deploy-pages in a later job)
@@ -57,7 +57,7 @@ runs:
       shell: bash
       run: |
         deck="${{ inputs.deck }}"
-        if ls "$deck"/*.slide >/dev/null 2>&1; then
+        if ls "$deck"/*.slides >/dev/null 2>&1; then
           slides build "$deck" -t pdf -o "${{ inputs.output }}/$(basename "$(realpath "$deck")").pdf"
         else
           slides build "$deck" -t pdf -o "${{ inputs.output }}/pdf"

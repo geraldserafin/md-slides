@@ -249,6 +249,24 @@ function siblingLayouts(uri: string): Record<string, string[]> {
   }
 }
 
+/** the number of the slide (0-based, in the whole deck folder) that holds a line of a file: for the preview to follow the cursor */
+function slideIndex(uri: string, line: number): number {
+  const count = (text: string) => { try { return parseKdl(text).filter((n) => n.name === 'slide'); } catch { return []; } };
+  let base = 0;
+  if (uri.startsWith('file:')) {
+    const file = fileURLToPath(uri);
+    const dir = dirname(file);
+    for (const f of readdirSync(dir).filter((f) => f.endsWith('.slides')).sort()) {
+      if (join(dir, f) === file) break;
+      base += count(readFileSync(join(dir, f), 'utf8')).length;
+    }
+  }
+  const here = count(docs.get(uri) ?? '');
+  let idx = 0;
+  here.forEach((n, i) => { if (n.line - 1 <= line) idx = i; });
+  return base + idx;
+}
+
 function validate(uri: string) {
   const text = docs.get(uri) ?? '';
   const lines = text.split('\n');
@@ -290,6 +308,9 @@ function handle(msg: { id?: number; method?: string; params?: any }) {
       break;
     case 'textDocument/foldingRange':
       send({ id, result: flatten(outline(docs.get(params.textDocument.uri) ?? '')).filter((s) => s.range.end.line > s.range.start.line + 1).map((s) => ({ startLine: s.range.start.line, endLine: s.range.end.line - 1 })) });
+      break;
+    case 'slides/slideIndex':
+      send({ id, result: slideIndex(params.uri, params.line) });
       break;
     case 'textDocument/definition':
       send({ id, result: definition(params.textDocument.uri, docs.get(params.textDocument.uri) ?? '', params.position) });

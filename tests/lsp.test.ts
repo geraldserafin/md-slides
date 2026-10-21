@@ -105,6 +105,14 @@ describe('slides lsp', () => {
     expect(folds).toContainEqual({ startLine: 0, endLine: 7 });
     expect(folds).toContainEqual({ startLine: 2, endLine: 6 });
   });
+  it('numbers the slides of a deck folder for the preview to follow the cursor', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slideit-idx-'));
+    writeFileSync(join(dir, '01.slides'), 'slide { title "a" }\nslide { title "b" }');
+    const u = pathToFileURL(join(dir, '02.slides')).href;
+    open(u, 'slide {\n  title "c"\n}\nslide {\n  title "d"\n}');
+    expect(await request('slides/slideIndex', { uri: u, line: 1 })).toBe(2);
+    expect(await request('slides/slideIndex', { uri: u, line: 4 })).toBe(3);
+  });
   it('goes from a code id to the blocks that share it, in the files of the deck', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'slideit-def-'));
     writeFileSync(join(dir, '01.slides'), 'slide { code "ts" "a;" id=cart }');

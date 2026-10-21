@@ -1,7 +1,7 @@
 {
   "name": "slideit-vscode",
   "displayName": "slideit",
-  "description": "Syntax highlighting, diagnostics, completion and a live preview for .slide presentations",
+  "description": "Syntax highlighting, diagnostics, completion and a live preview for .slides presentations",
   "version": "0.2.1",
   "publisher": "serafingerald",
   "license": "BSD-3-Clause",
@@ -20,27 +20,27 @@
   ],
   "main": "./extension.js",
   "activationEvents": [
-    "onLanguage:slide"
+    "onLanguage:slides"
   ],
   "contributes": {
     "languages": [
       {
-        "id": "slide",
+        "id": "slides",
         "aliases": [
-          "Slide",
-          "slide"
+          "Slides",
+          "slides"
         ],
         "extensions": [
-          ".slide"
+          ".slides"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "slide",
-        "scopeName": "text.slide",
-        "path": "./syntaxes/slide.tmLanguage.json"
+        "language": "slides",
+        "scopeName": "source.slides",
+        "path": "./syntaxes/slides.tmLanguage.json"
       }
     ],
     "commands": [
@@ -62,7 +62,7 @@
       "editor/title": [
         {
           "command": "slides.preview",
-          "when": "resourceLangId == slide",
+          "when": "resourceLangId == slides",
           "group": "navigation"
         }
       ]
@@ -72,7 +72,7 @@
         "command": "slides.preview",
         "key": "ctrl+k v",
         "mac": "cmd+k v",
-        "when": "resourceLangId == slide"
+        "when": "resourceLangId == slides"
       }
     ],
     "configuration": {
@@ -100,27 +100,23 @@
           "default": [],
           "description": "Arguments put before the subcommand of slides.command."
         },
-        "slides.autoCloseTags": {
-          "type": "boolean",
-          "default": true,
-          "description": "Typing `>` of an opening tag inserts the closing tag."
-        },
         "slides.previewFollowsCursor": {
           "type": "boolean",
           "default": true,
-          "description": "The preview shows the slide (and section) the cursor is in."
+          "description": "The preview shows the slide the cursor is in."
         }
       }
     },
     "snippets": [
       {
-        "language": "slide",
-        "path": "./snippets/slide.json"
+        "language": "slides",
+        "path": "./snippets/slides.json"
       }
     ]
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "@bgotink/kdl": "^0.4.1"
   },
   "devDependencies": {
     "@vscode/vsce": "^3.0.0"

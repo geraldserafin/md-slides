@@ -29,7 +29,7 @@ buildNpmPackage (finalAttrs: {
         hash = lib.fakeHash; # fill in when v0.1.0 is tagged
       };
 
-  npmDepsHash = "sha256-8l2roy6ZDUwVqkIB5AygnjQpYxiy0a2E9OCN4DSlBqQ=";
+  npmDepsHash = "sha256-f/hqiKLUMuaUxg1nzTJWqgQUsQpAdAsm7vVSJOT5OdA=";
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -45,7 +45,7 @@ buildNpmPackage (finalAttrs: {
   passthru.updateScript = nix-update-script { };
 
   meta = {
-    description = "Presentations written in a small tag markup, with code transitions animated by an AST diff";
+    description = "Presentations written in a small language (KDL), with code transitions animated by an AST diff";
     homepage = "https://github.com/geraldserafin/md-slides";
     license = lib.licenses.bsd3;
     mainProgram = "slides";

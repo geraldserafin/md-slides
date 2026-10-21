@@ -41,7 +41,7 @@ slide {
 
 slide {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`rename`"
   text "Only the identifiers change; every other token stays exactly where it is."
   code "typescript" loop autoplay=1 {
@@ -59,7 +59,7 @@ slide {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`insert`"
   text "New lines fade in; the lines below glide down to make room."
   code "typescript" loop autoplay=1 {
@@ -80,7 +80,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`delete`"
   text "Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion."
   code "typescript" loop autoplay=1 {
@@ -102,7 +102,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`move`"
   text "Statements swap places; every token glides to its new position instead of disappearing and reappearing."
   code "typescript" loop autoplay=1 {
@@ -124,7 +124,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`wrap`"
   text "Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in."
   code "typescript" loop autoplay=1 {
@@ -148,7 +148,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`extract`"
   text "The moved lines keep their identity inside the new function."
   code "typescript" loop autoplay=1 {
@@ -272,7 +272,7 @@ slide {
     \qquad
     \sum_{k=1}^{n} k = \frac{n(n+1)}{2}
     """#
-  text "Math reveals like any other item: put it in a `<step>`."
+  text "Math reveals like any other item: put it in a `step`."
   notes #"""
     KaTeX renders math to plain HTML (no scripts at runtime), so it works in every build target and in the PDF.
     """#
@@ -280,7 +280,7 @@ slide {
 
 slide {
   heading "Charts"
-  text "A `<chart>` tag turns a few CSV lines into a chart in the slide's colors: `type=bar` (default), `line` or `pie`."
+  text "A `chart` node turns a few CSV lines into a chart in the slide's colors: `\"bar\"`, `\"line\"` or `\"pie\"`."
   chart "bar" title="Build time (s)" width="85%" #"""
     tool, cold, warm
     webpack, 12, 4
@@ -288,16 +288,16 @@ slide {
     esbuild, 1.5, 0.6
     """#
   notes #"""
-    The first row names the series; with one series the bars carry their value. Charts are plain SVG, so they print and export like the rest. Reveal them with a `<step>`.
+    The first row names the series; with one series the bars carry their value. Charts are plain SVG, so they print and export like the rest. Reveal them with a `step`.
     """#
 }
 
 slide {
   heading "Diagrams"
-  text "A `<diagram>` tag draws a diagram with the slide's colors; press **t** to see it follow the theme."
+  text "A `diagram` node draws a diagram with the slide's colors; press **t** to see it follow the theme."
   diagram width="100%" #"""
     flowchart LR
-      md[.slide] --> parse[Parse] --> diff{{GumTree diff}} --> play[Animate]
+      md[.slides] --> parse[Parse] --> diff{{GumTree diff}} --> play[Animate]
       diff -. same language .-> play
       parse --> pdf[PDF / static / exe]
     """#
@@ -308,10 +308,10 @@ slide {
 
 slide {
   notes #"""
-    Morph pairs items by id between two sections of a slide, or between two slides. Text that changes cross-fades while it moves.
+    Morph pairs items by id between two slides. Text that changes cross-fades while it moves.
     """#
   heading "Morph anything"
-  text "Not only code: an image, a heading or a diagram with the same `id` in the next section glides from where it was. Images with the same file do it on their own. Press → to see it move."
+  text "Not only code: an image, a heading or a diagram with the same `id` on the next slide glides from where it was. Images with the same file do it on their own. Press → to see it move."
   image "diagram.svg" align=left width="180px"
 }
 slide animate=#true {

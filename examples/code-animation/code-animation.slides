@@ -84,7 +84,7 @@ slide {
 
 slide {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`rename`"
   text "Only the identifiers change; every other token stays exactly where it is."
   code "typescript" loop autoplay=1 {
@@ -102,7 +102,7 @@ slide {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`insert`"
   text "New lines fade in; the lines below glide down to make room."
   code "typescript" loop autoplay=1 {
@@ -123,7 +123,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`delete`"
   text "Removed lines fade out and the rest closes the gap. Going backwards turns deletion into insertion."
   code "typescript" loop autoplay=1 {
@@ -145,7 +145,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`move`"
   text "Statements swap places; every token glides to its new position instead of disappearing and reappearing."
   code "typescript" loop autoplay=1 {
@@ -167,7 +167,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`wrap`"
   text "Wrapping code in a block re-indents it: the original tokens slide right and the wrapper fades in."
   code "typescript" loop autoplay=1 {
@@ -191,7 +191,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "What the diff does"
-  text "Six kinds of edit, one at a time. Each one is a section under this title and slides in from the left (`section-transition: slide-right`): press → to play it, → again for the next."
+  text "Six kinds of edit, one at a time. Each one is a slide that continues the title and slides in from the left (`animate=#true`, `transition=slide-right`): press → to play it, → again for the next."
   heading "`extract`"
   text "The moved lines keep their identity inside the new function."
   code "typescript" loop autoplay=1 {
@@ -391,7 +391,7 @@ slide {
 
 slide {
   title "Across languages"
-  text "The same function in three languages, one section each under this title, sliding in from the left (`section-transition: slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
+  text "The same function in three languages, one slide each under the same title, sliding in from the left (`animate=#true`, `transition=slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
   notes #"""
     Matching needs two trees of the same language. Between languages the old code fades out and the new one fades in.
     """#
@@ -406,7 +406,7 @@ slide {
 }
 slide animate=#true {
   title "Across languages"
-  text "The same function in three languages, one section each under this title, sliding in from the left (`section-transition: slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
+  text "The same function in three languages, one slide each under the same title, sliding in from the left (`animate=#true`, `transition=slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
   heading "Python"
   code "python" {
     frame #"""
@@ -417,7 +417,7 @@ slide animate=#true {
 }
 slide animate=#true {
   title "Across languages"
-  text "The same function in three languages, one section each under this title, sliding in from the left (`section-transition: slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
+  text "The same function in three languages, one slide each under the same title, sliding in from the left (`animate=#true`, `transition=slide-right`). The diff can't match different grammars, so moving from one to the next is a plain cross-fade."
   heading "Go"
   code "go" {
     frame #"""
@@ -488,7 +488,7 @@ slide {
     Next: focus=, fit and size in detail.
     """#
   heading "Code options: alignment"
-  text "Alignment: `halign=` and `valign=` (`start` | `center` | `end`), or the classes `left` `center` `right` and `top` `middle` `bottom` in `class=`. Without them the code follows its slide: `start`, unless the slide says otherwise. Other options: `id` (the animation), classes `lines` and `panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides), and `autoplay=1` with `loop`: the frames play by themselves, as on the diff slides."
+  text "Alignment: `align=` (`left` | `center` | `right`) and `valign=` (`top` | `middle` | `bottom`). Without them the code follows its slide: `start`, unless the slide says otherwise. Other options: `id` (the animation), classes `lines` and `panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides), and `autoplay=1` with `loop`: the frames play by themselves, as on the diff slides."
   code "typescript" id=g1 align=left {
     frame #"""
       const where = "left";
@@ -500,7 +500,7 @@ slide {
 }
 slide animate=#true {
   heading "Code options: size"
-  text "`size=14` fixes the font size in pixels. Without it the code is scaled to fit, using the largest frame of the section, so the size never jumps between frames."
+  text "`size=14` fixes the font size in pixels. Without it the code is scaled to fit, using the largest frame of the block, so the size never jumps between frames."
   code "typescript" id=g2 size=14 {
     frame #"""
       const small = "size=14";
@@ -585,10 +585,10 @@ slide {
 
 slide {
   notes #"""
-    The largest frame of a section decides the scale, so the font size is constant across frames.
+    The largest frame of a block decides the scale, so the font size is constant across frames.
     """#
   heading "Fit: code scales to the available space"
-  text "Code is scaled to fit the slide (between half and 1.6x). The **largest** frame of a section decides, so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size."
+  text "Code is scaled to fit the slide (between half and 1.6x). The **largest** frame of a block decides, so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size."
   code "typescript" id=g1 {
     frame #"""
       const a = 1;
@@ -638,7 +638,7 @@ slide animate=#true {
 
 slide {
   heading "Frame transitions: `transition=`"
-  text "By default a frame **morphs** from the previous one. Put `transition=` on a `<frame>` to change how *that* frame is entered:"
+  text "By default a frame **morphs** from the previous one. Put `transition=` on a `frame` to change how *that* frame is entered:"
   list {
     - "`morph` (default) — the diff animation"
     - "`fade` — no matching: the old code fades out, the new code fades in"

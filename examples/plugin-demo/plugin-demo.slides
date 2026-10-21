@@ -1,15 +1,15 @@
 slide layout=cover align=center valign=middle {
   title "Plugins"
-  text "New tags, a theme and a button, from one file"
+  text "New nodes, a theme and a button, from one file"
   badge "demo.js" color=green
   notes #"""
-    This deck loads demo.js, listed in deck.json under "plugins".
+    This deck loads demo.js, listed in `deck` under `plugins`.
     """#
 }
 
 slide {
-  heading "A tag from a plugin"
-  text "The `<timer>` tag comes from `demo.js`. It runs while this slide is on screen:"
+  heading "A node from a plugin"
+  text "The `timer` node comes from `demo.js`. It runs while this slide is on screen:"
   timer minutes=3
   text "The toolbox has a new button that restarts it, and the **t** key now cycles through a *sepia* theme too."
 }
@@ -21,13 +21,13 @@ slide {
     frame #"""
       export default {
         name: 'demo',
-        tags: { badge: { doc: 'A label.', render: ({ attrs, text }) => `<b>${text}</b>` } },
+        tags: { badge: { doc: 'A label.', render: ({ attrs, text }) => `<b>${text}</b>` } }, // a node: badge "text" color=red
         themes: { sepia: { '--bg': '#f4ecd8' } },
         tools: [{ title: 'Hi', icon: '<svg …/>', run: (api) => api.player.next() }],
         hooks: { step: (api, { slide }) => console.log(slide) },
       }
       """#
   }
-  text "Plugins are listed in `deck.json`: `\"plugins\": [\"./demo.js\", \"@someone/slideit-plugin-qr\"]`."
+  text "Plugins are listed in the `deck` node: `plugins \"./demo.js\" \"@someone/slideit-plugin-qr\"` (or in `deck.json`)."
   badge "docs/plugins.md" color=blue
 }

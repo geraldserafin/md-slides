@@ -1,0 +1,963 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Slides",
+  "scopeName": "source.slides",
+  "patterns": [
+    {
+      "include": "#root"
+    }
+  ],
+  "repository": {
+    "root": {
+      "patterns": [
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:ts|typescript)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.ts",
+              "patterns": [
+                {
+                  "include": "source.ts"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:tsx)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.tsx",
+              "patterns": [
+                {
+                  "include": "source.tsx"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:js|javascript|jsx)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.js",
+              "patterns": [
+                {
+                  "include": "source.js"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:cpp|c\\+\\+|cxx|cc|hpp)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.cpp",
+              "patterns": [
+                {
+                  "include": "source.cpp"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:c|h)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.c",
+              "patterns": [
+                {
+                  "include": "source.c"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:py|python)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.python",
+              "patterns": [
+                {
+                  "include": "source.python"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:rs|rust)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.rust",
+              "patterns": [
+                {
+                  "include": "source.rust"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:go|golang)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.go",
+              "patterns": [
+                {
+                  "include": "source.go"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:java)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.java",
+              "patterns": [
+                {
+                  "include": "source.java"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:sh|bash|shell)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.shell",
+              "patterns": [
+                {
+                  "include": "source.shell"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:json)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.json",
+              "patterns": [
+                {
+                  "include": "source.json"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:html)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "text.html.basic",
+              "patterns": [
+                {
+                  "include": "text.html.basic"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:css)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.css",
+              "patterns": [
+                {
+                  "include": "source.css"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "begin": "^(\\s*)(code)(\\s+)(\"(?:lua)\")([^{\\n]*)(\\{)\\s*$",
+          "end": "^\\1\\}",
+          "beginCaptures": {
+            "2": {
+              "name": "entity.name.tag.slides"
+            },
+            "4": {
+              "name": "string.quoted.double.slides"
+            },
+            "5": {
+              "patterns": [
+                {
+                  "include": "#props"
+                }
+              ]
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(frame)([^#\\n]*?)(#+)\"\"\"\\s*$",
+              "end": "^\\s*\"\"\"\\3",
+              "beginCaptures": {
+                "1": {
+                  "name": "entity.name.tag.slides"
+                },
+                "2": {
+                  "patterns": [
+                    {
+                      "include": "#props"
+                    }
+                  ]
+                },
+                "3": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "string.quoted.triple.raw.slides"
+                }
+              },
+              "contentName": "source.lua",
+              "patterns": [
+                {
+                  "include": "source.lua"
+                }
+              ]
+            },
+            {
+              "include": "#root"
+            }
+          ]
+        },
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#string0"
+        },
+        {
+          "include": "#string1"
+        },
+        {
+          "include": "#string2"
+        },
+        {
+          "include": "#string3"
+        },
+        {
+          "match": "#(?:true|false|null|inf|-inf|nan)\\b",
+          "name": "constant.language.slides"
+        },
+        {
+          "match": "(?<![\\w-])-?\\d[\\d_]*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w-])",
+          "name": "constant.numeric.slides"
+        },
+        {
+          "match": "([\\w.-]+)(=)",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.slides"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.slides"
+            }
+          }
+        },
+        {
+          "match": "/-",
+          "name": "keyword.operator.slashdash.slides"
+        },
+        {
+          "match": "(?:^|(?<=[{};]))\\s*(?:(/-)\\s*)?(-|[A-Za-z_][\\w.-]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.slashdash.slides"
+            },
+            "2": {
+              "name": "entity.name.tag.slides"
+            }
+          }
+        },
+        {
+          "match": "[\\w.-]+",
+          "name": "variable.parameter.flag.slides"
+        }
+      ]
+    },
+    "props": {
+      "patterns": [
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#string0"
+        },
+        {
+          "include": "#string1"
+        },
+        {
+          "include": "#string2"
+        },
+        {
+          "include": "#string3"
+        },
+        {
+          "match": "#(?:true|false|null|inf|-inf|nan)\\b",
+          "name": "constant.language.slides"
+        },
+        {
+          "match": "(?<![\\w-])-?\\d[\\d_]*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w-])",
+          "name": "constant.numeric.slides"
+        },
+        {
+          "match": "([\\w.-]+)(=)",
+          "captures": {
+            "1": {
+              "name": "entity.other.attribute-name.slides"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.slides"
+            }
+          }
+        },
+        {
+          "match": "/-",
+          "name": "keyword.operator.slashdash.slides"
+        },
+        {
+          "match": "(?:^|(?<=[{};]))\\s*(?:(/-)\\s*)?(-|[A-Za-z_][\\w.-]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.slashdash.slides"
+            },
+            "2": {
+              "name": "entity.name.tag.slides"
+            }
+          }
+        },
+        {
+          "match": "[\\w.-]+",
+          "name": "variable.parameter.flag.slides"
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash.slides"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.slides"
+        }
+      ]
+    },
+    "escape": {
+      "match": "\\\\(?:[nrt\\\\\"/bf]|u\\{[0-9a-fA-F]{1,6}\\}|\\s)",
+      "name": "constant.character.escape.slides"
+    },
+    "inline": {
+      "patterns": [
+        {
+          "match": "\\*\\*[^*\\n]+\\*\\*",
+          "name": "markup.bold.slides"
+        },
+        {
+          "match": "(?<![*\\w])\\*[^*\\s][^*\\n]*\\*(?![*\\w])",
+          "name": "markup.italic.slides"
+        },
+        {
+          "match": "`[^`\\n]+`",
+          "name": "markup.inline.raw.slides"
+        },
+        {
+          "match": "~~[^~\\n]+~~",
+          "name": "markup.strikethrough.slides"
+        },
+        {
+          "match": "==[^=\\n]+==",
+          "name": "markup.changed.slides"
+        },
+        {
+          "match": "\\[[^\\]\\n]+\\]\\([^)\\n]+\\)",
+          "name": "markup.underline.link.slides"
+        }
+      ]
+    },
+    "string0": {
+      "begin": "(#+)\"\"\"",
+      "end": "\"\"\"\\1",
+      "name": "string.quoted.triple.raw.slides"
+    },
+    "string1": {
+      "begin": "(#+)\"",
+      "end": "\"\\1",
+      "name": "string.quoted.double.raw.slides"
+    },
+    "string2": {
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "name": "string.quoted.triple.slides",
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "#inline"
+        }
+      ]
+    },
+    "string3": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.slides",
+      "patterns": [
+        {
+          "include": "#escape"
+        },
+        {
+          "include": "#inline"
+        }
+      ]
+    }
+  }
+}

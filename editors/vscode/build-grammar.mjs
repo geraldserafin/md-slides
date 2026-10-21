@@ -1,5 +1,5 @@
-// Generates syntaxes/slide.tmLanguage.json: the tag markup, with the code inside <code lang=…> highlighted by the editor's
-// own grammar for that language (the languages come from src/tags.json). Run: node editors/vscode/build-grammar.mjs
+// Generates syntaxes/slides.tmLanguage.json: KDL with our nodes, and the code inside `code "lang" { frame #"""…"""# }` highlighted by
+// the editor's own grammar for that language (the languages come from src/tags.json). Run: node editors/vscode/build-grammar.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,77 +12,77 @@ const SCOPES = {
   css: 'source.css', lua: 'source.lua',
 };
 
-const attrs = {
-  patterns: [
-    { match: '([\\w-]+)(=)([^\\s"\'>]+)', captures: { 1: { name: 'entity.other.attribute-name.slide' }, 2: { name: 'punctuation.separator.key-value.slide' }, 3: { name: 'string.unquoted.slide' } } },
-    { match: '([\\w-]+)(=)(?=["\'])', captures: { 1: { name: 'entity.other.attribute-name.slide' }, 2: { name: 'punctuation.separator.key-value.slide' } } },
-    { match: '[\\w-]+', name: 'entity.other.attribute-name.slide' },
-    { begin: '"', end: '"', name: 'string.quoted.double.slide' },
-    { begin: "'", end: "'", name: 'string.quoted.single.slide' },
-  ],
-};
-const open = (name) => `(<)(${name})(?![\\w-])`;
-const tagCaptures = { 1: { name: 'punctuation.definition.tag.begin.slide' }, 2: { name: 'entity.name.tag.slide' } };
-const endCaptures = { 1: { name: 'punctuation.definition.tag.begin.slide' }, 2: { name: 'entity.name.tag.slide' }, 3: { name: 'punctuation.definition.tag.end.slide' } };
+const strings = [
+  // raw multi-line #"""…"""#, raw #"…"#, multi-line """…""", "…"
+  { begin: '(#+)"""', end: '"""\\1', name: 'string.quoted.triple.raw.slides' },
+  { begin: '(#+)"', end: '"\\1', name: 'string.quoted.double.raw.slides' },
+  { begin: '"""', end: '"""', name: 'string.quoted.triple.slides', patterns: [{ include: '#escape' }, { include: '#inline' }] },
+  { begin: '"', end: '"', name: 'string.quoted.double.slides', patterns: [{ include: '#escape' }, { include: '#inline' }] },
+];
 
-// <frame …> … </frame> with the language's grammar inside
-const frame = (scope) => ({
-  begin: '(<)(frame)(?![\\w-])([^>]*)(>)', end: '(</)(frame)(>)', contentName: scope,
-  beginCaptures: { 1: tagCaptures[1], 2: tagCaptures[2], 3: { patterns: [attrs] }, 4: { name: 'punctuation.definition.tag.end.slide' } },
-  endCaptures,
-  patterns: [{ include: '#escape' }, { include: scope }],
-});
+const common = [
+  { include: '#comment' },
+  ...strings.map((_, i) => ({ include: `#string${i}` })),
+  { match: '#(?:true|false|null|inf|-inf|nan)\\b', name: 'constant.language.slides' },
+  { match: '(?<![\\w-])-?\\d[\\d_]*(?:\\.\\d+)?(?:[eE][+-]?\\d+)?(?![\\w-])', name: 'constant.numeric.slides' },
+  { match: '([\\w.-]+)(=)', captures: { 1: { name: 'entity.other.attribute-name.slides' }, 2: { name: 'punctuation.separator.key-value.slides' } } },
+  { match: '/-', name: 'keyword.operator.slashdash.slides' },
+  // a node name: the first word of a statement
+  { match: '(?:^|(?<=[{};]))\\s*(?:(/-)\\s*)?(-|[A-Za-z_][\\w.-]*)', captures: { 1: { name: 'keyword.operator.slashdash.slides' }, 2: { name: 'entity.name.tag.slides' } } },
+  { match: '[\\w.-]+', name: 'variable.parameter.flag.slides' },
+];
 
+// code "lang" { … frame #"""…"""# … }: the strings of its frames in the language's grammar
 const codeRules = Object.entries(SCOPES).map(([grammar, scope]) => {
   const names = [...new Set(Object.entries(tags).filter(([, g]) => g === grammar).map(([t]) => t.replace(/[+]/g, '\\+')))].join('|');
   return {
-    begin: `(<)(code)(?![\\w-])(?=[^>]*\\blang=["']?(?:${names})["'\\s>/])([^>]*)(>)`, end: '(</)(code)(>)',
-    beginCaptures: { 1: tagCaptures[1], 2: tagCaptures[2], 3: { patterns: [attrs] }, 4: { name: 'punctuation.definition.tag.end.slide' } },
-    endCaptures,
-    patterns: [frame(scope), { include: '#escape' }, { include: scope }],
+    begin: `^(\\s*)(code)(\\s+)("(?:${names})")([^{\\n]*)(\\{)\\s*$`,
+    end: '^\\1\\}',
+    beginCaptures: {
+      2: { name: 'entity.name.tag.slides' }, 4: { name: 'string.quoted.double.slides' },
+      5: { patterns: [{ include: '#props' }] },
+    },
+    patterns: [
+      {
+        begin: '(frame)([^#\\n]*?)(#+)"""\\s*$', end: '^\\s*"""\\3',
+        beginCaptures: { 1: { name: 'entity.name.tag.slides' }, 2: { patterns: [{ include: '#props' }] }, 3: { name: 'string.quoted.triple.raw.slides' } },
+        endCaptures: { 0: { name: 'string.quoted.triple.raw.slides' } },
+        contentName: scope, patterns: [{ include: scope }],
+      },
+      { include: '#root' },
+    ],
   };
-});
-
-const raw = (name, scope, contentName) => ({
-  begin: `(<)(${name})(?![\\w-])([^>]*)(>)`, end: '(</)(' + name + ')(>)', contentName,
-  beginCaptures: { 1: tagCaptures[1], 2: tagCaptures[2], 3: { patterns: [attrs] }, 4: { name: 'punctuation.definition.tag.end.slide' } },
-  endCaptures,
-  patterns: [{ include: '#escape' }, ...(scope ? [{ include: scope }] : [])],
 });
 
 const grammar = {
   $schema: 'https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json',
-  name: 'Slide',
-  scopeName: 'text.slide',
-  fileTypes: ['slide'],
-  patterns: [{ include: '#slide-settings' }, ...codeRules, { include: '#raw' }, { include: '#tag' }, { include: '#entity' }],
+  name: 'Slides',
+  scopeName: 'source.slides',
+  patterns: [{ include: '#root' }],
   repository: {
-    escape: { match: '\\\\</[a-z]+>', name: 'constant.character.escape.slide' },
-    entity: { match: '&(#\\d+|#x[0-9a-fA-F]+|\\w+);', name: 'constant.character.entity.slide' },
-    'slide-settings': {
-      begin: '(<)(slide)(>)', end: '(</)(slide)(>)',
-      beginCaptures: { 1: tagCaptures[1], 2: tagCaptures[2], 3: { name: 'punctuation.definition.tag.end.slide' } }, endCaptures,
+    root: { patterns: [...codeRules, ...common] },
+    props: { patterns: common },
+    comment: {
       patterns: [
-        { match: '^\\s*(#.*)$', captures: { 1: { name: 'comment.line.number-sign.slide' } } },
-        { match: '^\\s*([\\w-]+)\\s*(:)\\s*(.*)$', captures: { 1: { name: 'variable.other.property.slide' }, 2: { name: 'punctuation.separator.key-value.slide' }, 3: { name: 'string.unquoted.slide' } } },
+        { match: '//.*$', name: 'comment.line.double-slash.slides' },
+        { begin: '/\\*', end: '\\*/', name: 'comment.block.slides' },
       ],
     },
-    raw: {
+    escape: { match: '\\\\(?:[nrt\\\\"/bf]|u\\{[0-9a-fA-F]{1,6}\\}|\\s)', name: 'constant.character.escape.slides' },
+    // the inline markup inside the text of a node
+    inline: {
       patterns: [
-        raw('code', null, 'markup.raw.block.slide'),
-        raw('c', null, 'markup.inline.raw.string.slide'),
-        raw('tex', 'text.tex.latex', 'markup.math.slide'),
-        raw('chart', null, 'markup.raw.block.csv.slide'),
-        raw('diagram', null, 'markup.raw.block.slide'),
-        raw('notes', null, 'comment.block.notes.slide'),
-      ],
-    },
-    tag: {
-      patterns: [
-        { begin: '(</?)([a-z][\\w-]*)(?![\\w-])', end: '(/?>)', beginCaptures: tagCaptures, endCaptures: { 1: { name: 'punctuation.definition.tag.end.slide' } }, patterns: [attrs] },
+        { match: '\\*\\*[^*\\n]+\\*\\*', name: 'markup.bold.slides' },
+        { match: '(?<![*\\w])\\*[^*\\s][^*\\n]*\\*(?![*\\w])', name: 'markup.italic.slides' },
+        { match: '`[^`\\n]+`', name: 'markup.inline.raw.slides' },
+        { match: '~~[^~\\n]+~~', name: 'markup.strikethrough.slides' },
+        { match: '==[^=\\n]+==', name: 'markup.changed.slides' },
+        { match: '\\[[^\\]\\n]+\\]\\([^)\\n]+\\)', name: 'markup.underline.link.slides' },
       ],
     },
   },
 };
-writeFileSync(join(here, 'syntaxes/slide.tmLanguage.json'), JSON.stringify(grammar, null, 2) + '\n');
-console.log('syntaxes/slide.tmLanguage.json');
+strings.forEach((s, i) => { grammar.repository[`string${i}`] = s; });
+
+writeFileSync(join(here, 'syntaxes/slides.tmLanguage.json'), JSON.stringify(grammar, null, 2) + '\n');
+console.log('syntaxes/slides.tmLanguage.json');

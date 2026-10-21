@@ -1,5 +1,5 @@
 // The VS Code side of slideit: the language client (completion, hover, diagnostics, outline, folding, go to definition from the
-// bundled language server), snippets, auto-closing tags, and the preview (`slides dev` in the background, shown beside the editor
+// bundled language server), snippets, and the preview (`slides dev` in the background, shown beside the editor
 // and following the cursor). Works in VS Code, VSCodium, Cursor and other forks.
 const vscode = require('vscode');
 const path = require('node:path');
@@ -46,7 +46,7 @@ function startClient(context) {
       options: { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } },
     };
   }
-  client = new LanguageClient('slides', 'Slides', server, { documentSelector: [{ scheme: 'file', language: 'slide' }] });
+  client = new LanguageClient('slides', 'Slides', server, { documentSelector: [{ scheme: 'file', language: 'slides' }] });
   client.start().catch((e) => vscode.window.showWarningMessage(`Slides: the language server did not start (${e.message}).`));
 }
 
@@ -75,7 +75,7 @@ function startServer(folder) {
 async function openPreview() {
   const editor = vscode.window.activeTextEditor;
   const file = editor?.document.uri.fsPath;
-  if (!file || !file.endsWith('.slide')) return vscode.window.showInformationMessage('Open a .slide file first.');
+  if (!file || !file.endsWith('.slides')) return vscode.window.showInformationMessage('Open a .slides file first.');
   const folder = path.dirname(file);
   try {
     if (!preview || preview.folder !== folder) {
@@ -104,43 +104,19 @@ function stopPreview() {
   status?.hide();
 }
 
-/** the preview shows the slide the cursor is in (and its section): which file in the folder, which <section> */
+/** the preview shows the slide the cursor is in: the server counts the slides of the folder up to it */
 let syncTimer;
 function syncPreview() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
+  syncTimer = setTimeout(async () => {
     const editor = vscode.window.activeTextEditor;
-    if (!preview || !cfg().get('previewFollowsCursor') || !editor || editor.document.languageId !== 'slide') return;
-    const file = editor.document.uri.fsPath;
-    if (path.dirname(file) !== preview.folder) return;
-    const files = fs.readdirSync(preview.folder).filter((f) => f.endsWith('.slide')).sort();
-    const slide = files.indexOf(path.basename(file));
-    if (slide < 0) return;
-    const before = editor.document.getText(new vscode.Range(new vscode.Position(0, 0), editor.selection.active));
-    const sections = (before.match(/<section[\s>]/g) ?? []).length;
-    const total = (editor.document.getText().match(/<section[\s>]/g) ?? []).length;
-    const section = total ? Math.max(0, sections - 1) : '';
-    http.get(`${preview.url}__goto?slide=${slide}&section=${section}`, (r) => r.resume()).on('error', () => {});
+    if (!preview || !client || !cfg().get('previewFollowsCursor') || !editor || editor.document.languageId !== 'slides') return;
+    if (path.dirname(editor.document.uri.fsPath) !== preview.folder) return;
+    try {
+      const slide = await client.sendRequest('slides/slideIndex', { uri: editor.document.uri.toString(), line: editor.selection.active.line });
+      http.get(`${preview.url}__goto?slide=${slide}&section=`, (r) => r.resume()).on('error', () => {});
+    } catch { /* the server is not up yet */ }
   }, 120);
-}
-
-/** typing `>` after an opening tag inserts the closing one: `<row>` -> `<row>|</row>` */
-const EMPTY = new Set(['img', 'video', 'audio', 'br']);
-function autoClose(e) {
-  if (!cfg().get('autoCloseTags') || e.document.languageId !== 'slide' || e.contentChanges.length !== 1) return;
-  const ch = e.contentChanges[0];
-  if (ch.text !== '>' || ch.rangeLength !== 0) return;
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document !== e.document) return;
-  const pos = ch.range.start.translate(0, 1);
-  const before = e.document.lineAt(pos.line).text.slice(0, pos.character);
-  const m = /<([a-z][a-z0-9-]*)(?:\s(?:"[^"]*"|'[^']*'|[^<>"'])*)?>$/.exec(before);
-  if (!m || /\/>$/.test(before) || EMPTY.has(m[1])) return;
-  const rest = e.document.lineAt(pos.line).text.slice(pos.character);
-  if (rest.startsWith(`</${m[1]}>`)) return;
-  editor.edit((b) => b.insert(pos, `</${m[1]}>`), { undoStopBefore: false, undoStopAfter: false }).then(() => {
-    editor.selection = new vscode.Selection(pos, pos);
-  });
 }
 
 async function checkDeck() {
@@ -165,7 +141,6 @@ exports.activate = (context) => {
     vscode.commands.registerCommand('slides.check', checkDeck),
     vscode.window.onDidChangeTextEditorSelection(syncPreview),
     vscode.window.onDidChangeActiveTextEditor(syncPreview),
-    vscode.workspace.onDidChangeTextDocument(autoClose),
   );
 };
 

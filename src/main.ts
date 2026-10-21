@@ -57,7 +57,7 @@ const showLoader = (label = '') => {
 const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
 const errorScreen = (e: unknown, extra = '') => {
   const err = e as Error;
-  const slideMistake = /^[\w.-]+\/[^,]+\.slide, line \d+/.test(err?.message ?? '');
+  const slideMistake = /^[\w.-]+\/[^,]+\.slides, line \d+/.test(err?.message ?? '');
   const title = slideMistake ? 'A slide has a mistake' : e instanceof LoadError ? 'Could not load the deck' : 'Something went wrong';
   const hint = e instanceof LoadError ? e.hint : slideMistake ? 'Fix it in the file; the page reloads when you save.' : undefined;
   app.innerHTML = `<div class="error-box"><h2>${title}</h2><p class="msg">${esc(err?.message ?? String(e))}</p>${hint ? `<p class="hint">${esc(hint)}</p>` : ''}${extra}<details><summary>Details</summary><pre>${esc(String(err?.stack ?? e))}</pre></details></div>`;

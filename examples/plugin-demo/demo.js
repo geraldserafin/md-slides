@@ -1,4 +1,4 @@
-// A slideit plugin: this file is loaded by the viewer before the slides are parsed. It adds two tags (<timer> and <badge>),
+// A slideit plugin: this file is loaded by the viewer before the slides are parsed. It adds two nodes (`timer` and `badge`),
 // a theme (press t), a toolbox button and a hook. See docs/plugins.md.
 const svg = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 
@@ -6,10 +6,9 @@ export default {
   name: 'demo',
 
   tags: {
-    // <timer minutes=5 /> counts down from the moment the slide shows
+    // `timer minutes=5` counts down from the moment the slide shows
     timer: {
       doc: 'A countdown clock.',
-      empty: true,
       attrs: { minutes: { doc: 'how long it runs (default 5)' } },
       render({ attrs, el }) {
         const total = Math.round((parseFloat(attrs.minutes) || 5) * 60);
@@ -28,7 +27,7 @@ export default {
       },
     },
 
-    // <badge color=orange>new</badge> : a string of HTML is fine too
+    // `badge "new" color=orange` : a string of HTML is fine too
     badge: {
       doc: 'A small colored label.',
       attrs: { color: { doc: 'a CSS color', values: ['orange', 'green', 'blue', 'red'] } },

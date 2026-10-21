@@ -1,127 +1,133 @@
 # slideit
 
-> Presentations whose code transitions are animated by an AST diff (GumTree). A deck is a folder of `.slide` files
-> (one file = one slide, written in tags) plus an optional deck.json. It compiles to a static
-> website, a single HTML file, a PDF or a standalone executable. Everything you need to write a deck is below; the full
-> manual is in llms-full.txt (same site) and in the README: https://github.com/geraldserafin/md-slides
+> Presentations whose code transitions are animated by an AST diff (GumTree). A deck is a `.slides` file (or a folder of them)
+> written in KDL, plus optional assets and deck.json. It compiles to a static website, a single HTML file, a PDF or a standalone
+> executable. Everything you need to write a deck is below; the full manual is in llms-full.txt (same site) and in the README:
+> https://github.com/geraldserafin/md-slides
 
 ## How to produce a deck (for an LLM)
 
-1. Make a folder `my-talk/`. Put one slide per `.slide` file; slides play in file-name order, so number them:
-   `01-cover.slide`, `02-problem.slide`, `03-demo.slide` ...
-2. Optionally add `deck.json` (title, theme, author, footer ...), images and videos next to the slides.
-3. Install with `npm i -g @geraldserafin/slideit` (the command is `slides`; one-off: `npx @geraldserafin/slideit ...`), then run `slides dev my-talk/` (live reload) or `slides build my-talk/ -o dist` (static site),
-   `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
-4. Write for the audience: one idea per slide, short text, code that changes in small steps.
+1. Make a folder `my-talk/` with one file `my-talk.slides`: a `deck` node (title, author, theme), then one `slide` node per slide.
+   Put images and videos next to it.
+2. Install with `npm i -g @geraldserafin/slideit` (the command is `slides`; one-off: `npx @geraldserafin/slideit ...`), check the
+   file with `slides check my-talk/` (fix what it prints), then `slides dev my-talk/` (live reload) or `slides build my-talk/ -o dist`
+   (static site), `--target single` (one .html), `--target pdf`, `--target exe`. A folder of deck folders becomes a chooser page.
+3. Write for the audience: one idea per slide, short text, code that changes in small steps. Do not position anything: the layout of a
+   slide follows from what is on it.
 
-## The markup
+## The language
 
-Tags only, no Markdown. Tags are strict: an unknown tag, a missing closing tag or text outside a tag is an error with the line
-number. Attributes: `key=value` (quote values with spaces), a bare word is a flag (`autoplay`), a tag without content ends with
-`/>`. The content of `<code> <c> <tex> <chart> <diagram> <notes> <slide>` is raw (no escaping of `<` or `&`; common indentation
-removed; write `\</code>` for a closing tag as text). In text tags write `&lt;` for `<`.
+KDL v2: a file is a list of nodes. A node is `name "argument" key=value flag { children }`. Write children on separate lines, or on one
+line separated by `;`. Text is always in quotes (`"..."`), with a little inline markup inside: `**bold**` `*italic*` `~~strike~~`
+`==mark==` `H~2~O` `x^2^` `\`code\`` `[link](url)` `$tex$` `[[Key]]`; a newline is a line break. A multi-line string is
+`"""` ... `"""`; a raw string `#"..."#` has no escapes (use it for code and LaTeX). `//` is a comment, `/-` before a node switches it off.
+Booleans are `#true` and `#false`. Strings with `%` or spaces are quoted (`width="40%"`); bare words are flags (`video "a.mp4" loop`).
 
-```text
-<slide>
-  layout: cover          # optional settings, one key: value per line
-</slide>
+```kdl
+deck title="Git branches" author="Me" theme=dark
 
-<h1>Title</h1>
-<p>Text, <b>bold</b>, <c>code</c>, <tex>x^2</tex> math.</p>
-<ul><li>a list</li><li>of points</li></ul>
+slide {
+  title "Git branches"
+  text "A branch is **a movable pointer** to a commit."
+  notes "Presenter notes (press p)."
+}
 
-<notes>Presenter notes (press p).</notes>
-```
-
-| Tag | Does |
-| --- | --- |
-| `<slide>` | settings of the slide (below) |
-| `<section>` | one of several parts of a slide, played one after another with → (whatever is outside the sections stays on screen; without any, the slide is one section) |
-| `<row>` | children side by side, equal shares (`size=2` weight, `size=auto`, `size=40%`); also `halign` `valign` |
-| `<col>` | children stacked (use it to put several things into one part of a row) |
-| `<step at=N>` | content appears on the next click (or on click N) |
-| `<h1> <h2> <h3> <p> <quote>` | headings, paragraphs, quotes (each one is an item; `size` `halign` `valign` work as on a col) |
-| `<ul> <ol>` + `<li>` | lists; `steps` shows a list bullet by bullet |
-| `<table>` + `<tr> <th> <td>` | a table |
-| inline: `<b> <i> <s> <c> <a href> <kbd> <mark> <sub> <sup> <br />` | `<c>` is code (raw) |
-| `<tex>` | math (KaTeX): inline in a `<p>`, display on its own |
-| `<code lang=ts id=x>` | animated code, with `<frame>`s (below) |
-| `<img src=a.png class="left" width=40% />`, `<video .../>`, `<audio .../>` | media; `autoplay loop muted` |
-| `<chart type=bar title="T">`CSV`</chart>` | chart from CSV (first row names the series); `type=bar|line|pie`, `width` |
-| `<diagram>`mermaid`</diagram>` | Mermaid diagram |
-| `<notes>` | presenter notes |
-
-Rows and columns nest, and the parts always add up to the whole slide:
-
-```text
-<h2>Title</h2>
-<row>
-  <col>
-    <h3>Left</h3>
-    <p>Text</p>
-  </col>
-  <code lang=ts>...</code>      <!-- a row's children are its parts -->
-</row>
-```
-
-Any tag with content takes animation attributes: `anim` (fade|rise|zoom|left|right|down|blur|pop|none), `delay`, `dur`
-(seconds), `at=N` (the click it appears), `out=N` (the click it disappears) and `id=name` (morph: the same id in the next
-section or slide glides between the two; same-file images do it automatically).
-
-## Animated code (the point of the tool)
-
-A `<code>` is one block and its `<frame>`s are the states it passes through: the first is shown with the block, each next
-one takes a click, and the code morphs between them (tokens glide, new ones fade in, removed ones fade out).
-
-```text
-<code lang=ts>
-  <frame>
-    const total = items.reduce((s, i) => s + i.price, 0);
-  </frame>
-  <frame focus=1>
-    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-  </frame>
-</code>
-```
-
-Blocks are independent unless they share an `id`: the same `id` in another section or slide continues the animation.
-`<code from=cart />` copies the last frame of the earlier block with that id. Attributes of `<code>`: `lang`, `id`,
-`size=18`, `class="lines panel left right top middle bottom"`, `start=10`, `title=cart.ts`, `bg=#16213e`, `radius=12`,
-`pad="1em"`, `halign`/`valign`, `fit=none`, `at=N`, `autoplay=1` (frames play by themselves, seconds apart, taking no clicks) with `loop`; of `<frame>`: `focus=2-4,7` (dim the other lines), `transition=morph|fade|none`
-(how this frame is entered), `at=N`. Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json,
-html, css, lua. Between two different languages the code cross-fades. A language without a grammar is a plain static block.
-
-## Slide settings (in `<slide>`)
-
-`layout: cover`, `theme: light|dark|paper|<yours>`, `background: img.jpg | #123 | linear-gradient(...) | clip.mp4`,
-`halign`/`valign: start|center|end` (default start/start), `justify: true`, `transition: fade|slide|slide-right|slide-left|zoom|none`,
-`section-transition: ...` (between sections), `heading-size`, `text-size`, `spacing`, `margin`, `gap`, `class`,
-`footer: off`, `hidden: true` (skip the slide), `autoplay: 5`, any CSS variable `--accent: #f00`.
-
-## Plugins
-
-`"plugins": ["./demo.js", "@x/slideit-plugin-y"]` in deck.json loads ES modules that default-export `{ name, tags, themes, languages, tools, hooks }`; a plugin's tags (e.g. `<timer minutes=5 />`) then work like built-in ones. Authors: docs/plugins.md in the repository.
-
-## deck.json
-
-```json
-{
-  "title": "My talk", "author": "Me", "date": "2026-01-01",
-  "theme": "dark",
-  "schemes": { "light": "ink", "dark": "midnight" },
-  "themes": { "ink": { "--bg": "#fbfaf6", "--fg": "#2b2e36", "--heading": "#11131a", "--accent": "#3a5ba0", "--code-bg": "#f1eee6" } },
-  "fonts": [{ "family": "Source Sans 3", "src": "fonts/ss3.woff2", "weight": "400" }],
-  "defaults": { "halign": "start", "justify": "true" },
-  "header": { "left": "logo.svg", "right": "{title}" },
-  "footer": { "left": "My talk", "right": "{slide} / {slides}", "height": 48 },
-  "animation": { "move": 0.45, "fade": 0.3, "textTransition": "fade" },
-  "code": { "bg": "panel", "lines": false, "radius": 10, "pad": "0.9em 1.1em" },
-  "autoplay": 5, "loop": true, "hidden": false
+slide {
+  title "Why branches are cheap"
+  list steps {
+    - "a branch is 41 bytes"
+    - "creating one copies nothing"
+  }
 }
 ```
 
-Theme variables: `--bg --fg --heading --muted --accent --code-bg` and token colors `--tok-keyword --tok-ident
---tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain`.
+| Node | Does |
+| --- | --- |
+| `deck` | settings of the deck (once): `title author date theme autoplay loop`; children `vars themes fonts google-fonts header footer plugins defaults animation code-style css` |
+| `slide` | one slide; properties below |
+| `layout "name"` | an own layout: rows and columns with `slot "name"` (and `slot` for the rest) |
+| `title heading subheading text` | headings and a paragraph: `text "..."`; `size="small"\|"large"`, `align`, `valign`, `anim`, `id` |
+| `list` + `- "item"` | a list (nest a `list` inside an item); flags `numbered`, `steps` (one item per click); `start=3` |
+| `quote "..." by="who"` | a quote |
+| `table` | `head "A" "B"` then `- "1" "2"` per row |
+| `math "..."` | display math (KaTeX) |
+| `code "ts" { frame ... }` | animated code (below) |
+| `image "a.png" alt=".."`, `video "a.mp4" autoplay loop muted nocontrols`, `audio "a.mp3"` | media, relative to the file; `width height align` |
+| `chart "bar" title="T" """csv"""` | chart from CSV (first row names the series); `"bar"\|"line"\|"pie"` |
+| `diagram """mermaid"""` | Mermaid diagram |
+| `row` `col` `grid columns=3` | explicit layout: children side by side / stacked / in a grid; `size=2` weight, `size=auto`, `size="40%"`; `gap`, `align`, `valign` |
+| `pause`, `step { ... }` | what follows / what is inside appears on the next click |
+| `notes "..."` | presenter notes |
+
+Any shown node takes `anim` (fade|rise|zoom|left|right|down|blur|pop|none) and `id=name` (morph: the same id on the next slide
+glides between the two; same-file images do it automatically).
+
+## Layouts (chosen from the content unless `layout=` says otherwise)
+
+Only a `title` (+ `text`) on the first slide: `cover`; only a `title`: `section`; text and one image: `image-right`; several images:
+`gallery`; text and animated code: `code-side`; only a `quote`: `quote`; otherwise `default`. Built in: `default cover section center quote
+full two-cols three-cols image-left image-right gallery code code-side`. `two-cols` takes the slots `left` and `right`
+(`slide layout=two-cols columns="1 2" { title "T"; left { text "a" }; right { code "ts" "x" } }`), `three-cols` also `middle`.
+Own layout: `layout "side" { row { col size="25%" { slot "s" }; col { slot } } }` then `slide layout=side { s { text "narrow" }; text "wide" }`.
+
+## Animated code (the point of the tool)
+
+A `code` is one block and its `frame`s are the states it passes through: the first is shown with the block, each next one takes a click,
+and the code morphs between them (tokens glide, new ones fade in, removed ones fade out).
+
+```kdl
+slide {
+  title "Total"
+  code "ts" {
+    frame #"""
+      const total = items.reduce((s, i) => s + i.price, 0);
+      """#
+    frame focus="1" #"""
+      const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+      """#
+  }
+}
+```
+
+A block with one state: `code "ts" "let a = 1;"`. Blocks are independent unless they share an `id`: the same `id` on another slide
+continues the animation; `code from="cart"` copies the last frame of the earlier block with that id. `animate=#true` on a slide
+continues the previous slide: what is on both (same title, image, code id) stays or glides, the rest swaps. Properties of `code`: `id from
+size=18 start=10 title="cart.ts" bg="#16213e" radius=12 pad="1em" align valign fit=none autoplay=1` and the flags `lines nolines nopanel loop`
+(`autoplay` plays the frames by itself, seconds apart, taking no clicks); of `frame`: `focus="2-4,7"` (dim the other lines),
+`transition=morph|fade|none`. Languages: typescript/ts, tsx, javascript/js, python/py, rust, go, java, c, cpp, bash, json, html, css, lua.
+Between two different languages the code cross-fades. A language without a grammar is a plain static block.
+
+## Slide properties
+
+`layout`, `columns="1 2"`, `theme=light|dark|paper|<yours>`, `background="img.jpg" | "#123" | "linear-gradient(...)" | "clip.mp4"`,
+`align=left|center|right` and `valign=top|middle|bottom` (default left/top), `justify=#true`,
+`transition=fade|slide|slide-right|slide-left|zoom|none`, `animate=#true`, `hidden=#true` (skip the slide), `autoplay=5`,
+`header=off`, `footer=off`, `title="Short"`, `class`, any CSS variable `--accent="#f00"`.
+
+## Plugins
+
+`plugins "./demo.js" "@x/slideit-plugin-y"` in the `deck` node loads ES modules that default-export `{ name, tags, themes, languages, tools, hooks }`;
+a plugin's nodes (e.g. `timer minutes=5`) then work like built-in ones. Authors: docs/plugins.md in the repository.
+
+## Deck settings
+
+```kdl
+deck title="My talk" author="Me" date="2026-01-01" theme=dark autoplay=5 loop=#true {
+  vars --font-heading="Georgia, serif"
+  themes {
+    ink --bg="#fbfaf6" --fg="#2b2e36" --heading="#11131a" --accent="#3a5ba0" --code-bg="#f1eee6"
+  }
+  fonts { font "Source Sans 3" src="fonts/ss3.woff2" weight="400" }
+  defaults align=left justify=#true
+  header left="logo.svg" right="{title}"
+  footer left="My talk" right="{slide} / {slides}" height=48
+  animation move=0.45 fade=0.3 transition=fade
+  code-style bg=panel lines=#false radius=10 pad="0.9em 1.1em"
+}
+```
+
+The same keys work as JSON in `deck.json`. Theme variables: `--bg --fg --heading --muted --accent --code-bg` and token colors
+`--tok-keyword --tok-ident --tok-property --tok-type --tok-builtin --tok-comment --tok-punct --tok-plain`.
 
 ## Chooser page (a folder of decks)
 

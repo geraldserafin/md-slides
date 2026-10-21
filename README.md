@@ -1,19 +1,20 @@
 # slideit
 
-Presentations where **code transitions are animated by an AST diff**, written in a small tag markup.
+Presentations where **code transitions are animated by an AST diff**, written in a small language (KDL).
 
-Write each slide as a `.slide` file. When a code block goes through several frames,
+Write your slides in a `.slides` file. When a code block goes through several frames,
 the viewer parses both with [tree-sitter](https://tree-sitter.github.io/), matches the two syntax trees
 with [GumTree](https://hal.science/hal-01054552), and animates the result: unchanged tokens stay,
 moved tokens glide to their new place, removed ones fade out, new ones fade in.
 
-`slideit` is a compiler: it turns a folder of `.slide` files into a static website, a single
+`slideit` is a compiler: it turns a `.slides` file (or a folder of them) into a static website, a single
 self-contained HTML file, a PDF, or a standalone executable.
 
 ```sh
 npm i -g @geraldserafin/slideit          # installs the `slides` command (`slideit` works too; one-off: npx @geraldserafin/slideit ...)
 
 slides new my-talk                      # a starter deck: cover, bullets, animated code, ending
+slides check my-talk/                   # find mistakes (file:line:col: message)
 slides dev my-talk/                     # dev server with live reload
 slides build my-talk/ -o dist           # static website (GitHub Pages, Netlify, ...)
 slides build my-talk/ -t single         # one .html file, works offline
@@ -35,8 +36,8 @@ brew install geraldserafin/tap/slideit  # Homebrew
 
 - [Quick start](#quick-start)
 - [Writing slides](#writing-slides)
-- [Slide settings](#slide-settings)
-- [Deck configuration](#deck-configuration-deckjson)
+- [Slide properties](#slide-properties)
+- [Deck configuration](#deck-configuration)
 - [Build targets](#build-targets)
 - [Viewer controls](#viewer-controls)
 - [Adding a language](#adding-a-language)
@@ -53,20 +54,19 @@ npm install
 npm run dev            # serves everything in examples/ with live reload
 ```
 
-A deck is a folder; each `.slide` file in it (sorted by name) is one slide:
+A deck is a folder with one `.slides` file (or several: they are read in the order of their names, and a big deck can be split that way):
 
 ```
 my-talk/
-  01-intro.slide
-  02-refactoring.slide
-  deck.json          # optional configuration
-  diagram.svg        # assets are referenced relative to the .slide file
+  my-talk.slides
+  deck.json          # optional configuration (the same as a `deck` node)
+  diagram.svg        # assets are referenced relative to the .slides file
 ```
 
 `slides dev` and `slides build` accept one or more deck folders, or a folder of deck folders.
 With a single deck the viewer opens it directly; with several it shows a **gallery**: a card per deck with a
 live thumbnail of its first slide, the title and a line with author, date and the number of slides. The gallery follows the OS light/dark mode and has a toggle (every animation step counts as a slide, as it does for the audience).
-Make the first slide a `layout: cover` slide with a background and the card looks good.
+Make the first slide a cover with a `background` and the card looks good.
 
 ### Customizing the chooser (`hub.json`)
 
@@ -106,7 +106,7 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 | Deck | Shows |
 | --- | --- |
 | `showcase` | a short tour: code morphing, the diff, math, charts, diagrams, morph, themes |
-| `writing` | the .slide syntax: sections, clicks, text and media, math, charts, diagrams, rows and columns, per-element animation |
+| `writing` | the language: nodes and strings, layouts, clicks, text and media, math, charts, diagrams, own layouts, per-element animation |
 | `code-animation` | the AST diff: every kind of edit, frames, languages, code options, focus, fit, frame transitions, how matching works |
 | `theming` | alignment, themes, backgrounds, motion, header/footer, `deck.json`, fonts, CSS |
 | `presenting` | controls, presenter view and tools, export, build targets, GitHub Pages, writing decks with an LLM |
@@ -125,270 +125,212 @@ that are not decks (a logo, a stylesheet, fonts) are served with it; paths in `h
 
 ## Writing slides
 
-A slide is a `.slide` file made of **tags**. Tags are strict (an unknown tag, a missing closing tag or text outside a tag is an
-error with the line number). Attributes are `key=value`, quoted when they contain spaces; a bare word is a flag (`autoplay`);
-a tag without content ends with `/>`. The content of `<code>`, `<c>`, `<tex>`, `<chart>`, `<diagram>`, `<notes>` and `<slide>` is **raw**:
-`<` and `&` need no escaping there, and the common indentation is removed. To write a closing tag as text inside one, put a
-backslash before it: `\</code>`. In the text tags write `&lt;` for a `<`.
+A deck is written in **`.slides`** files, in [KDL](https://kdl.dev): a small language of **nodes**. A node has a name, arguments,
+`key=value` properties, flags (bare words) and children in braces. Text goes in quotes, with a little inline markup inside. A file
+holds a `deck` node (optional settings), `layout` nodes (your own layouts, optional) and many `slide` nodes:
 
-```text
-<slide>
-  theme: light
-</slide>
+````kdl
+// my-talk.slides
+deck title="My talk" author="Me" theme=dark
 
-<h2>Plan</h2>
-
-<row>                                    <!-- two parts side by side -->
-  <p>The first point is there from the start.</p>
-  <code lang=ts>
-    <frame>let total = 0;</frame>        <!-- states of one block: a click each -->
-    <frame>let total = items.length;</frame>
-  </code>
-</row>
-
-<step><p>The second point appears on a click.</p></step>
-<notes>Say this out loud.</notes>
-```
-
-| Tag | Does | Attributes |
-| --- | --- | --- |
-| `<slide>` | settings of this slide, one `key: value` per line (see below) | |
-| `<section>` | one of several sub-presentations in a slide: the old one fades out, the next fades in; whatever is outside the sections stays on screen | |
-| `<row>` | its children side by side, sharing the width | `size` `halign` `valign` `class` |
-| `<col>` | its children one under the other | the same |
-| `<step>` | everything inside appears on the next click | `at=3` (click 3) |
-| `<h1>` `<h2>` `<h3>` `<p>` `<quote>` | headings, paragraphs, quotes: each is one item | `class`, `size` `halign` `valign` (its part of a row), animation attributes |
-| `<ul>` `<ol>` with `<li>` | lists | `steps` (one bullet per click), `start` |
-| `<table>` with `<tr>` `<th>` `<td>` | a table | |
-| `<b>` `<i>` `<s>` `<c>` `<a href>` `<kbd>` `<mark>` `<sub>` `<sup>` `<br />` | inline: bold, italic, strikethrough, code, link, key, highlight, sub/superscript, line break | |
-| `<tex>` | math (KaTeX): inline inside a `<p>`, display on its own | |
-| `<code>` | one animated code block | `lang` `id` `from` `class` `size` `fit` `start` `title` `halign` `valign` `focus` `transition` `at` |
-| `<frame>` | a state of a `<code>` | `focus` `transition` `at` |
-| `<img>` `<video>` `<audio>` | media, `src` relative to the `.slide` file | `alt` `class` `width` `height` `autoplay` `loop` `muted` `controls=false` |
-| `<chart>` | CSV lines as an SVG chart | `type=bar\|line\|pie` `title` `width` |
-| `<diagram>` | a Mermaid diagram | `width` `class` |
-| `<notes>` | presenter notes | |
-
-**Animation attributes** work on every tag with content: `anim` (`fade`, `rise` (default), `zoom`, `left`, `right`, `down`, `blur`,
-`pop`, `none`), `delay` and `dur` (seconds), `at` (the click it comes in on), `out` (the click it leaves on) and `id` (see morph).
-A `<step>` passes its animation attributes on to what is inside.
-
-**Animated code.** A `<code>` is one block; its `<frame>`s are the states it passes through. The first one is there with the block,
-each next one takes a click, and the diff between two frames is what moves. A block with a single state needs no `<frame>`:
-
-```text
-<code lang=ts>
-  <frame>
-    function total(items: number[]) {
-      let sum = 0;
-      for (const x of items) sum += x;
-      return sum;
-    }
-  </frame>
-  <frame>
-    function total(items: number[]) {
-      return items.reduce((sum, x) => sum + x, 0);
-    }
-  </frame>
-</code>
-```
-
-Blocks are **independent** unless they share an `id`: the same `id` in another section or slide continues the animation from the
-last frame it showed. `<code from=total />` shows a copy of the last frame of the earlier block with that id (an independent block).
-Tabs are expanded to four spaces; a `lang` without a grammar is shown as static code. Options are attributes of the tag:
-
-| Attribute | Meaning |
-| --- | --- |
-| `halign=start\|center\|end` (or `class="left"`, `center`, `right`) | horizontal position of the code block in its area; default: the slide's `halign` (start) |
-| `valign=start\|center\|end` (or `class="top"`, `middle`, `bottom`) | vertical position of the code block in its area; default: the slide's `valign` (start) |
-| `id=name` | the animation: blocks with the same id continue each other; also a target for `from` |
-| `class="lines"` / `nolines`, `start=10` | line numbers, and the number of the first line |
-| `class="panel"` (or `bg`) / `nopanel`, `bg=#16213e`, `radius=12`, `pad="1em 1.4em"` | a background box around the code; `bg=` sets its color (and switches it on) |
-| `title="cart.ts"` | a caption above the code, e.g. a file name |
-| `size=18` | fixed font size in px |
-| `fit=none` | disable automatic scaling to the available space |
-| `focus=2-4,7` | keep these lines (1-based) bright and dim the rest; on a `<frame>` to walk through code |
-| `transition=morph\|fade\|none` | how *this frame* is entered from the previous one: the diff animation (default), a plain cross-fade, or a hard cut |
-| `at=3` | the click a frame (or the whole block) appears on |
-| `autoplay=1`, `loop` | the frames play by themselves, 1 s apart (a bare `autoplay` is 2 s); with `loop` they go forth and back without end. They take no clicks and are not steps: → goes on to whatever comes next, and the progress bar ignores them |
-
-The font size is fitted to the largest frame of a section and stays constant across its frames.
-
-**Reveal.** `<step>` hides what is inside until the next click, like PowerPoint's build-in animations. It works for anything and
-nothing moves when the content appears (its space is reserved). `<step at=3>` is click 3. `<ul steps>` (or `<ol steps>`) shows a list
-bullet by bullet. Frames of a `<code>` count as clicks too:
-
-```text
-<p>The first point is there from the start.</p>
-
-<step><p>The second appears on a click.</p></step>
-
-<step>
-  <code lang=ts>const third = "a code block on the last click";</code>
-</step>
-```
-
-**Rows and columns.** A slide is one column by default (title, text, code, from the top left). A `<row>` puts its children **side by
-side** and gives each an equal share of the width; a `<col>` **stacks** its children. Nest them for any layout: two columns, three, a
-title above two parts, a 2 × 2 grid, a sidebar next to a stack. The parts always add up to the whole slide (minus the margin).
-Every direct child of a row is a part; use a `<col>` to put several things into one part.
-In a `<col>` text and images take the height of their content and a `<row>` or `<col>` inside takes the rest.
-
-```text
-<h2>What the diff does</h2>              <!-- a title on top, then: -->
-
-<row>
-  <col>
-    <h3>rename</h3>
-    <code lang=ts>...</code>
-  </col>
-  <col size=2>                           <!-- twice as wide -->
-    <h3>insert</h3>
-    <code lang=ts>...</code>
-  </col>
-</row>
-```
-
-`size` on a part of a row is a weight (`size=2`), `auto` (the size of its content) or a CSS length (`size=40%`). `halign` and
-`valign` align the content inside a part. Code blocks in parts next to each other share one font size. `margin` and `gap` in
-the `<slide>` block set the space around and between the parts.
-
-**Sections (a sub-presentation).** Whatever sits outside the `<section>`s stays on screen while they swap one after another. Use it
-for a title with several examples that you present one at a time:
-
-```text
-<h1>What the diff does</h1>               <!-- outside the sections: stays -->
-
-<section>                                <!-- section 1 (then → plays its code, → again for the next) -->
-  <h2>rename</h2>
-  <code lang=ts>...</code>
-</section>
-<section>                                <!-- section 2 -->
-  <h2>insert</h2>
-  <code lang=ts>...</code>
-</section>
-```
-
-Without a `<section>` the whole slide is one section; a heading never splits a slide by itself. (Outside the sections only text, media and code in a single column are supported.)
-
-**Images and video.** Paths are relative to the `.slide` file. Audio gives a player bar and stops when the slide changes.
-
-```text
-<img src=diagram.svg class=left width=420px />
-<video src=clip.mp4 autoplay loop muted />
-<audio src=talk.mp3 autoplay loop />
-```
-
-**Morph for anything.** Code morphs by itself; any other item can too. Items with the same `id` glide from their place on the
-section (or slide) that leaves to their place on the one that arrives, scaling as they go; if their content changed it cross-fades
-on the way. Images with the same file match automatically (`morph=none` turns that off).
-
-**Math.** `<tex>x^2</tex>` inside a `<p>` is inline math, a `<tex>` on its own is display math; both are rendered with
-[KaTeX](https://katex.org) (plain HTML, so it works in every target and in the PDF). Display math follows the slide's alignment and
-reveals like any item.
-
-**Charts.** A `<chart>` turns CSV lines into an SVG chart in the slide's colors. The first row names the series (its first cell is the
-label column); `type` is `bar` (default), `line` or `pie` (the first series), `title` and `width` are optional. Bars grow and lines draw
-themselves when the chart appears.
-
-```text
-<chart type=bar title="Build time (s)">
-  tool, cold, warm
-  webpack, 12, 4
-  vite, 3, 1.2
-</chart>
-```
-
-**Diagrams.** A `<diagram>` draws a [Mermaid](https://mermaid.js.org) diagram in the slide's colors (it is redrawn when the theme
-changes); `width=70%` sizes it. The library is loaded on first use and left out of builds whose decks have no `<diagram>`.
-
-**Text.** Headings `<h1>`–`<h3>`, paragraphs `<p>`, quotes `<quote>`, lists `<ul>`/`<ol>` with `<li>` (nest a list inside an `<li>`), tables
-with `<tr>` `<th>` `<td>`, and inline `<b>` `<i>` `<s>` `<c>` (code, raw) `<a href>` `<kbd>` `<mark>` `<sub>` `<sup>` `<br />`. Every block tag is an
-item of its own, so it can be revealed or animated alone.
-
-**Presenter notes.** `<notes>…</notes>` becomes notes in the presenter window.
-
-## Slide settings
-
-`hidden: true` leaves a slide out of the show, the drawer and the PDF while it stays in the folder (handy for drafts and backup slides).
-
-An optional `<slide>` block anywhere in the file (usually at the top), one `key: value` per line, `#` starts a comment:
-
-```text
-<slide>
-  layout: cover         # a title slide: no header or footer, a large heading
-  theme: light          # theme for this slide only
-  background: img.jpg   # an image or a looping muted video (clip.mp4) relative to the .slide file, or any CSS: "linear-gradient(...)", "#123"
-  halign: center        # start | center | end (default start): where the content sits horizontally, and how text is aligned
-  valign: center        # start | center | end (default start): where the content sits vertically
-  justify: true         # justified paragraphs (the last line stays at the start)
-  class: my-class       # extra CSS class on the stage
-  title: Custom title   # title shown in the presenter view
-  transition: slide     # how the slide's content comes in: fade | slide | slide-right | slide-left | zoom | none (none = a hard cut)
-  section-transition: slide-right   # the same, for the swaps between the <section>s of the slide (default: transition)
-  stagger: 0.1          # seconds between consecutive text elements
-  margin: 6vmin         # space around the content (default 3vmin 40px 4vmin); gap and col-gap: between the parts
-  heading-size: 56      # also text-size, spacing (gap between blocks)
-  accent: #ffb454       # also heading-color, text-color
-  footer: off           # hide the deck's footer / header on this slide (header: off)
-  --accent: #ff9e64     # any CSS variable, for this slide only (--move-dur, --ease, --tok-keyword, --font-heading, ...)
-</slide>
-```
-
-## Deck configuration (`deck.json`)
-
-Optional, placed in the deck folder:
-
-```json
-{
-  "title": "My talk",
-  "theme": "ocean",
-  "css": "deck.css",
-  "vars": { "--font-heading": "Georgia, serif" },
-  "defaults": { "justify": "true", "padding": "9vmin 12vmin" },
-  "code": { "bg": "panel", "lines": true, "radius": 10 },
-  "columns": { "valign": "center" },
-  "textOnly": { "halign": "center", "valign": "center" },
-  "footer": { "left": ["logo.svg", "ACME Corp"], "right": "{slide} / {slides}", "height": 42, "border": true },
-  "themes": {
-    "ocean": { "--bg": "#0b1d2a", "--fg": "#b8d4e3", "--accent": "#3ddc97", "--tok-keyword": "#ff7eb6" }
-  },
-  "fonts": [{ "family": "Fira Code", "src": "fira.woff2", "weight": "400" }],
-  "googleFonts": ["Inter:wght@400;700"],
-  "animation": {
-    "move": 0.5, "fade": 0.3, "moveDelay": 0.05, "fadeInDelay": 0.1,
-    "ease": "ease-in-out", "slideFade": 0.4,
-    "textTransition": "slide", "textStagger": 0.12, "textDrift": 8
+slide {
+  title "Plan"
+  text "The **first** point is there from the start, with `code` and [links](https://example.com)."
+  list steps {                 // one bullet per click
+    - "one"
+    - "two"
   }
+  notes "Say this out loud."
+}
+
+slide {
+  title "Code that moves"
+  code "ts" {                  // the frames are the states; the diff between them is what moves
+    frame #"""
+      let total = 0;
+      """#
+    frame #"""
+      let total = items.length;
+      """#
+  }
+}
+````
+
+Where a node has several children write them on separate lines, or on one line with `;` between them. A string can sit on several
+lines with `"""`, and a raw string `#"…"#` has no escapes (good for code and LaTeX). `//` starts a comment and `/-` in front of a node
+switches the whole node off. A syntax error is reported with its line (`slides check`, the editor, the viewer's error screen).
+
+**Layouts.** You write what is on the slide; its layout follows from the content, or you name one:
+
+| On the slide | Layout |
+| --- | --- |
+| only a `title` (and `text`), the first slide | `cover` |
+| only a `title` | `section` |
+| `title`, `text`, `list`… | `default` |
+| text and one image | `image-right` |
+| several images | `gallery` |
+| text and animated code | `code-side` |
+| only a `quote` | `quote` |
+
+Built in: `default` `cover` `section` `center` `quote` `full` `two-cols` (`left`, `right`) `three-cols` (`left`, `middle`, `right`)
+`image-left` `image-right` `gallery` `code` `code-side`. Name one with `slide layout=two-cols`, then put content in the slots:
+
+```kdl
+slide layout=two-cols columns="1 2" {
+  title "Before and after"
+  left { text "Before" }
+  right { code "ts" "let x = 1;" }
 }
 ```
 
-| Key | Purpose |
-| --- | --- |
-| `title`, `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
-| `schemes` | `{ "light": "ink", "dark": "midnight" }`: the themes for light and dark mode. The deck starts in the one matching the OS (or the hub's light/dark toggle), and its card in the hub follows the toggle; `theme` is the fallback |
-| `author`, `date`, `order` | shown on the deck's card in the gallery; `order` sorts the cards |
-| `autoplay`, `loop` | `"autoplay": 5` plays the deck by itself, a step every 5 s (a slide's own `autoplay:` setting sets its pace); `"loop": true` starts over at the end. Also `?autoplay=5&loop` in the URL, or the `a` key |
-| `hidden`, `thumbnail` | `"hidden": true` keeps the deck out of the gallery (it stays reachable with `?deck=name`); `"thumbnail": "cover.png"` shows an image instead of the live first slide |
-| `css` | extra stylesheet, relative to the deck folder |
-| `vars` | CSS variables applied to the whole deck |
-| `defaults` | settings applied to every slide (a slide's own settings win), e.g. `layout`, `halign`, `justify`, `heading-size` |
-| `code` | look of every code block (a block's own options win): `bg` (`"panel"`, `"none"` or a color), `lines` (line numbers), `radius`, `pad` |
-| `columns` | like `defaults`, but only for slides with a `<row>` of several parts, e.g. `{"valign": "center"}` |
-| `textOnly` | like `defaults`, but only for slides without code (a single column of text, covers included), e.g. `{"halign": "center", "valign": "center"}` |
-| `header`, `footer` | a bar on every slide with `left`, `center`, `right` slots holding text and/or images (a logo); also `height`, `background`, `color`, `border`, `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
-| `themes` | custom themes as CSS variables; they join the `t` key cycle |
-| `fonts` | local font files (relative to the deck folder) |
-| `googleFonts` | families fetched from Google Fonts (needs network) |
-| `animation` | durations in seconds, easing, text entrance and stagger |
+**Your own layouts** are rows and columns with `slot`s; any `.slides` file of the deck may define them:
 
-Themes are plain CSS variables (`--bg`, `--fg`, `--heading`, `--muted`, `--accent`, `--code-bg`, `--tok-*`
-for token colors, `--font-text`, `--font-heading`, `--font-code`, ...). See `src/style.css` for the full list.
-Two complete custom themes (`sunset`, `terminal`) live in `examples/theming/deck.json`.
+```kdl
+layout "sidebar" {
+  row {
+    col size="28%" { slot "side" }
+    col { slot }                 // a slot without a name: everything that is in no slot
+  }
+}
+
+slide layout=sidebar {
+  side { text "Narrow" }
+  text "Wide"
+}
+```
+
+For full control build the shape in the slide with `row` (children side by side), `col` (stacked) and `grid columns=3`. `size` on a
+part is a weight (`size=2`), `auto` or a length (`size="40%"`); `align` (`left` `center` `right`), `valign` (`top` `middle`
+`bottom`) and `gap` shape the parts.
+
+| Node | Does | Arguments, flags, properties |
+| --- | --- | --- |
+| `slide` | one slide | `layout` `columns` `align` `valign` `theme` `background` `transition` `animate` `hidden` `autoplay` `header` `footer` `title` `justify` `class` `--css-var=…` |
+| `title` `heading` `subheading` `text` | a heading, a paragraph; one item each | the text; `size="small"\|"large"` `align` `valign` `anim` `id` |
+| `list` with `-` items | a list, nested by putting a `list` in an item | `numbered` `steps` `start=3` |
+| `quote` | a quote with an accent bar | the text, `by="who"` |
+| `table` with `head` and `-` | a table | the cells as arguments |
+| `math` | display math (KaTeX); inline is `$x^2$` in a text | the formula |
+| `code` with `frame`s | one animated code block | the language, flags `lines` `nolines` `nopanel` `loop`, `id` `from` `title` `start` `size` `fit` `autoplay` `focus` `transition` `bg` `radius` `pad` `align` `valign` |
+| `image` `video` `audio` | media, relative to the file | the file; `alt` `width` `height` `align`; flags `autoplay` `loop` `muted` `nocontrols` |
+| `chart` | CSV as an SVG chart | `"bar"` `"line"` `"pie"`, the CSV, `title` `width` |
+| `diagram` | a Mermaid diagram | the source, `width` |
+| `row` `col` `grid` | layout | `size` `gap` `align` `valign` `class` `columns` |
+| `step` `pause` | reveal on a click | `anim` |
+| `notes` | presenter notes | the text |
+
+**Text.** Inside the quotes: `**bold**` `*italic*` `~~strike~~` `==mark==` `H~2~O` `x^2^` `` `code` `` `[link](url)` `$tex$` `[[Key]]`; a
+newline is a line break; a backslash escapes a special character (`\*`). Nothing else is special, so `snake_case`, `a * b` and `<`
+stay as they are.
+
+**Animated code.** A `code` is one block; its `frame`s are the states it passes through. The first one is there with the block,
+each next one takes a click, and the diff between two frames is what moves. A block with a single state needs no `frame`:
+`code "ts" "let a = 1;"`. Blocks are **independent** unless they share an `id`: the same `id` on another slide continues the
+animation from the last frame it showed. `code from="total"` shows a copy of the last frame of the earlier block with that id.
+Tabs are expanded to four spaces; a language without a grammar is shown as static code.
+
+| Property | Meaning |
+| --- | --- |
+| `align` `valign` | where the block sits in its area |
+| `id=name` | the animation: blocks with the same id continue each other; also a target for `from` |
+| `lines`, `nolines`, `start=10` | line numbers, and the number of the first line |
+| `nopanel`, `bg="#16213e"`, `radius=12`, `pad="1em 1.4em"` | the box around the code |
+| `title="cart.ts"` | a caption above the code |
+| `size=18` | fixed font size in px |
+| `fit=none` | disable automatic scaling to the available space |
+| `focus="2-4,7"` | keep these lines bright and dim the rest; on a `frame` to walk through code |
+| `transition=morph\|fade\|none` | how *this frame* is entered: the diff animation (default), a cross-fade, or a cut |
+| `autoplay=1`, flag `loop` | the frames play by themselves, 1 s apart; with `loop` forth and back without end. They take no clicks |
+
+**Reveal.** `pause` holds back everything after it (in the same container) until the next click; `step { … }` does it for what is
+inside; `list steps` shows a list bullet by bullet. Nothing moves when the content appears (its space is reserved). `anim=` on any
+node (`fade`, `rise`, `zoom`, `left`, `right`, `down`, `blur`, `pop`, `none`) says how it comes in.
+
+**One story over several slides.** `animate=#true` on a slide continues the one before it: what is on both (the same title, image,
+paragraph or code `id`) stays or glides to its new place, and the rest swaps. Give any node an `id` to pair it by hand. Images with the
+same file match on their own.
+
+**Math, charts, diagrams.** `$x^2$` in a text is inline math and a `math` node is display math, rendered with [KaTeX](https://katex.org)
+(plain HTML: it works in every target and in the PDF). `chart "bar"` turns CSV lines into an SVG chart in the slide's colors (the
+first row names the series); `diagram` draws a [Mermaid](https://mermaid.js.org) diagram, redrawn when the theme changes. The library
+is loaded on first use and left out of builds whose decks have no `diagram`.
+
+**Presenter notes.** `notes "…"` becomes the notes in the presenter window.
+
+## Slide properties
+
+| Property | Meaning |
+| --- | --- |
+| `layout=cover` | a built-in or own layout (default: chosen from the content) |
+| `columns="1 2"` | proportions of the columns of a column layout |
+| `theme=light` | the theme for this slide only |
+| `background="img.jpg"` | an image or a looping muted video relative to the file, or any CSS: `"linear-gradient(…)"`, `"#123"` |
+| `align=center` `valign=middle` | where the content sits, and how text is aligned (`left` `center` `right`, `top` `middle` `bottom`) |
+| `justify=#true` | justified paragraphs |
+| `transition=slide` | how the content comes in: `fade` `slide` `slide-right` `slide-left` `zoom` `none` |
+| `animate=#true` | continue the previous slide (see above) |
+| `hidden=#true` | left out of the show, the drawer and the PDF; stays in the file |
+| `autoplay=3` | seconds per step when the deck plays itself |
+| `header=off` `footer=off` | hide the deck's bars here |
+| `title="Short"` | the title in the presenter view and the drawer |
+| `class=my-class` | an extra CSS class on the stage |
+| `--accent="#ff9e64"` | any CSS variable, for this slide only (`--text-size`, `--heading-size`, `--move-dur`, `--tok-keyword`, `--font-heading`…) |
+
+## Deck configuration
+
+Settings of the whole deck go in a `deck` node at the top of a `.slides` file (and, if you like JSON, in `deck.json` next to it; where both say
+something, the `deck` node wins):
+
+````kdl
+deck title="My talk" author="Me" theme=ocean {
+  css "deck.css"
+  vars --font-heading="Georgia, serif"
+  defaults justify=#true margin="9vmin 12vmin"
+  code-style bg=panel lines=#true radius=10
+  footer left="logo.svg" right="{slide} / {slides}" height=42 border=#true
+  themes {
+    ocean --bg="#0b1d2a" --fg="#b8d4e3" --accent="#3ddc97" --tok-keyword="#ff7eb6"
+  }
+  fonts {
+    font "Fira Code" src="fira.woff2" weight="400"
+  }
+  google-fonts "Inter:wght@400;700"
+  animation move=0.5 fade=0.3 ease="ease-in-out" transition=slide stagger=0.12
+  plugins "./qr.js"
+}
+````
+
+| Node or property | Purpose |
+| --- | --- |
+| `title` `theme` | deck title; theme used at start (`dark`, `light`, `paper` or one of yours) |
+| `author` `date` `order` `description` | shown on the deck's card in the gallery; `order` sorts the cards |
+| `autoplay=5` `loop=#true` | the deck plays itself, a step every 5 s (a slide's own `autoplay` sets its pace); `loop` starts over at the end. Also `?autoplay=5&loop` in the URL, or the `a` key |
+| `hidden=#true` `thumbnail="cover.png"` | keep the deck out of the gallery (it stays reachable with `?deck=name`); show an image instead of the live first slide |
+| `css "file"` | extra stylesheet, relative to the deck folder |
+| `vars` | CSS variables applied to the whole deck (as properties) |
+| `defaults` | properties every slide gets unless it sets its own: `align` `valign` `background` `margin` `justify` `transition` |
+| `code-style` | look of every code block (a block's own properties win): `bg` (`panel`, `none` or a color), `lines`, `radius`, `pad` |
+| `header` `footer` | a bar on every slide with `left` `center` `right` slots holding text or an image (a logo); also `height` `background` `color` `border` `cover` (show on cover slides too). Text takes `{slide}` `{slides}` `{title}` `{slideTitle}` `{author}` `{date}` |
+| `themes` | custom themes (one node per theme, its properties are CSS variables); they join the `t` key cycle |
+| `fonts` `google-fonts` | local font files (relative to the deck folder); families from Google Fonts (needs network) |
+| `animation` | seconds (`move` `fade`), `ease`, text entrance `transition` and `stagger` |
+| `plugins` | plugin modules (files or npm packages) |
+
+`deck.json` takes the same keys as JSON (`"vars"`, `"themes"`, `"footer": { "left": ["logo.svg", "ACME"] }`, `"animation"` with
+`moveDelay`, `fadeInDelay`, `slideFade`, `textDrift`…). Two complete custom themes (`sunset`, `terminal`) live in
+`examples/theming/deck.json`. Themes are plain CSS variables (`--bg`, `--fg`, `--heading`, `--muted`, `--accent`, `--code-bg`,
+`--tok-*` for token colors, `--font-text`, `--font-heading`, `--font-code`…); see `src/style.css` for the full list.
+
+## Old decks (the tag markup)
+
+Decks written in the old tag markup (`.slide` files with `<h1>`, `<row>`, `<code><frame>`…) are converted by
+`slides migrate my-deck` (`--split` keeps one file per old file, `--remove` deletes the old files). Each `<section>` becomes a
+slide with `animate=#true`; what has no counterpart any more (`at=`, `delay=`, `margin:` and friends in the slide block) is
+reported, and the sizes and margins become CSS variables on the slide.
 
 ## Writing decks with an LLM
 
-The site also serves `llms.txt` (a compact syntax reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.slide` per slide plus a `deck.json`. For example:
+The site also serves `llms.txt` (a compact language reference and instructions for models) and `llms-full.txt` (this README plus every slide of the manual decks). Give a model the URL, describe your talk, and ask for a deck folder: one `.slides` file. For example:
 
 > Read https://geraldserafin.github.io/md-slides/llms.txt, then write me a 10-slide deck about how Git branches work, with a code example that changes step by step.
 
@@ -410,15 +352,15 @@ PDF export is also available from any browser: open `?print=slides` or `?print=s
 `slides dev <deck...> [--port N] [--open]` starts a dev server that restages the deck and reloads the
 page whenever a file in the deck folder changes.
 
-`slides check <deck...>` validates every `.slide` file against the markup schema (unknown tags and attributes, tags in the wrong place, bad values, stray text) and prints `file:line: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema` prints the schema (`src/schema.ts`: every tag, its attributes and what may sit inside it) as JSON, the same data the editor tooling uses.
+`slides check <deck...>` validates every `.slides` file against the schema (unknown nodes and properties, nodes in the wrong place, bad values, missing texts; with a "did you mean") and prints `file:line:col: message`; it exits with 1 when something is wrong, so it fits CI. `slides lsp` serves the same checks to editors. `slides schema` prints the schema (`src/schema.ts`: every node, its arguments, flags and properties, and what may sit inside it; the layouts) as JSON, the same data the editor tooling uses. `slides migrate <deck>` converts an old tag-markup deck.
 
 ## Starting from a PowerPoint template
 
-`slides import template.pptx my-deck` (also `.potx`) builds a deck folder from a PowerPoint template: the **backgrounds** (a slide's background image, or a picture that covers the whole slide) go to `assets/` (`cover` is the first slide's, `content` the next different one, which becomes `defaults.background`, the background of every slide); **logos** on the master or layouts go to the header or footer bar by the corner they sit in; the **theme colors and fonts** become `vars` (a template that still has Office's default theme gets its colors from the pictures instead); and the **free area** of the slide becomes `defaults.margin`. With Chrome or Chromium on the machine the importer looks at the background images (the main color, the strongest and darkest colors, what runs along a side or sits in a corner) to find where text may go; without it the margins are the defaults and a note says so. You get one example slide (`01-hello.slide`) and a README saying how to use the other backgrounds: a slide with only `<slide> background: assets/cover.jpg </slide>` in it shows just that picture. Then edit `deck.json` and the slides and run `slides dev my-deck`. Fonts are named, not shipped (they are not inside a `.pptx`): install them or list font files under `fonts` in `deck.json`.
+`slides import template.pptx my-deck` (also `.potx`) builds a deck folder from a PowerPoint template: the **backgrounds** (a slide's background image, or a picture that covers the whole slide) go to `assets/` (`cover` is the first slide's, `content` the next different one, which becomes `defaults.background`, the background of every slide); **logos** on the master or layouts go to the header or footer bar by the corner they sit in; the **theme colors and fonts** become `vars` (a template that still has Office's default theme gets its colors from the pictures instead); and the **free area** of the slide becomes `defaults.margin`. With Chrome or Chromium on the machine the importer looks at the background images (the main color, the strongest and darkest colors, what runs along a side or sits in a corner) to find where text may go; without it the margins are the defaults and a note says so. You get one example slide (`<name>.slides`) and a README saying how to use the other backgrounds: a slide with only `slide background="assets/cover.jpg"` in it shows just that picture. Then edit `deck.json` and the slides and run `slides dev my-deck`. Fonts are named, not shipped (they are not inside a `.pptx`): install them or list font files under `fonts` in `deck.json`.
 
 ## Editors
 
-`slides lsp` is a language server (stdio): diagnostics from the schema check, completion and hover for tags, attributes, values and the keys of a `<slide>` block, outline, folding and go to definition for code ids. `editors/vscode` is a VS Code / VSCodium / Cursor extension: highlighting (with the code inside `<code lang=…>` highlighted as that language), the language server bundled (nothing to install for completion), snippets, auto-closing tags, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor, following the cursor to the slide and section you are editing. `editors/vim` has the filetype, syntax and the Neovim LSP setup, and `editors/tree-sitter-slide` is a tree-sitter grammar (highlighting with the code in `<code lang=…>` injected as that language). See the README in each folder.
+`slides lsp` is a language server (stdio): diagnostics from the schema check, completion (with snippets) and hover for nodes, properties, flags and values, outline, folding and go to definition for code ids. `editors/vscode` is a VS Code / VSCodium / Cursor extension: KDL highlighting, the language server bundled (nothing to install for completion), snippets, and **Slides: Open preview to the side**, which runs `slides dev` in the background and shows it beside the editor, following the cursor to the slide you are editing. `editors/vim` has the filetype, syntax, the Neovim LSP setup and how to use the KDL tree-sitter grammar. See the README in each folder.
 ## GitHub Action and template
 
 `geraldserafin/md-slides@action-v1` checks a deck, builds the site (and a PDF) and uploads it for GitHub Pages:
@@ -431,7 +373,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: geraldserafin/md-slides@action-v1
         with:
-          deck: talk        # a folder of .slide files, or a folder of decks
+          deck: talk        # a folder of .slides files, or a folder of decks
           pdf: 'true'       # also writes <deck>.pdf into the site
   deploy:
     needs: build
@@ -443,10 +385,10 @@ jobs:
 
 | Input | Default | |
 | --- | --- | --- |
-| `deck` | `.` | a folder of `.slide` files, or a folder of such folders |
+| `deck` | `.` | a folder of `.slides` files, or a folder of such folders |
 | `output` | `_site` | where the site is written (also the action's `path` output) |
 | `pdf` | `false` | export a PDF per deck into the site (Chrome is on the GitHub runners) |
-| `check` | `true` | fail on mistakes in the `.slide` files |
+| `check` | `true` | fail on mistakes in the `.slides` files |
 | `pages` | `true` | upload the site as the Pages artifact; `false` to deploy it some other way |
 | `hub` | | a `hub.json` for the chooser page of several decks |
 | `version` | `latest` | the version of `@geraldserafin/slideit` |
@@ -457,10 +399,10 @@ deck and this workflow. *Use this template*, then *Settings → Pages → Source
 
 ## Plugins
 
-A deck can load plugins (`"plugins": ["./demo.js", "@someone/slideit-plugin-qr"]` in `deck.json`): ES modules that add **tags**, **themes**,
-**tree-sitter languages**, **toolbox buttons** and **step hooks**. The viewer loads them before it parses the slides, and `slides check`
-and the editor tooling know their tags. `examples/plugin-demo` is a working example and [docs/plugins.md](docs/plugins.md) is the guide
-for authors (the format, packaging for npm, describing the tags to editors).
+A deck can load plugins (`plugins "./demo.js" "@someone/slideit-plugin-qr"` in the `deck` node): ES modules that add **nodes**, **themes**,
+**tree-sitter languages**, **toolbox buttons** and **step hooks**. The viewer loads them before it reads the slides, and `slides check`
+and the editor tooling know their nodes. `examples/plugin-demo` is a working example and [docs/plugins.md](docs/plugins.md) is the guide
+for authors (the format, packaging for npm, describing the nodes to editors).
 
 ## Viewer controls
 
