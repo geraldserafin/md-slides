@@ -40,8 +40,13 @@ function leaveGhost(ctx: TransitionCtx, kind: string) {
 
 /** the views of a step: they come and go by the CSS transition of their pose */
 function reveal(ctx: TransitionCtx) {
-  for (const v of ctx.leaving) ctx.hide(v);
-  for (const v of ctx.entering) ctx.show(v);
+  // a handover (a swap): the old one goes quickly and the new one comes when it is gone, so the two are not on top of each other
+  const handover = ctx.leaving.length > 0 && ctx.entering.length > 0 && !ctx.instant;
+  for (const v of ctx.leaving) {
+    ctx.hide(v);
+    if (handover) v.el.style.transition = `opacity ${ctx.timing.leave}s ease-out, transform ${ctx.timing.leave}s ease-out`;
+  }
+  for (const v of ctx.entering) ctx.show(v, { delay: handover ? ctx.timing.leave * 1.1 : 0 });
 }
 
 const entrance = (kind: string) => (ctx: TransitionCtx): number | void => {

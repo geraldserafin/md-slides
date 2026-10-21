@@ -186,6 +186,7 @@ export class Player {
     // inline styles left by an entrance animation would win over the class
     el.style.opacity = '';
     el.style.transform = '';
+    el.style.transitionDelay = '';
     el.style.transition = instant ? 'none' : '';
     el.classList.toggle('pending', pending);
     if (instant) requestAnimationFrame(() => { el.style.transition = ''; });
