@@ -89,7 +89,7 @@ function expandDecks(args) {
     if (hasMd(dir)) return [dir];
     const subs = readdirSync(dir, { withFileTypes: true })
       .filter((e) => e.isDirectory() && hasMd(join(dir, e.name))).map((e) => join(dir, e.name)).sort();
-    if (!subs.length) throw new Error(`no .slides files in: ${a}`);
+    if (!subs.length) throw new Error(`no .slides files in: ${a}${readdirSync(dir).some((f) => f.endsWith('.slide')) ? ' (it has .slide files: the old tag format; convert it with `slides migrate <folder>`)' : ''}`);
     return subs;
   });
 }
