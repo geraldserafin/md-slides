@@ -21,7 +21,7 @@ function stageHub(hubDir, deckDirs, out) {
 
 /** the plugins of a deck: files in the deck folder go along with it; an npm package is copied into _plugins/ */
 async function stagePlugins(dir, dest, meta) {
-  const { resolvePlugin } = await loadLib('plugin-schema');
+  const { resolvePlugin } = await loadLib('node/loader');
   return (meta.plugins ?? []).map((entry) => {
     const p = resolvePlugin(dir, entry);
     if (!p) throw new Error(`plugin not found: ${entry} (npm install it next to the deck, or use ./file.js)`);
@@ -33,7 +33,7 @@ async function stagePlugins(dir, dest, meta) {
 }
 
 export async function stageDecks(dirs, publicDir, hubDir) {
-  const { readDeckMeta } = await loadLib('deckfiles');
+  const { readDeckMeta } = await loadLib('node/loader');
   const out = join(publicDir, 'decks');
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });

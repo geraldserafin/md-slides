@@ -3,7 +3,7 @@
 // the right the next slide and the notes with A− A+. The previews are the viewer itself in iframes (?embed=1), so they
 // look exactly like the audience window. It talks to the presentation window through a BroadcastChannel; either window
 // can drive.
-import type { PlayerState } from './player';
+import type { PlayerState } from './runtime/player';
 
 export const CHANNEL = 'slides-sync';
 const FRAME_W = 1600;

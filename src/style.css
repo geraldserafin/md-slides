@@ -400,22 +400,11 @@ body.zoomed .drawer-btn { display: none; }
 .diagram foreignObject div, .diagram foreignObject span, .diagram .label { text-align: center !important; } /* the slide alignment must not push labels to the left of their boxes */
 .diagram-error { font: 0.8em var(--font-code); color: var(--muted); white-space: pre-wrap; }
 
-/* per-element animation: {anim=fade|rise|zoom|left|right|down|blur|pop|none delay=0.2 dur=0.6 at=2 out=4} after an item.
+/* per-element animation: `anim=fade|rise|zoom|left|right|down|blur|pop|none` on a node.
    The hidden state is the start of the entrance (and the end of the exit); delay applies on the way in only. */
 .item[data-anim]:not(.pending) { transition-delay: var(--anim-delay, 0s); }
 .item[data-anim] { transition-duration: var(--anim-dur, calc(var(--fade-dur) * 1.3)), var(--anim-dur, var(--move-dur)); }
-.item.pending[data-anim='fade'] { transform: none; }
-.item.pending[data-anim='zoom'] { transform: scale(0.82); }
-.item.pending[data-anim='left'] { transform: translateX(-6vmin); }
-.item.pending[data-anim='right'] { transform: translateX(6vmin); }
-.item.pending[data-anim='down'] { transform: translateY(calc(var(--drift, 8px) * -2.5)); }
-.item.pending[data-anim='rise'] { transform: translateY(calc(var(--drift, 8px) * 2.5)); }
-.item.pending[data-anim='blur'] { transform: none; filter: blur(10px); }
-.item[data-anim='blur'] { transition-property: opacity, transform, filter; }
-.item.pending[data-anim='none'] { transform: none; transition: none; }
-.item[data-anim='pop']:not(.pending) { animation: pop var(--anim-dur, 0.55s) cubic-bezier(0.2, 1.4, 0.4, 1) var(--anim-delay, 0s) both; }
-.item.pending[data-anim='pop'] { transform: scale(0.7); }
-@keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+/* the poses of the effects themselves are made from the registry (runtime/runtime.ts: effectsCss) */
 
 /* charts (src/chart.ts) */
 .chart-box { max-width: 100%; }

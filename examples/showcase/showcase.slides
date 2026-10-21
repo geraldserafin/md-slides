@@ -10,7 +10,7 @@ slide layout=cover align=center valign=middle justify=#false {
 slide {
   heading "Code that moves"
   text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
-  swap anim=left {
+  swap {
     code "typescript" id=g1 #"""
       function total(items: number[]) {
         let sum = 0;
@@ -168,7 +168,7 @@ slide {
 slide {
   heading "A longer story: growing a class"
   text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
-  swap anim=left {
+  swap {
     code "python" id=g1 #"""
       class Stack:
           pass

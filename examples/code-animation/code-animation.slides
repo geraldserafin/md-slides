@@ -24,7 +24,7 @@ slide {
 slide {
   heading "Code that moves"
   text "Write the *before* and the *after* as two code blocks. `slides` parses both, matches the syntax trees and animates the difference: unchanged tokens stay, moved tokens glide, new ones fade in."
-  swap anim=left {
+  swap {
     code "typescript" id=g1 #"""
       function total(items: number[]) {
         let sum = 0;
@@ -209,7 +209,7 @@ slide {
     Each edit changes exactly one token or a tiny region; everything else must stay still.
     """#
   heading "Small edits, one at a time"
-  swap anim=left {
+  swap {
     code "typescript" id=g1 #"""
       if (count > 10) {
         alert("too many items: " + count);
@@ -239,7 +239,7 @@ slide {
 }
 slide {
   heading "Reorder arguments"
-  swap anim=left {
+  swap {
     code "typescript" id=g2 #"""
       const point = makePoint(y, x, label, color);
       """#
@@ -253,7 +253,7 @@ slide {
 }
 slide {
   heading "if / else to a ternary"
-  swap anim=left {
+  swap {
     code "typescript" #"""
       let label;
       if (count === 1) {
@@ -269,7 +269,7 @@ slide {
 }
 slide {
   heading "Loop to method chain"
-  swap anim=left {
+  swap {
     code "typescript" #"""
       const names = [];
       for (const user of users) {
@@ -289,7 +289,7 @@ slide {
 slide {
   heading "A longer story: growing a class"
   text "Eight frames, one idea each: a stack grows a size, a guard and a protocol. Walk through them slowly; this is how a real refactoring talk reads."
-  swap anim=left {
+  swap {
     code "python" id=g1 #"""
       class Stack:
           pass
@@ -424,7 +424,7 @@ slide {
     - "**Web & data:** `html` `css` `json`"
     - "anything else (`text`, `toml`, `yaml`, `markdown`, …) is a **static code block**; tabs become four spaces"
   }
-  swap anim=left {
+  swap {
     code "rust" id=g1 #"""
       fn sum(xs: &[i32]) -> i32 {
           let mut total = 0;
@@ -469,7 +469,7 @@ slide {
     """#
   heading "Code options: alignment"
   text "Alignment: `align=` (`left` | `center` | `right`) and `valign=` (`top` | `middle` | `bottom`). Without them the code follows its slide: `start`, unless the slide says otherwise. Other options: `id` (the animation), classes `lines` and `panel`, `title=`, `size=`, `fit=none`, `focus=`, `transition=` (see the next slides), and `autoplay=1` with `loop`: the frames play by themselves, as on the diff slides."
-  swap anim=left {
+  swap {
     code "typescript" id=g1 align=left #"""
       const where = "left";
       """#
@@ -481,7 +481,7 @@ slide {
 slide {
   heading "Code options: size"
   text "`size=14` fixes the font size in pixels. Without it the code is scaled to fit, using the largest frame of the block, so the size never jumps between frames."
-  swap anim=left {
+  swap {
     code "typescript" id=g2 size=14 #"""
       const small = "size=14";
       """#
@@ -500,7 +500,7 @@ slide {
 slide {
   heading "Focus lines"
   text "`focus=2-4` keeps those lines bright and dims the rest. Set it **per frame** — here the code never changes, only the focus does, so the lines fade smoothly."
-  swap anim=left {
+  swap {
     code "typescript" id=g1 focus=1 #"""
       function checkout(cart: Cart, user: User) {
         const total = price(cart);
@@ -567,7 +567,7 @@ slide {
     """#
   heading "Fit: code scales to the available space"
   text "Code is scaled to fit the slide (between half and 1.6x). The **largest** frame of a block decides, so the first frame below looks small: the next one is 16 lines long. Press → and it stays the same size."
-  swap anim=left {
+  swap {
     code "typescript" id=g1 #"""
       const a = 1;
       """#
@@ -594,7 +594,7 @@ slide {
 slide {
   heading "`size=` fixes the font size"
   text "Two frames, `size=30`: the code is big and stays big."
-  swap anim=left {
+  swap {
     code "typescript" id=g2 size=30 #"""
       const big = "size=30";
       """#
@@ -613,43 +613,63 @@ slide {
 }
 
 slide {
-  heading "Frame transitions: `transition=`"
-  text "By default a frame **morphs** from the previous one. Put `transition=` on a `code` of the swap to change how *that* state is entered:"
+  heading "Transitions: `transition=`"
+  text "A `swap` changes its states with its `transition`; by default they **morph**:"
   list {
-    - "`morph` (default) — the diff animation"
-    - "`fade` — no matching: the old code fades out, the new code fades in"
-    - "`none` — a hard cut, no animation at all"
+    - "`morph` (default): the diff animation"
+    - "`fade`: no matching, the old code fades out, the new code fades in"
+    - "`none`: a hard cut, no animation at all"
   }
-  text "Frame 1 is the starting point; the next three use a different mode each."
-  swap anim=left {
-    code "typescript" id=g1 #"""
-      function area(w: number, h: number) {
-        return w * h;
-      }
-      """#
-    code "typescript" #"""
-      function area(width: number, height: number) {
-        return width * height;
-      }
-      """#
-    code "typescript" transition=fade #"""
-      function area(width: number, height: number) {
-        return width * height * 2;
-      }
-      """#
-    code "typescript" transition=none #"""
-      function area(width: number, height: number) {
-        return width * height * 3;
-      }
-      """#
-    code "typescript" #"""
-      function area(width: number, height: number) {
-        return width * height * 4;
-      }
-      """#
+  text "Three clicks, one swap each, in this order."
+  row {
+    col {
+      subheading "morph"
+        swap transition=morph {
+          code "typescript" #"""
+            function area(w: number, h: number) {
+              return w * h;
+            }
+            """#
+          code "typescript" #"""
+            function area(width: number, height: number) {
+              return width * height;
+            }
+            """#
+        }
+    }
+    col {
+      subheading "fade"
+        swap transition=fade {
+          code "typescript" #"""
+            function area(w: number, h: number) {
+              return w * h;
+            }
+            """#
+          code "typescript" #"""
+            function area(width: number, height: number) {
+              return width * height * 2;
+            }
+            """#
+        }
+    }
+    col {
+      subheading "none"
+        swap transition=none {
+          code "typescript" #"""
+            function area(w: number, h: number) {
+              return w * h;
+            }
+            """#
+          code "typescript" #"""
+            function area(width: number, height: number) {
+              return width * height * 3;
+            }
+            """#
+        }
+    }
   }
   notes #"""
-    A per-state option, written on the code you are entering. Default is morph.
+    transition is a property of the swap: morph, fade or none for code (and any transition of the deck for other things).
     """#
 }
 

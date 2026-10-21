@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { configureGrammars } from '../src/parse';
+import { configureGrammars } from '../src/plugins/code/parse.ts';
 
 const require = createRequire(import.meta.url);
 
