@@ -160,6 +160,3 @@ and loads its entry: `slideit.entry`, else `module`, else `main` from its `packa
 Without that field the CLI imports the plugin module in node and reads its `nodes`; that works if the module does not touch the browser
 (`document`, `window`) when it loads. Put the DOM side behind `runtime: () => import('./runtime.js')` and it need not.
 
-## Plugins of the first format
-
-`{ name, tags: { badge: { doc, attrs, render({ tag, attrs, text, el, base }) } }, themes, languages, tools, hooks }` still loads: the tags become nodes.

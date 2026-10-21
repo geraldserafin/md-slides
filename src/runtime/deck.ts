@@ -1,7 +1,7 @@
 // Loading a deck in the browser: the manifest the CLI staged, the files it lists, the plugins of the deck, then the compiler.
 // What comes out is a Program (plain data) and the runtime that knows how to draw and move it.
 import { compile, parseSource } from '../kernel/compile.ts';
-import { toPlugin } from '../kernel/legacy.ts';
+import { asPlugin } from '../kernel/util.ts';
 import { KdlError } from '../kernel/kdl.ts';
 import type { DeckMeta, Program, Slide } from '../kernel/types.ts';
 import { deckFromNode } from '../plugins/core-deck/index.ts';
@@ -42,7 +42,7 @@ export async function loadDeck(name: string, base = 'decks'): Promise<Deck> {
     const url = fileUrl(new URL(p, root).href);
     const mod = (await import(/* @vite-ignore */ url)) as { default?: unknown };
     if (!mod.default) throw new Error(`plugin ${p}: no default export`);
-    const plugin = toPlugin(mod.default, p);
+    const plugin = asPlugin(mod.default, p);
     registry.use(plugin);
     // a tree-sitter grammar a plugin brings: the wasm is relative to the plugin file
     for (const l of plugin.languages ?? []) if (l.wasm) registerLanguage(l.name, l.tags, new URL(l.wasm, url).href);

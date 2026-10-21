@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { check } from '../src/kernel/check';
 import { createRegistry, PluginError } from '../src/kernel/registry';
 import { definePlugin } from '../src/kernel/index';
-import { toPlugin } from '../src/kernel/legacy';
 import { loadRegistry } from '../src/node/loader';
 import { stockRegistry } from '../src/plugins/index';
 import { leaves, one } from './helpers';
@@ -46,14 +45,6 @@ describe('plugin nodes', () => {
   });
   it('an unknown node is an error', () => {
     expect(() => one('slide { nothing }')).toThrow(/unknown node/);
-  });
-});
-
-describe('plugins of the first format', () => {
-  it('tags become nodes: the doc, the attributes, the render', () => {
-    const p = toPlugin({ name: 'old', tags: { chip: { doc: 'A chip.', attrs: { tone: { doc: 'its tone' } }, render: () => 'c' } } }, 'old');
-    expect(p.nodes!.chip).toMatchObject({ doc: 'A chip.', part: true, props: { tone: { doc: 'its tone' } } });
-    expect(typeof p.nodes!.chip.render).toBe('function');
   });
 });
 

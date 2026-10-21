@@ -1,5 +1,5 @@
 // Small helpers for the plugins' `lower`: reading the arguments, flags and properties of a node.
-import type { KNode, KValue, LowerCtx } from './types.ts';
+import type { KNode, KValue, LowerCtx, Plugin } from './types.ts';
 
 export const str = (v: KValue | undefined): string | undefined => (v === undefined || v === null ? undefined : String(v));
 
@@ -24,4 +24,6 @@ export function layoutProps(n: KNode): Record<string, unknown> {
   return o;
 }
 
-export const truthy = (v: unknown) => v === true || /^(true|yes|on|1)$/i.test(String(v ?? ''));
+
+/** a module's default export as a plugin: named after the file when it has no name */
+export const asPlugin = (mod: unknown, fallbackName: string): Plugin => ({ ...(mod as Plugin), name: (mod as Plugin)?.name ?? fallbackName });

@@ -75,7 +75,7 @@ function compileSlide(node: KNode, top: TopCtx) {
   }
   flush();
   if (!name) { name = 'default'; layout = reg.layout(name)!; }
-  const root = layout!.build(main, slots, { columns: p.columns !== undefined ? String(p.columns) : undefined, first: top.index === 0 });
+  const root = layout!.build(main, slots, { columns: p.columns !== undefined ? String(p.columns) : undefined });
   const fixed: Record<string, string> = { ...(layout!.defaults ?? {}), ...own, layout: name };
   const r = ctx.result();
   top.slides.push({

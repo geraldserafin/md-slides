@@ -71,7 +71,6 @@ export interface LayoutDef {
 
 export interface LayoutCtx {
   columns?: string;
-  first: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -186,13 +185,6 @@ export interface Program {
 export interface Step {
   slide: number;
   stage: number;
-}
-
-export interface Diagnostic {
-  file?: string;
-  line: number;
-  col: number;
-  message: string;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

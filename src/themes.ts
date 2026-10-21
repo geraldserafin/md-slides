@@ -4,7 +4,6 @@ import { fileUrl } from './files';
 export const BUILTIN_THEMES = ['dark', 'light', 'paper'];
 let themeList = [...BUILTIN_THEMES];
 
-export const themeNames = () => themeList;
 
 export function applyTheme(name: string, persist = false) {
   const valid = themeList.includes(name);

@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseKdl } from '../kernel/kdl.ts';
-import { toPlugin } from '../kernel/legacy.ts';
+import { asPlugin } from '../kernel/util.ts';
 import type { Plugin, Registry } from '../kernel/types.ts';
 import { deckFromNode } from '../plugins/core-deck/index.ts';
 import { stockRegistry } from '../plugins/index.ts';
@@ -67,12 +67,12 @@ export async function loadRegistry(dir: string): Promise<{ registry: Registry; p
     if (!p) { problems.push(`plugin not found: ${e}`); continue; }
     try {
       // an npm plugin may describe its nodes as data in package.json: no code runs
-      if (p.description?.nodes || p.description?.tags) {
-        registry.use(toPlugin({ name: e, nodes: p.description.nodes, tags: p.description.tags }, e));
+      if (p.description?.nodes) {
+        registry.use({ name: e, nodes: p.description.nodes });
         continue;
       }
       const mod = await import(pathToFileURL(p.file).href);
-      registry.use(toPlugin(mod.default, e));
+      registry.use(asPlugin(mod.default, e));
     } catch (err) {
       problems.push(`plugin ${e} could not be loaded here: ${(err as Error).message}`);
     }
