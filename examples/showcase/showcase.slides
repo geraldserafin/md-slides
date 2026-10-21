@@ -21,15 +21,6 @@ slide {
           return sum;
         }
         """#
-      code "typescript" id=g1 #"""
-        function total(items: number[]) {
-          const sum = 0;
-          for (const x of items) {
-            sum += x;
-          }
-          return sum;
-        }
-        """#
       code "typescript" #"""
         function total(items: number[]) {
           const sum = items.reduce(
